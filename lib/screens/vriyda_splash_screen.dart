@@ -38,7 +38,7 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3200),
+      duration: const Duration(milliseconds: 4000),
     );
 
     _controller.forward();
@@ -46,7 +46,12 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
     if (widget.autoNavigate) {
       _controller.addStatusListener((status) {
         if (status == AnimationStatus.completed && !_hasNavigated) {
-          _navigateToLogin();
+          // Allow the complete animated splash screen with counters & particles to be fully enjoyed
+          Future.delayed(const Duration(milliseconds: 2500), () {
+            if (mounted && !_hasNavigated) {
+              _navigateToLogin();
+            }
+          });
         }
       });
     }
@@ -227,9 +232,49 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
                                   ),
                                 ),
 
-                                // Footer at bottom
-                                AnimatedFooter(
-                                  progress: footerProgress,
+                                // Footer at bottom with Get Started / Sign In link
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    AnimatedFooter(
+                                      progress: footerProgress,
+                                    ),
+                                    Opacity(
+                                      opacity: footerProgress,
+                                      child: GestureDetector(
+                                        onTap: _navigateToLogin,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF4F46E5).withValues(alpha: 0.35),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: const Color(0xFF818CF8).withValues(alpha: 0.5),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: const [
+                                              Text(
+                                                'Sign in',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              SizedBox(width: 4),
+                                              Icon(
+                                                Icons.arrow_forward_rounded,
+                                                color: Colors.white,
+                                                size: 14,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             );

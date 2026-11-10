@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/auth_service.dart';
+import '../services/session_manager.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/animated_grid.dart';
 import '../widgets/floating_particles.dart';
+import '../widgets/forgot_password_dialog.dart';
+import 'chairman_dashboard_screen.dart';
+import 'change_password_screen.dart';
 
-/// Pixel-perfect Flutter replica of the Stitch role-based web/mobile login screen.
-/// Features:
-/// - Atmospheric ambient background with orbs & particles
-/// - Top App Header with Est. 2026 status pill and Version 1.0 badge
-/// - Rounded brand logo container with geometric campus icon
-/// - Frosted glass card with "UNIVERSAL PORTAL", "Welcome back."
-/// - Clean floating-label text inputs for Username and Password
-/// - Toggle password visibility, Remember device checkbox, Forgot password link
-/// - Gradient CTA button with tactile tap animation
-/// - Footer with Contact support and copyright
+/// Pixel-perfect Flutter replica of the Stitch role-based web/mobile login screen
+/// connected to real Vriyda Mobile API (Part A - Login, Refresh, Profile, Forgot Password, Change Password).
 class VriydaLoginScreen extends StatefulWidget {
   const VriydaLoginScreen({super.key});
 
@@ -23,13 +20,14 @@ class VriydaLoginScreen extends StatefulWidget {
 
 class _VriydaLoginScreenState extends State<VriydaLoginScreen>
     with SingleTickerProviderStateMixin {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool _obscurePassword = true;
   bool _rememberDevice = true;
   bool _isLoading = false;
+  String? _errorMessage;
 
   late final AnimationController _cardEntranceController;
   late final Animation<double> _cardScaleAnimation;
@@ -67,41 +65,89 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
     );
 
     _cardEntranceController.forward();
+    _checkSavedSession();
+  }
+
+  void _checkSavedSession() async {
+    final session = await SessionManager.getSession();
+    if (session != null && mounted) {
+      _emailController.text = session.email;
+    }
   }
 
   @override
   void dispose() {
     _cardEntranceController.dispose();
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _handleSignIn() {
-    HapticFeedback.lightImpact();
-    setState(() => _isLoading = true);
+  Future<void> _handleSignIn() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
 
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _errorMessage = 'Please enter both email/username and password');
+      return;
+    }
+
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final res = await AuthService.login(email: email, password: password);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (res.success && res.data != null) {
+      final user = res.data!;
+
+      // Check if user must change password first
+      if (user.mustChangePassword) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => ChangePasswordScreen(user: user),
+          ),
+        );
+        return;
+      }
+
+      // If user is owner / chairman, open Chairman Dashboard
+      if (user.isOwner) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => ChairmanDashboardScreen(user: user),
+          ),
+        );
+        return;
+      }
+
+      // Other roles: Show success confirmation
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: const Color(0xFF4F46E5),
+          backgroundColor: const Color(0xFF10B981),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Row(
-            children: const [
-              Icon(Icons.check_circle_outline, color: Colors.white),
-              SizedBox(width: 10),
-              Text(
-                'Authenticated successfully. Welcome to Vriyda!',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
+          content: Text('Logged in as ${user.name} (${user.role})'),
         ),
       );
-    });
+    } else {
+      setState(() => _errorMessage = res.message);
+    }
+  }
+
+  void _openForgotPassword() {
+    HapticFeedback.selectionClick();
+    showDialog(
+      context: context,
+      builder: (_) => ForgotPasswordDialog(
+        initialEmail: _emailController.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -127,7 +173,7 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
                         // Top App Header
                         _buildTopHeader(),
 
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 24),
 
                         // Main Authentication Card
                         FadeTransition(
@@ -141,7 +187,7 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
                           ),
                         ),
 
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 24),
 
                         // Footer
                         _buildFooter(),
@@ -290,7 +336,7 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
   Widget _buildLoginCard() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC), // Crisp ultra-light SaaS card
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
@@ -309,7 +355,7 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
           width: 1.5,
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
       child: Form(
         key: _formKey,
         child: Column(
@@ -336,11 +382,41 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
               ),
             ),
 
-            const SizedBox(height: 24),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(
+                          color: Color(0xFFDC2626),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
-            // Username Field
+            const SizedBox(height: 20),
+
+            // Username / Email Field
             TextFormField(
-              controller: _usernameController,
+              controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               style: const TextStyle(
                 color: Color(0xFF0F172A),
@@ -348,7 +424,7 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
                 fontSize: 14.5,
               ),
               decoration: InputDecoration(
-                labelText: 'Username',
+                labelText: 'Username or Email',
                 labelStyle: const TextStyle(
                   color: Color(0xFF64748B),
                   fontSize: 13.5,
@@ -430,9 +506,7 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
               child: Padding(
                 padding: const EdgeInsets.only(top: 8.0, bottom: 6.0),
                 child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                  },
+                  onTap: _openForgotPassword,
                   child: const Text(
                     'Forgot password?',
                     style: TextStyle(

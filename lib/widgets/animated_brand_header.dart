@@ -208,28 +208,27 @@ class _HomeIconPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
 
     final path = Path();
-    // Modern campus roof & house outline matching reference icon
-    // Roof peak
-    path.moveTo(size.width * 0.12, size.height * 0.48);
-    path.lineTo(size.width * 0.50, size.height * 0.16);
-    path.lineTo(size.width * 0.88, size.height * 0.48);
+    // Continuous stroke: Roof left -> Roof apex -> Roof right -> Right wall -> Floor right -> Inner door right -> Door top -> Inner door left -> Floor left -> Left wall -> Roof left
+    path.moveTo(size.width * 0.15, size.height * 0.46);
+    path.lineTo(size.width * 0.50, size.height * 0.18);
+    path.lineTo(size.width * 0.85, size.height * 0.46);
+    path.lineTo(size.width * 0.80, size.height * 0.46);
+    path.lineTo(size.width * 0.80, size.height * 0.82);
+    path.lineTo(size.width * 0.58, size.height * 0.82);
+    path.lineTo(size.width * 0.58, size.height * 0.58);
+    path.lineTo(size.width * 0.42, size.height * 0.58);
+    path.lineTo(size.width * 0.42, size.height * 0.82);
+    path.lineTo(size.width * 0.20, size.height * 0.82);
+    path.lineTo(size.width * 0.20, size.height * 0.46);
+    path.close();
 
-    // Left wall and floor
-    path.moveTo(size.width * 0.22, size.height * 0.40);
-    path.lineTo(size.width * 0.22, size.height * 0.84);
-    path.lineTo(size.width * 0.42, size.height * 0.84);
-
-    // Doorway
-    path.lineTo(size.width * 0.42, size.height * 0.60);
-    path.lineTo(size.width * 0.58, size.height * 0.60);
-    path.lineTo(size.width * 0.58, size.height * 0.84);
-
-    // Right wall
-    path.lineTo(size.width * 0.78, size.height * 0.84);
-    path.lineTo(size.width * 0.78, size.height * 0.40);
+    if (progress >= 0.98) {
+      canvas.drawPath(path, paint);
+      return;
+    }
 
     // Extract path metrics according to progress
-    final pathMetrics = path.computeMetrics();
+    final pathMetrics = path.computeMetrics().toList();
     final drawPath = Path();
 
     double totalLength = 0;
