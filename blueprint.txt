@@ -1,0 +1,152 @@
+# ==============================================================================
+# VRIYDA PORTAL - DEVELOPMENT BLUEPRINT & CONVERSATION AUDIT TRAIL
+# ==============================================================================
+
+This log records every developer prompt, changed files, rationale, and implementation details for complete traceability across development phases.
+
+--------------------------------------------------------------------------------
+SESSION RECORD: 2026-11-10 to 2026-11-11
+--------------------------------------------------------------------------------
+
+[ENTRY #1]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "i wil give overview about this project once analyze the attached pdf"
+- PURPOSE OF CHANGES:
+  Initial architecture discovery and institutional system mapping from the official Vriyda School Management System Application Flow specification (v1.0).
+- CHANGED / INSPECTED FILES:
+  • Vriyda School Management System PDF (Analyzed all 13 roles and 18 core modules).
+- SUMMARY OF ACTIONS:
+  Summarized organization hierarchy (Trust -> Branches -> Academic Terms -> Classes -> Sections -> Subjects -> Students/Parents), 13 roles, and 18 modules (Admissions, SIS, Timetable, Exams, HR & Payroll, Fees, Store, Transport, etc.).
+
+--------------------------------------------------------------------------------
+
+[ENTRY #2]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "need to create git repo for this project with decription"
+- PURPOSE OF CHANGES:
+  Initialize Git version control for the Flutter application and create comprehensive documentation.
+- CHANGED / CREATED FILES:
+  • README.md (Created: full technical & functional architecture document)
+  • pubspec.yaml (Updated: project description)
+- SUMMARY OF ACTIONS:
+  Initialized Git repository on main, documented all 13 user roles and 18 modules, setup initial commit.
+
+--------------------------------------------------------------------------------
+
+[ENTRY #3]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "take the access and push the code by creating repo"
+- PURPOSE OF CHANGES:
+  Create remote repository on GitHub under user account NaveenDevG and push initial commit.
+- CHANGED / CREATED FILES:
+  • Remote configuration (GitHub: https://github.com/NaveenDevG/Vriyda.git)
+- SUMMARY OF ACTIONS:
+  Authenticated with GitHub CLI (`gh`), created private repo `Vriyda`, pushed initial base branch.
+
+--------------------------------------------------------------------------------
+
+[ENTRY #4]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "Build a Premium Animated Flutter Splash Screen – Vriyda Portal
+   Act as a senior Flutter developer and premium UI/UX motion designer.
+   I want you to build a completely polished, visually impressive and highly animated splash screen...
+   and also after 3 seconds it should open the attached login screen which designed in stitch for attached code and design @code.html"
+- PURPOSE OF CHANGES:
+  Build a cinematic animated Flutter splash screen following enterprise SaaS and fintech standards with 3-second coordinated animation sequence and transition to the Universal Portal login screen.
+- CHANGED / CREATED FILES:
+  • lib/main.dart (Configured VriydaPortalApp theme and splash initial screen)
+  • lib/screens/vriyda_splash_screen.dart (Orchestrated sequence, staggered timers, navigation)
+  • lib/screens/vriyda_login_screen.dart (Stitch code.html replica with frosted card, floating labels)
+  • lib/widgets/animated_background.dart (Ambient purple/indigo lighting, radial gradient mesh)
+  • lib/widgets/animated_grid.dart (VriydaAnimatedGrid: square grid with light sweep)
+  • lib/widgets/floating_particles.dart (Subtle floating micro-orbs)
+  • lib/widgets/animated_brand_header.dart (Self-drawing home icon via path metrics, specular ring)
+  • lib/widgets/animated_hero_section.dart (Eyebrow, two-line heading, description)
+  • lib/widgets/animated_statistics.dart (Count-up 0->11 roles, 0->41 modules, 0->185 screens, AA WCAG)
+  • lib/widgets/animated_footer.dart (Minimal copyright footer)
+  • test/widget_test.dart (Updated widget smoke test)
+- SUMMARY OF ACTIONS:
+  Implemented full component suite, verified with `flutter analyze` and `flutter test`, and built debug APK.
+
+--------------------------------------------------------------------------------
+
+[ENTRY #5]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "run project inemulator"
+- PURPOSE OF CHANGES:
+  Boot local Android Virtual Device (AVD) and launch the Flutter app on the emulator.
+- CHANGED / INSPECTED FILES:
+  • Android emulator (`emulator-5554` - Pixel 4a)
+- SUMMARY OF ACTIONS:
+  Launched Pixel_4a emulator using `flutter emulators --launch`, connected adb daemon, and deployed application.
+
+--------------------------------------------------------------------------------
+
+[ENTRY #6]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "Vriyda Mobile API — Login & Chairman
+   Nov 10, 2026 · @Sai Purushotham Gude
+   ...analyze the below apis and integrate for login"
+- PURPOSE OF CHANGES:
+  Integrate real production/dev REST APIs for Authentication, Token Refresh, Password Reset, and Chairman Dashboard into the Flutter app.
+- CHANGED / CREATED FILES:
+  • pubspec.yaml (Added `http` and `shared_preferences` dependencies)
+  • lib/services/api_config.dart (Base URL: https://devportal.innovorex.co.in/api, headers, endpoints)
+  • lib/services/session_manager.dart (Local session persistence for token, refresh token, role)
+  • lib/services/auth_service.dart (Login, auto-refresh on 401, profile, forgot-pwd OTP, reset-pwd)
+  • lib/screens/vriyda_login_screen.dart (Connected live form submit to AuthService)
+  • lib/widgets/forgot_password_dialog.dart (3-step modal dialog for OTP verification & new password)
+  • lib/screens/change_password_screen.dart (Forced first-login password change)
+  • lib/screens/chairman_dashboard_screen.dart (Initial Chairman view wired to GET /owner-dashboard)
+- SUMMARY OF ACTIONS:
+  Full API integration with network error handling, input validation, token caching, and role redirection.
+
+--------------------------------------------------------------------------------
+
+[ENTRY #7]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "ok but not getting splash screen when launching the app"
+- PURPOSE OF CHANGES:
+  Ensure the animated splash screen is clearly displayed on cold launch without native white flash, and remains visible until the user decides to navigate to the login screen.
+- CHANGED / CREATED FILES:
+  • android/app/src/main/res/values/colors.xml (Added `launch_bg` #14173E)
+  • android/app/src/main/res/drawable/launch_background.xml (Eliminated native white screen flash)
+  • lib/main.dart (Set `autoNavigate: false` on splash screen)
+  • lib/screens/vriyda_splash_screen.dart (Added "Sign in ->" button and screen tap listener)
+  • lib/widgets/animated_brand_header.dart (Refined continuous stroke drawing for campus home icon)
+- SUMMARY OF ACTIONS:
+  Eliminated Android OS white window flash during app initialization; user can now view the animated splash screen with moving grid, counters, particles, and tap to enter login screen. Verified via screencap.
+
+--------------------------------------------------------------------------------
+
+[ENTRY #8]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "@[/Users/apple/Downloads/code.html] @[/Users/apple/Downloads/stitch_remix_of_remix_of_remix_of_remix_of_remix_of_remix_of_remix_of_remix_of_remix (1)/DESIGN.md] use given files for chairman dahboards adn menu and options"
+- PURPOSE OF CHANGES:
+  Implement the full Chairman Dashboard and Rotary Arc Menu exactly as specified in the Stitch HTML code, DESIGN.md specs, and uploaded reference screenshot.
+- CHANGED / CREATED FILES:
+  • lib/widgets/radial_arc_menu.dart (Created: Interactive rotary wheel menu with swipe-to-rotate, glowing orbital buttons, concentric tracks, and morphing trigger FAB)
+  • lib/screens/chairman_dashboard_screen.dart (Rebuilt: Brand header with live pill, 8 horizontal navigation tabs, 4-card timed circular carousel, exception-first critical alerts, branch fee collection progress rankings, and sub-views for Branch Tree and Student 360)
+- SUMMARY OF ACTIONS:
+  Implemented the rotary arc navigation wheel with touch pan gesture controls, built the executive dashboard with DESIGN.md color palette and typography, verified via `flutter analyze`, and installed on the emulator.
+
+--------------------------------------------------------------------------------
+
+[ENTRY #9]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "add today chat prompting ion blueprint.txt file by creating that when i m giving eveyr prompt it should add my username prome given and repsonse chanhged filed and purpose of changes and also commit and push code to phase1 branch not main"
+- PURPOSE OF CHANGES:
+  Establish automated audit logging in `blueprint.txt` tracking user prompts, changed files, and rationale, create the `phase1` branch, and push all commits to `phase1`.
+- CHANGED / CREATED FILES:
+  • blueprint.txt (Created: Comprehensive chronological prompt audit log)
+- SUMMARY OF ACTIONS:
+  Created `blueprint.txt`, switched repository branch to `phase1`, and prepared push to `origin phase1`.
