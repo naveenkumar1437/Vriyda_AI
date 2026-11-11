@@ -175,75 +175,77 @@ class _RadialArcMenuState extends State<RadialArcMenu>
       animation: _animController,
       builder: (context, _) {
         final progress = _animController.value;
-        if (progress <= 0.0 && !widget.isOpen) {
-          return _buildFabButton();
-        }
 
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            // Dark Frosted Backdrop
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: widget.onToggle,
-                child: Opacity(
-                  opacity: _fadeAnimation.value * 0.72,
-                  child: Container(
-                    color: const Color(0xFF0F172A),
+            // Dark Frosted Backdrop when open
+            if (progress > 0.0)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: widget.onToggle,
+                  child: Opacity(
+                    opacity: _fadeAnimation.value * 0.72,
+                    child: Container(
+                      color: const Color(0xFF0F172A),
+                    ),
                   ),
                 ),
               ),
-            ),
 
             // Concentric Orbit Guide Arcs
-            Positioned(
-              bottom: 24,
-              right: 24,
-              child: CustomPaint(
-                size: const Size(400, 400),
-                painter: _OrbitGuidePainter(progress: progress),
+            if (progress > 0.0)
+              Positioned(
+                bottom: 24,
+                right: 24,
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    size: const Size(400, 400),
+                    painter: _OrbitGuidePainter(progress: progress),
+                  ),
+                ),
               ),
-            ),
 
             // Rotary Wheel Items
-            Positioned(
-              bottom: 24,
-              right: 24,
-              child: Transform.scale(
-                scale: 0.4 + (0.6 * _expandAnimation.value),
-                alignment: Alignment.bottomRight,
-                child: Opacity(
-                  opacity: progress.clamp(0.0, 1.0),
-                  child: GestureDetector(
-                    onPanStart: (details) {
-                      _dragStartAngle = math.atan2(
-                        details.localPosition.dy,
-                        details.localPosition.dx,
-                      );
-                      _dragStartRotation = _wheelRotationAngle;
-                    },
-                    onPanUpdate: (details) {
-                      final currentAngle = math.atan2(
-                        details.localPosition.dy,
-                        details.localPosition.dx,
-                      );
-                      setState(() {
-                        _wheelRotationAngle =
-                            _dragStartRotation + (currentAngle - _dragStartAngle);
-                      });
-                    },
-                    child: SizedBox(
-                      width: 480,
-                      height: 480,
-                      child: Stack(
-                        alignment: Alignment.bottomRight,
-                        children: _buildOrbitalItems(),
+            if (progress > 0.0)
+              Positioned(
+                bottom: 24,
+                right: 24,
+                child: Transform.scale(
+                  scale: 0.4 + (0.6 * _expandAnimation.value),
+                  alignment: Alignment.bottomRight,
+                  child: Opacity(
+                    opacity: progress.clamp(0.0, 1.0),
+                    child: GestureDetector(
+                      onPanStart: (details) {
+                        _dragStartAngle = math.atan2(
+                          details.localPosition.dy,
+                          details.localPosition.dx,
+                        );
+                        _dragStartRotation = _wheelRotationAngle;
+                      },
+                      onPanUpdate: (details) {
+                        final currentAngle = math.atan2(
+                          details.localPosition.dy,
+                          details.localPosition.dx,
+                        );
+                        setState(() {
+                          _wheelRotationAngle =
+                              _dragStartRotation + (currentAngle - _dragStartAngle);
+                        });
+                      },
+                      child: SizedBox(
+                        width: 480,
+                        height: 480,
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: _buildOrbitalItems(),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
 
             // Swipe to Rotate Hint Badge
             if (progress > 0.5)
@@ -293,7 +295,7 @@ class _RadialArcMenuState extends State<RadialArcMenu>
                 ),
               ),
 
-            // The Bottom-Right Trigger FAB
+            // Always Visible Floating Action Button (Fixed Bottom Right)
             Positioned(
               bottom: 24,
               right: 24,
