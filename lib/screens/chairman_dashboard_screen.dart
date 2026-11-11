@@ -140,14 +140,16 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             ),
 
             // 3. Radial Arc Wheel Menu Layer (Overlay & Trigger FAB)
-            RadialArcMenu(
-              isOpen: _isArcMenuOpen,
-              onToggle: () {
-                setState(() => _isArcMenuOpen = !_isArcMenuOpen);
-              },
-              onItemSelected: (selectedId) {
-                _switchView(selectedId);
-              },
+            Positioned.fill(
+              child: RadialArcMenu(
+                isOpen: _isArcMenuOpen,
+                onToggle: () {
+                  setState(() => _isArcMenuOpen = !_isArcMenuOpen);
+                },
+                onItemSelected: (selectedId) {
+                  _switchView(selectedId);
+                },
+              ),
             ),
           ],
         ),

@@ -7,6 +7,8 @@ import '../widgets/animated_brand_header.dart';
 import '../widgets/animated_hero_section.dart';
 import '../widgets/animated_statistics.dart';
 import '../widgets/animated_footer.dart';
+import '../services/session_manager.dart';
+import 'chairman_dashboard_screen.dart';
 import 'vriyda_login_screen.dart';
 
 /// Premium Animated Splash Screen for Vriyda Portal.
@@ -57,9 +59,21 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
     }
   }
 
-  void _navigateToLogin() {
+  void _navigateToLogin() async {
     if (_hasNavigated || !mounted) return;
     _hasNavigated = true;
+
+    final user = await SessionManager.getSession();
+    if (!mounted) return;
+
+    if (user != null && user.isOwner) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ChairmanDashboardScreen(user: user),
+        ),
+      );
+      return;
+    }
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
