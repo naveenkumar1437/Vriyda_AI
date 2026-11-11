@@ -407,6 +407,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       {'id': 'view-overview', 'label': 'Overview', 'icon': Icons.dashboard_outlined},
       {'id': 'view-branches', 'label': 'Branch Tree', 'icon': Icons.account_tree_outlined},
       {'id': 'view-users', 'label': 'Users', 'icon': Icons.people_outline},
+      {'id': 'view-attendance', 'label': 'Attendance', 'icon': Icons.fact_check_outlined},
       {'id': 'view-lookup', 'label': 'Student Lookup', 'icon': Icons.search_rounded},
       {'id': 'view-finance', 'label': 'Finance & Fees', 'icon': Icons.account_balance_wallet_outlined},
       {'id': 'view-growth', 'label': 'Growth & Admissions', 'icon': Icons.trending_up_rounded},
@@ -2544,25 +2545,300 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildAttendanceView() {
+    final dummyBranches = [
+      {
+        'name': 'Steel Plant Branch',
+        'studentPct': 93.1,
+        'studentPresent': 391,
+        'studentRoster': 420,
+        'studentAbsent': 22,
+        'studentLeave': 7,
+        'staffPct': 93.3,
+        'staffPresent': 42,
+        'staffRoster': 45,
+      },
+      {
+        'name': 'Gachibowli Campus',
+        'studentPct': 94.8,
+        'studentPresent': 360,
+        'studentRoster': 380,
+        'studentAbsent': 14,
+        'studentLeave': 6,
+        'staffPct': 95.2,
+        'staffPresent': 40,
+        'staffRoster': 42,
+      },
+      {
+        'name': 'Kondapur Branch',
+        'studentPct': 89.6,
+        'studentPresent': 278,
+        'studentRoster': 310,
+        'studentAbsent': 24,
+        'studentLeave': 8,
+        'staffPct': 91.4,
+        'staffPresent': 32,
+        'staffRoster': 35,
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Campus Attendance',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFEFF),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFA5F3FC)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.fact_check_rounded, color: Color(0xFF0891B2), size: 13),
+                        SizedBox(width: 4),
+                        Text(
+                          'DUMMY PREVIEW',
+                          style: TextStyle(
+                            color: Color(0xFF0891B2),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Group-wide student & staff daily attendance snapshot across branches.',
+                style: TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildAttendanceStatTile(
+                      label: 'Students Present',
+                      value: '92.4%',
+                      subtext: '1,029 / 1,110',
+                      color: const Color(0xFF10B981),
+                      bgColor: const Color(0xFFECFDF5),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildAttendanceStatTile(
+                      label: 'Staff Present',
+                      value: '93.4%',
+                      subtext: '114 / 122',
+                      color: const Color(0xFF7C3AED),
+                      bgColor: const Color(0xFFF5F3FF),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildAttendanceStatTile(
+                      label: 'Absent Today',
+                      value: '60',
+                      subtext: 'Students across 3 branches',
+                      color: const Color(0xFFEF4444),
+                      bgColor: const Color(0xFFFEF2F2),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildAttendanceStatTile(
+                      label: 'On Leave',
+                      value: '21',
+                      subtext: 'Approved leaves',
+                      color: const Color(0xFFF59E0B),
+                      bgColor: const Color(0xFFFFFBEB),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Branch Breakdown',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...dummyBranches.map((branch) {
+                final studentPct = branch['studentPct'] as double;
+                final staffPct = branch['staffPct'] as double;
+                final isLow = studentPct < 90.0;
+                final barColor = isLow ? const Color(0xFFF59E0B) : const Color(0xFF10B981);
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              branch['name'] as String,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${studentPct.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              color: barColor,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: (studentPct / 100).clamp(0.0, 1.0),
+                          minHeight: 6,
+                          backgroundColor: const Color(0xFFE2E8F0),
+                          valueColor: AlwaysStoppedAnimation<Color>(barColor),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 4,
+                        children: [
+                          Text(
+                            'Students: ${branch['studentPresent']}/${branch['studentRoster']}',
+                            style: const TextStyle(color: Color(0xFF475569), fontSize: 11),
+                          ),
+                          Text(
+                            'Absent: ${branch['studentAbsent']}',
+                            style: const TextStyle(color: Color(0xFFEF4444), fontSize: 11),
+                          ),
+                          Text(
+                            'Leave: ${branch['studentLeave']}',
+                            style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 11),
+                          ),
+                          Text(
+                            'Staff: ${branch['staffPresent']}/${branch['staffRoster']} (${staffPct.toStringAsFixed(1)}%)',
+                            style: const TextStyle(color: Color(0xFF7C3AED), fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAttendanceStatTile({
+    required String label,
+    required String value,
+    required String subtext,
+    required Color color,
+    required Color bgColor,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Campus Attendance Command', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-              Icon(Icons.fact_check_rounded, color: Color(0xFF06B6D4), size: 20),
-            ],
+        children: [
+          Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: color,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          SizedBox(height: 8),
-          Text('Real-time biometric sync across all branches. Overall student attendance: 92.4%, Staff: 94.2%.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtext,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 10,
+            ),
+          ),
         ],
       ),
     );

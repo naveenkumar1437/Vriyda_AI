@@ -29,13 +29,13 @@ class _AngleSample {
 
 /// Interactive Rotating Radial / Arc Menu
 /// Elevated with:
-/// - Exact 8 Chairman options matching top horizontal scrolling bar
+/// - Exact 9 Chairman options matching top horizontal scrolling bar
 /// - Direct pointer Listener with zero-latency 60fps/120fps rotational drag
 /// - Physics-based momentum inertia deceleration and tactile snap-to-item
 /// - Tap-to-center on secondary items and tap-to-select on active item
 /// - Dashed circular orbit track CustomPainter
 /// - Active focal item enlarged with glowing double neon ring
-/// - Role status capsule ("• • CHAIRMAN") and count capsule ("⟲ 8 Modules • Swipe arc ⟳")
+/// - Role status capsule ("• • CHAIRMAN") and count capsule ("⟲ 9 Modules • Swipe arc ⟳")
 /// - Pinned bottom-right FAB with white border and morphing close icon (X)
 class RadialArcMenu extends StatefulWidget {
   final bool isOpen;
@@ -65,11 +65,11 @@ class _RadialArcMenuState extends State<RadialArcMenu>
   double _snapEndAngle = 0.0;
 
   // Geometry constants
-  // 8 Chairman options matching the 8 horizontal tabs
-  static const int _totalItems = 8;
+  // 9 Chairman options matching the 9 horizontal tabs
+  static const int _totalItems = 9;
   // Natural spacing between items along the arc (≈ 21.8 deg)
   static const double _stepAngle = 0.38;
-  static const double _period = _totalItems * _stepAngle; // 8 * 0.38 = 3.04 rad
+  static const double _period = _totalItems * _stepAngle; // 9 * 0.38 = 3.42 rad
   static const double _focalAngle = -3 * math.pi / 4; // -135 deg (up-left from FAB center)
   static const double _orbitRadius = 260.0; // Radius of circular track
 
@@ -82,7 +82,7 @@ class _RadialArcMenuState extends State<RadialArcMenu>
   final List<_AngleSample> _recentSamples = [];
   int _lastActiveIndex = 0;
 
-  // 8 Chairman Options matching top horizontal tabs
+  // 9 Chairman Options matching top horizontal tabs
   final List<ArcMenuItem> _items = const [
     ArcMenuItem(
       id: 'view-overview',
@@ -106,6 +106,14 @@ class _RadialArcMenuState extends State<RadialArcMenu>
       icon: Icons.people_alt_rounded,
       primaryColor: Color(0xFF3B82F6),
       secondaryColor: Color(0xFF2563EB),
+      isFilled: false,
+    ),
+    ArcMenuItem(
+      id: 'view-attendance',
+      label: 'Attendance',
+      icon: Icons.fact_check_rounded,
+      primaryColor: Color(0xFF06B6D4),
+      secondaryColor: Color(0xFF0891B2),
       isFilled: false,
     ),
     ArcMenuItem(
@@ -505,7 +513,7 @@ class _RadialArcMenuState extends State<RadialArcMenu>
                               ),
                             ),
 
-                          // 4. Bottom Capsule Pill ("⟲ 8 Modules • Swipe arc ⟳")
+                          // 4. Bottom Capsule Pill ("⟲ 9 Modules • Swipe arc ⟳")
                           if (progress > 0.35)
                             Positioned(
                               bottom: 12,
@@ -543,7 +551,7 @@ class _RadialArcMenuState extends State<RadialArcMenu>
                                         ),
                                         SizedBox(width: 6),
                                         Text(
-                                          '8 Modules • Swipe arc',
+                                          '9 Modules • Swipe arc',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 10.5,
