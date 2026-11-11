@@ -177,3 +177,19 @@ SESSION RECORD: 2026-11-10 to 2026-11-11
   • blueprint.txt (Updated with prompt record #11)
 - SUMMARY OF ACTIONS:
   Corrected RadialArcMenu build stack so the floating trigger button and arc container stay permanently anchored at the bottom-right of the screen in the overview and other views. Verified with `flutter analyze`, rebuilt APK, installed on emulator, and pushed to `phase1`.
+
+--------------------------------------------------------------------------------
+
+[ENTRY #12]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "FYR attched one menu scrolling it should be look like and scrooling should very smooth of that arc menu.."
+- PURPOSE OF CHANGES:
+  Elevate the Rotary Arc Menu to match the uploaded reference design (`media_1794384212169_35dda9f5.png`) with physics-based smooth rotational scrolling & angular inertia, dashed circular orbit track, dynamic focal item magnification with double neon glow rings, secondary orbital buttons with custom dark pill labels, "• • CHAIRMAN" role status capsule, "⟲ 16 Modules • Swipe arc ⟳" capsule, and thick white border FAB with morphing close icon.
+- CHANGED / CREATED FILES:
+  • lib/widgets/radial_arc_menu.dart (Rebuilt: Inertial angular momentum decay simulation, auto-snapping to nearest item, tap-to-center animation, dashed circular orbit CustomPainter, dynamic focal scaling with double neon ring, dark pill badges without overflow, LayoutBuilder responsive coordinates)
+  • lib/screens/chairman_dashboard_screen.dart (Added full module views for My Classes, Attendance, Lesson Plans, My Timetable, AI Insights, Fleet Transport, Notice Board, Exams, and Staff Directory; enabled SafeArea)
+  • blueprint.txt (Updated: Audit entry #12)
+- SUMMARY OF ACTIONS:
+  Implemented angular velocity tracking, friction deceleration animation, auto-snapping to nearest item, `_DashedOrbitPainter`, responsive `LayoutBuilder` coordinate alignment, and expanded Chairman dashboard views for all 16 modules. Verified on Pixel 4a emulator with zero layout overflow, passing all analyzer tests, and pushed commits to branch `phase1`.
+

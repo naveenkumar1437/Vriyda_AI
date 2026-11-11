@@ -102,7 +102,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8FC), // Crisp SaaS Canvas from DESIGN.md
       body: SafeArea(
-        bottom: false,
         child: Stack(
           children: [
             // Main Scrollable Body
@@ -410,6 +409,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         return _buildAcademicsView();
       case 'view-operations':
         return _buildOperationsView();
+      case 'view-classes':
+        return _buildClassesView();
+      case 'view-attendance':
+        return _buildAttendanceView();
+      case 'view-lessons':
+        return _buildLessonPlansView();
+      case 'view-timetable':
+        return _buildTimetableView();
+      case 'view-ai':
+        return _buildAiInsightsView();
+      case 'view-transport':
+        return _buildTransportView();
+      case 'view-comm':
+        return _buildNoticeBoardView();
+      case 'view-exams':
+        return _buildExamsMarksView();
+      case 'view-users':
+        return _buildUsersView();
       case 'view-overview':
       default:
         return _buildOverviewContent(group, branches, alerts);
@@ -1107,6 +1124,240 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           Text('People & Operations', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           SizedBox(height: 8),
           Text('Staff requisitions, HR exits, hostel occupancy, transport tracking and procurement write-offs.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClassesView() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text('My Classes & Section Governance', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Icon(Icons.menu_book_rounded, color: Color(0xFF3B82F6), size: 20),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text('Class teacher allocations, section student strengths, active subject periods, and curriculum benchmarks.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+          const SizedBox(height: 14),
+          _buildClassSummaryCard('Grade 10 - Section A', '38 Students', 'Lead: M. S. Sharma', 'Mathematics (Live: Period 3)', const Color(0xFF3B82F6)),
+          const SizedBox(height: 10),
+          _buildClassSummaryCard('Grade 9 - Section B', '42 Students', 'Lead: Anita Deshmukh', 'Physics Lab (Room 204)', const Color(0xFF10B981)),
+          const SizedBox(height: 10),
+          _buildClassSummaryCard('Grade 8 - Section C', '36 Students', 'Lead: Raghavendra Rao', 'English Literature', const Color(0xFF7C3AED)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClassSummaryCard(String title, String count, String teacher, String status, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+              const SizedBox(height: 3),
+              Text('$count · $teacher', style: const TextStyle(color: Color(0xFF64748B), fontSize: 10.5)),
+              const SizedBox(height: 3),
+              Text(status, style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w600)),
+            ],
+          ),
+          Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttendanceView() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Campus Attendance Command', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Icon(Icons.fact_check_rounded, color: Color(0xFF06B6D4), size: 20),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text('Real-time biometric sync across all branches. Overall student attendance: 92.4%, Staff: 94.2%.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLessonPlansView() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Curriculum & Lesson Plans', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Icon(Icons.auto_stories_rounded, color: Color(0xFF10B981), size: 20),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text('Weekly syllabus coverage tracking, submitted teaching plans, and Principal approval queues.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimetableView() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Master Institutional Timetable', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Icon(Icons.calendar_month_rounded, color: Color(0xFF6366F1), size: 20),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text('Class-wise schedules, teacher proxy allocation engine, and room vacancy tracker.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiInsightsView() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Vriyda AI Intelligence Engine', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Icon(Icons.auto_awesome_rounded, color: Color(0xFFA855F7), size: 20),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text('Predictive fee defaulter risk modeling, student retention warnings, and automated teacher feedback summaries.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransportView() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('Fleet & Transport Command', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          SizedBox(height: 8),
+          Text('GPS tracking of 18 campus buses, live route ETAs, and student boarding notifications.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoticeBoardView() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('Notice Board & Circulars', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          SizedBox(height: 8),
+          Text('Instant broadcast circulars, SMS parent notifications, and staff advisory bulletins.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExamsMarksView() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('Exams, Marksheets & Grading', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          SizedBox(height: 8),
+          Text('Summative assessment schedules, GPA distribution, report card generation, and board exam tracking.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUsersView() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('Staff & Faculty Directory', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          SizedBox(height: 8),
+          Text('Institutional employee directory, department breakdown, biometric punch logs, and role permissions.', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
         ],
       ),
     );
