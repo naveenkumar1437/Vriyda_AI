@@ -98,20 +98,7 @@ class SessionManager {
         return UserSession.fromJson(map);
       } catch (_) {}
     }
-    // Return default institutional Chairman session
-    return UserSession(
-      id: 'USR-0001',
-      token: 'demo-chairman-token',
-      refreshToken: 'demo-refresh-token',
-      email: 'charan.makkuva@innovorex.co.in',
-      name: 'Charan Makkuva',
-      role: 'owner',
-      branchId: null,
-      branchName: null,
-      organizationId: 'ORG-1779945270970-5CC83094',
-      organizationName: 'Sai Ravindra School',
-      mustChangePassword: false,
-    );
+    return null;
   }
 
   static Future<void> updateTokens({required String token, String? refreshToken}) async {
