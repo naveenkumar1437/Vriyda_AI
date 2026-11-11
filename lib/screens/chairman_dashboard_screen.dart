@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,15 +32,40 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   bool _isArcMenuOpen = false;
 
   // Interactive state for Group Overview
+  int _activeKpiSet = 0;
+  Timer? _kpiTimer;
   final Set<String> _approvedItemIds = {};
   final Set<String> _acknowledgedAlertIds = {};
-  String _selectedQuadrant = 'all';
-  String _branchFilter = 'all';
 
   @override
   void initState() {
     super.initState();
     _fetchDashboard();
+    _startKpiTimer();
+  }
+
+  @override
+  void dispose() {
+    _kpiTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startKpiTimer() {
+    _kpiTimer?.cancel();
+    _kpiTimer = Timer.periodic(const Duration(seconds: 4), (t) {
+      if (!mounted) return;
+      setState(() {
+        _activeKpiSet = (_activeKpiSet + 1) % 3;
+      });
+    });
+  }
+
+  void _selectKpiSet(int index) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _activeKpiSet = index;
+    });
+    _startKpiTimer();
   }
 
   Future<void> _fetchDashboard() async {
@@ -497,12 +523,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   // --- 1. OVERVIEW CONTENT (Default) ---
+  // --- 1. OVERVIEW CONTENT (Default - Matching code.html Group Overview) ---
   Widget _buildOverviewContent(
       Map<String, dynamic>? group, List<dynamic> branches, List<dynamic> alerts) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header
+        // Section Header (code.html lines 127-138)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -513,20 +540,20 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   'Group Overview',
                   style: TextStyle(
                     color: Color(0xFF0F172A),
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.3,
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Core performance metrics across all campuses',
+                  'Executive View · Live metrics',
                   style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: const Color(0xFF0F172A),
                 borderRadius: BorderRadius.circular(20),
@@ -544,7 +571,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   SizedBox(width: 5),
                   Text(
                     'Chairman',
-                    style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.5),
                   ),
                 ],
               ),
@@ -552,202 +579,762 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           ],
         ),
 
+        const SizedBox(height: 12),
+
+        // 1. Dynamic 4-Card Rotating Circular KPI Stage (code.html lines 140-245)
+        _buildRotatingCircularKpiStage(group),
+
         const SizedBox(height: 14),
 
-        // FEATURE 1-7: Executive KPIs (Active Students, YTD Revenue, Fee Collection %, Student Attendance, Capacity Used, Critical Alerts, Staff Attendance)
-        _build7ExecutiveKPIs(group),
+        // 2. Financial Performance Area Chart & Aging (code.html lines 246-354)
+        _buildFinancialPerformanceCard(group),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
-        // FEATURE 8: Revenue vs Operating Expenses (trend)
-        _buildRevenueVsOpExTrendCard(group),
+        // 3. Branch Performance Benchmark Quick Widget (code.html lines 355-395)
+        _buildBranchBenchmarkQuickWidget(),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
-        // FEATURE 9: Performance quadrant (branch benchmarking)
+        // 4. Performance Quadrant Card (code.html lines 396-485)
         _buildPerformanceQuadrantCard(branches),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
-        // FEATURE 10: Branch comparison (health-weighted)
+        // 5. Branch Comparison Progress Bars Card (code.html lines 486-588)
         _buildBranchComparisonHealthCard(branches),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
-        // FEATURE 11: Critical alerts feed
-        _buildCriticalAlertsFeedCard(alerts),
-
-        const SizedBox(height: 16),
-
-        // FEATURE 12: Approvals queue
-        _buildApprovalsQueueCard(),
-
-        const SizedBox(height: 16),
-
-        // FEATURE 13: Admissions pipeline funnel
-        _buildAdmissionsFunnelCard(),
+        // 6. Needs Your Attention Section (code.html lines 589-798)
+        _buildNeedsYourAttentionSection(alerts),
       ],
     );
   }
 
   // ===========================================================================
-  // FEATURE 1-7: The 7 Executive KPIs
+  // SECTION 1: Dynamic 4-Card Rotating Circular KPI Stage (code.html lines 140-245)
+  // Covers KPIs: Active Students, YTD Revenue, Fee Collection %, Student Attendance,
+  // Capacity Used, Critical Alerts, Staff Attendance
   // ===========================================================================
-  Widget _build7ExecutiveKPIs(Map<String, dynamic>? group) {
-    final students = group?['students'] ?? 1240;
-    final capacity = group?['capacity'] ?? 1500;
-    final capacityUtil = group?['capacityUtil'] ?? 82.7;
-    final revenueYTD = group?['revenueYTD'] ?? 18500000;
-    final collectedYTD = group?['collectedYTD'] ?? 14200000;
-    final collectionPct = group?['collectionPct'] ?? 76.8;
-    final attendance = group?['attendance'] ?? 92.4;
+  Widget _buildRotatingCircularKpiStage(Map<String, dynamic>? group) {
+    final students = group?['students'] ?? 123;
+    final capacityUtil = group?['capacityUtil'] ?? 80.9;
+    final collectionPct = group?['collectionPct'] ?? 67.6;
+    final attendance = group?['attendance'] ?? 92.1;
     final criticalAlerts = group?['alertsCritical'] ?? 1;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Primary 4 KPIs in a 2x2 Grid
-        Row(
-          children: [
-            // KPI 1: Active Students
-            Expanded(
-              child: _buildKpiCard(
-                title: 'Active Students',
-                value: '$students',
-                sub: '$capacityUtil% of $capacity Cap',
-                badgeText: '+12% YoY',
-                icon: Icons.groups_rounded,
-                accentColor: const Color(0xFF7C3AED),
-                gradient: const [Color(0xFFFAF5FF), Colors.white],
-              ),
-            ),
-            const SizedBox(width: 10),
-            // KPI 2: YTD Revenue
-            Expanded(
-              child: _buildKpiCard(
-                title: 'YTD Revenue',
-                value: '₹${_formatCurrency(revenueYTD)}',
-                sub: '₹${_formatCurrency(collectedYTD)} Coll.',
-                badgeText: '89% Target',
-                icon: Icons.currency_rupee_rounded,
-                accentColor: const Color(0xFF059669),
-                gradient: const [Color(0xFFECFDF5), Colors.white],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            // KPI 3: Fee Collection %
-            Expanded(
-              child: _buildKpiCard(
-                title: 'Fee Collection %',
-                value: '$collectionPct%',
-                sub: '₹${_formatCurrency(group?['outstanding'] ?? 4300000)} Pending',
-                badgeText: 'Goal: 85%',
-                icon: Icons.account_balance_wallet_rounded,
-                accentColor: const Color(0xFFD97706),
-                gradient: const [Color(0xFFFFFBEB), Colors.white],
-              ),
-            ),
-            const SizedBox(width: 10),
-            // KPI 4: Student Attendance
-            Expanded(
-              child: _buildKpiCard(
-                title: 'Student Attendance',
-                value: '$attendance%',
-                sub: '${(students * (attendance / 100)).round()} Present Today',
-                badgeText: 'On-trend',
-                icon: Icons.how_to_reg_rounded,
-                accentColor: const Color(0xFF0284C7),
-                gradient: const [Color(0xFFF0F9FF), Colors.white],
-              ),
-            ),
-          ],
-        ),
+    final categories = ['Core Performance', 'Growth & People', 'Operations & Attendance'];
+    final categoryName = categories[_activeKpiSet];
 
-        const SizedBox(height: 10),
-
-        // Secondary 3 Operational KPIs (Capacity Used, Critical Alerts, Staff Attendance)
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // KPI 5: Capacity Used
-              Expanded(
-                child: _buildMiniOperationalKpi(
-                  label: 'Capacity Used',
-                  val: '$capacityUtil%',
-                  sub: '$students / $capacity Seats',
-                  icon: Icons.pie_chart_outline_rounded,
-                  color: const Color(0xFF6366F1),
-                ),
-              ),
-              Container(width: 1, height: 38, color: const Color(0xFFE2E8F0)),
-              // KPI 6: Critical Alerts
-              Expanded(
-                child: _buildMiniOperationalKpi(
-                  label: 'Critical Alerts',
-                  val: '$criticalAlerts Critical',
-                  sub: '3 Require Action',
-                  icon: Icons.warning_amber_rounded,
-                  color: const Color(0xFFE11D48),
-                ),
-              ),
-              Container(width: 1, height: 38, color: const Color(0xFFE2E8F0)),
-              // KPI 7: Staff Attendance
-              Expanded(
-                child: _buildMiniOperationalKpi(
-                  label: 'Staff Attendance',
-                  val: '94.2%',
-                  sub: '81 / 86 Faculty Active',
-                  icon: Icons.badge_outlined,
-                  color: const Color(0xFF0D9488),
-                ),
-              ),
-            ],
-          ),
-        ),
+    // Card definitions for the 3 sets (Exactly 4 circular cards per set)
+    final List<List<Map<String, dynamic>>> sets = [
+      // SET 1: Core Performance
+      [
+        {
+          'label': 'STUDENTS',
+          'value': '$students',
+          'badge': '+12%',
+          'badgeColor': const Color(0xFF059669),
+          'badgeBg': const Color(0xFFECFDF5),
+          'valColor': const Color(0xFF0F172A),
+        },
+        {
+          'label': 'REVENUE',
+          'value': '₹1.4 Cr',
+          'badge': '89%',
+          'badgeColor': const Color(0xFF7C3AED),
+          'badgeBg': const Color(0xFFFAF5FF),
+          'valColor': const Color(0xFF7C3AED),
+        },
+        {
+          'label': 'FEES',
+          'value': '$collectionPct%',
+          'badge': '₹94.7 L',
+          'badgeColor': const Color(0xFF64748B),
+          'badgeBg': const Color(0xFFF1F5F9),
+          'valColor': const Color(0xFF0F172A),
+        },
+        {
+          'label': 'ATTEND.',
+          'value': '$attendance%',
+          'badge': 'Good',
+          'badgeColor': const Color(0xFF059669),
+          'badgeBg': const Color(0xFFECFDF5),
+          'valColor': const Color(0xFF059669),
+        },
       ],
-    );
-  }
+      // SET 2: Growth & People
+      [
+        {
+          'label': 'ALERTS',
+          'value': '$criticalAlerts Crit',
+          'badge': 'Action',
+          'badgeColor': const Color(0xFFE11D48),
+          'badgeBg': const Color(0xFFFFE4E6),
+          'valColor': const Color(0xFFE11D48),
+        },
+        {
+          'label': 'ADMISS.',
+          'value': '28',
+          'badge': 'Ph 1',
+          'badgeColor': const Color(0xFF7C3AED),
+          'badgeBg': const Color(0xFFFAF5FF),
+          'valColor': const Color(0xFF7C3AED),
+        },
+        {
+          'label': 'STAFF',
+          'value': '47',
+          'badge': '22 Open',
+          'badgeColor': const Color(0xFFD97706),
+          'badgeBg': const Color(0xFFFFFBEB),
+          'valColor': const Color(0xFF0F172A),
+        },
+        {
+          'label': 'ATTRITION',
+          'value': '4.9%',
+          'badge': '<6%',
+          'badgeColor': const Color(0xFF059669),
+          'badgeBg': const Color(0xFFECFDF5),
+          'valColor': const Color(0xFF059669),
+        },
+      ],
+      // SET 3: Operations & Attendance
+      [
+        {
+          'label': 'MARGIN',
+          'value': '35.8%',
+          'badge': 'EBITDA',
+          'badgeColor': const Color(0xFF059669),
+          'badgeBg': const Color(0xFFECFDF5),
+          'valColor': const Color(0xFF7C3AED),
+        },
+        {
+          'label': 'STU ATT.',
+          'value': '92.4%',
+          'badge': '114 In',
+          'badgeColor': const Color(0xFF64748B),
+          'badgeBg': const Color(0xFFF1F5F9),
+          'valColor': const Color(0xFF059669),
+        },
+        {
+          'label': 'STF ATT.',
+          'value': '95.7%',
+          'badge': '45 In',
+          'badgeColor': const Color(0xFF7C3AED),
+          'badgeBg': const Color(0xFFFAF5FF),
+          'valColor': const Color(0xFF0F172A),
+        },
+        {
+          'label': 'CAPACITY',
+          'value': '$capacityUtil%',
+          'badge': '$students St',
+          'badgeColor': const Color(0xFF64748B),
+          'badgeBg': const Color(0xFFF1F5F9),
+          'valColor': const Color(0xFF7C3AED),
+        },
+      ],
+    ];
 
-  Widget _buildKpiCard({
-    required String title,
-    required String value,
-    required String sub,
-    required String badgeText,
-    required IconData icon,
-    required Color accentColor,
-    required List<Color> gradient,
-  }) {
+    final currentCards = sets[_activeKpiSet];
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradient,
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0x99FAF5FF),
+            Colors.white,
+            Color(0xB2F8FAFC),
+          ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accentColor.withValues(alpha: 0.22)),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xE5EDE9FE)),
         boxShadow: [
           BoxShadow(
-            color: accentColor.withValues(alpha: 0.08),
-            blurRadius: 8,
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Pager Header & Set Selector
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    categoryName.toUpperCase(),
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFEDE9FE)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Row(
+                      children: List.generate(3, (idx) {
+                        final isSel = idx == _activeKpiSet;
+                        return GestureDetector(
+                          onTap: () => _selectKpiSet(idx),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                            width: isSel ? 9 : 7,
+                            height: isSel ? 9 : 7,
+                            decoration: BoxDecoration(
+                              color: isSel ? const Color(0xFF7C3AED) : const Color(0xFFDDD6FE),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(width: 1, height: 10, color: const Color(0xFFE2E8F0)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_activeKpiSet + 1} / 3',
+                      style: const TextStyle(
+                        color: Color(0xFF7C3AED),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // 4 Compact Circular Cards in 1 Row
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: Row(
+              key: ValueKey<int>(_activeKpiSet),
+              children: currentCards.map((c) {
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                    child: AspectRatio(
+                      aspectRatio: 1.0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xCCEDE9FE),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF7C3AED).withValues(alpha: 0.16),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              c['label'] as String,
+                              style: const TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 8,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              c['value'] as String,
+                              style: TextStyle(
+                                color: c['valColor'] as Color,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.3,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: c['badgeBg'] as Color,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: (c['badgeColor'] as Color).withValues(alpha: 0.2),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                c['badge'] as String,
+                                style: TextStyle(
+                                  color: c['badgeColor'] as Color,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Timed Progress Indicator Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: SizedBox(
+              height: 3.5,
+              child: LinearProgressIndicator(
+                value: (_activeKpiSet + 1) / 3.0,
+                backgroundColor: const Color(0xFFE2E8F0),
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // SECTION 2: Financial Performance Area Chart & Aging (code.html lines 246-354)
+  // Covers Feature: Revenue vs Operating Expenses (trend)
+  // ===========================================================================
+  Widget _buildFinancialPerformanceCard(Map<String, dynamic>? group) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFEDE9FE)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Flexible(
+                          child: Text(
+                            'Financial Performance',
+                            style: TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.5, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFAF5FF),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: const Color(0xFFEDE9FE)),
+                          ),
+                          child: const Text(
+                            'FY 2024–25',
+                            style: TextStyle(
+                              color: Color(0xFF7C3AED),
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Revenue vs Operating Expenses & Fee Realization',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.circle, color: Color(0xFF10B981), size: 5),
+                        SizedBox(width: 4),
+                        Text(
+                          'EBITDA ₹4.0 L (32%)',
+                          style: TextStyle(
+                            color: Color(0xFF065F46),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Operating Strong',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Revenue vs OpEx Chart (Cash Trajectory)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFF1F5F9)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'CASH TRAJECTORY (₹ LAKHS)',
+                      style: TextStyle(
+                        color: Color(0xFF1E293B),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Row(
+                          children: [
+                            Container(width: 10, height: 4, decoration: BoxDecoration(color: const Color(0xFF7C3AED), borderRadius: BorderRadius.circular(2))),
+                            const SizedBox(width: 4),
+                            const Text('Revenue', style: TextStyle(color: Color(0xFF475569), fontSize: 10, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                        const SizedBox(width: 10),
+                        Row(
+                          children: [
+                            Container(width: 10, height: 2, decoration: BoxDecoration(color: const Color(0xFFF43F5E), borderRadius: BorderRadius.circular(1))),
+                            const SizedBox(width: 4),
+                            const Text('OpEx', style: TextStyle(color: Color(0xFF475569), fontSize: 10, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 90,
+                  width: double.infinity,
+                  child: CustomPaint(
+                    painter: CashTrajectoryPainter(),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.only(top: 4),
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 0.8)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text('Apr', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w500)),
+                      Text('Jun', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w500)),
+                      Text('Aug', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w500)),
+                      Text('Oct', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w500)),
+                      Text('Dec', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w500)),
+                      Text('Feb', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w500)),
+                      Text('Mar', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Fee Realization Ring
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0x80FAF5FF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFEDE9FE)),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 76,
+                  height: 76,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CustomPaint(
+                        size: const Size(76, 76),
+                        painter: FeeRealizationRingPainter(
+                          collectedPct: 67.6,
+                          duePct: 18.9,
+                          overduePct: 13.5,
+                        ),
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            '67.6%',
+                            style: TextStyle(
+                              color: Color(0xFF7C3AED),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Text(
+                            'REALIZED',
+                            style: TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 7.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(width: 7, height: 7, decoration: const BoxDecoration(color: Color(0xFF7C3AED), shape: BoxShape.circle)),
+                              const SizedBox(width: 6),
+                              const Text('Collected', style: TextStyle(color: Color(0xFF334155), fontSize: 10.5, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                          const Text('₹94.5 L', style: TextStyle(color: Color(0xFF7C3AED), fontSize: 11, fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(width: 7, height: 7, decoration: const BoxDecoration(color: Color(0xFFF59E0B), shape: BoxShape.circle)),
+                              const SizedBox(width: 6),
+                              const Text('Due Current', style: TextStyle(color: Color(0xFF334155), fontSize: 10.5, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                          const Text('₹26.4 L', style: TextStyle(color: Color(0xFFD97706), fontSize: 11, fontWeight: FontWeight.w800)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(width: 7, height: 7, decoration: const BoxDecoration(color: Color(0xFFF43F5E), shape: BoxShape.circle)),
+                              const SizedBox(width: 6),
+                              const Text('Overdue', style: TextStyle(color: Color(0xFF334155), fontSize: 10.5, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                          const Text('₹19.1 L', style: TextStyle(color: Color(0xFFE11D48), fontSize: 11, fontWeight: FontWeight.w800)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Receivables Aging
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text(
+                'RECEIVABLES AGING',
+                style: TextStyle(
+                  color: Color(0xFF1E293B),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.6,
+                ),
+              ),
+              Text(
+                '₹45.5 L Total',
+                style: TextStyle(color: Color(0xFF64748B), fontSize: 9.5, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              _buildAgingBox('0–30 D', '₹18.7 L', '41.1%', const Color(0xFF059669), const Color(0xFFF8FAFC)),
+              const SizedBox(width: 6),
+              _buildAgingBox('31–60 D', '₹12.3 L', '27.0%', const Color(0xFFD97706), const Color(0xFFF8FAFC)),
+              const SizedBox(width: 6),
+              _buildAgingBox('61–90 D', '₹8.7 L', '19.1%', const Color(0xFFE11D48), const Color(0xFFF8FAFC)),
+              const SizedBox(width: 6),
+              _buildAgingBox('90+ D', '₹5.9 L', '12.8%', const Color(0xFFBE123C), const Color(0xFFFFF1F2), borderColor: const Color(0xFFFECDD3)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAgingBox(String period, String amount, String pct, Color accentColor, Color bg, {Color? borderColor}) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: borderColor ?? const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              period,
+              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 8, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              amount,
+              style: const TextStyle(color: Color(0xFF0F172A), fontSize: 10, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              pct,
+              style: TextStyle(color: accentColor, fontSize: 8, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // SECTION 3: Branch Performance Benchmark Quick Widget (code.html lines 355-395)
+  // ===========================================================================
+  Widget _buildBranchBenchmarkQuickWidget() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFEDE9FE)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -758,378 +1345,149 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: accentColor, size: 16),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  badgeText,
-                  style: TextStyle(
-                    color: accentColor,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFF0F172A),
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Color(0xFF475569),
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            sub,
-            style: TextStyle(
-              color: const Color(0xFF64748B),
-              fontSize: 9.5,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMiniOperationalKpi({
-    required String label,
-    required String val,
-    required String sub,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 12),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            val,
-            style: TextStyle(
-              color: color,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            sub,
-            style: const TextStyle(
-              color: Color(0xFF94A3B8),
-              fontSize: 8.5,
-              fontWeight: FontWeight.w600,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ===========================================================================
-  // FEATURE 8: Revenue vs Operating Expenses (Trend)
-  // ===========================================================================
-  Widget _buildRevenueVsOpExTrendCard(Map<String, dynamic>? group) {
-    final months = [
-      {'m': 'Jun', 'rev': 28.5, 'exp': 20.2},
-      {'m': 'Jul', 'rev': 34.2, 'exp': 22.8},
-      {'m': 'Aug', 'rev': 31.0, 'exp': 21.5},
-      {'m': 'Sep', 'rev': 29.8, 'exp': 22.1},
-      {'m': 'Oct', 'rev': 32.4, 'exp': 23.0},
-      {'m': 'Nov', 'rev': 29.1, 'exp': 22.4},
-    ];
-
-    const maxVal = 38.0;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Revenue vs Operating Expenses',
-                      style: TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Monthly financial trend & operating margin',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD1FAE5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  '+28.4% EBITDA',
-                  style: TextStyle(
-                    color: Color(0xFF065F46),
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Legend
-          Row(
-            children: [
-              _buildLegendDot(const Color(0xFF7C3AED), 'Revenue YTD: ₹1.85 Cr'),
-              const SizedBox(width: 14),
-              _buildLegendDot(const Color(0xFFF43F5E), 'OpEx: ₹1.32 Cr'),
-              const Spacer(),
-              Text(
-                'Surplus: +₹53 L',
-                style: const TextStyle(
-                  color: Color(0xFF10B981),
-                  fontSize: 10.5,
+              const Text(
+                'Branch Performance Benchmark',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                 ),
               ),
+              GestureDetector(
+                onTap: () => _switchView('view-branches'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFAF5FF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFEDE9FE)),
+                  ),
+                  child: const Text(
+                    'All 9 Branches →',
+                    style: TextStyle(
+                      color: Color(0xFF7C3AED),
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
-          // Monthly Dual Bar Visual Chart
-          SizedBox(
-            height: 120,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: months.map((item) {
-                final rev = item['rev'] as double;
-                final exp = item['exp'] as double;
-                final m = item['m'] as String;
-
-                final revHeight = (rev / maxVal) * 85;
-                final expHeight = (exp / maxVal) * 85;
-
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        // Revenue Bar
-                        Container(
-                          width: 14,
-                          height: revHeight,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        const SizedBox(width: 3),
-                        // OpEx Bar
-                        Container(
-                          width: 14,
-                          height: expHeight,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Color(0xFFFDA4AF), Color(0xFFF43F5E)],
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      m,
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      '₹${rev.toStringAsFixed(1)}L',
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 8,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
+          // Top 3 branches
+          _buildQuickBenchmarkItem(
+            name: 'Steel Plant Branch',
+            sub: '42 Students · 10 Faculty · ₹38.2 L Rev',
+            score: '94.2%',
+            rank: 'Rank #1',
+            isTop: true,
+          ),
+          const SizedBox(height: 6),
+          _buildQuickBenchmarkItem(
+            name: 'Gachibowli Campus',
+            sub: '38 Students · 8 Faculty · ₹34.5 L Rev',
+            score: '91.8%',
+            rank: 'Rank #2',
+            isTop: false,
+          ),
+          const SizedBox(height: 6),
+          _buildQuickBenchmarkItem(
+            name: 'Kondapur Branch',
+            sub: '24 Students · 6 Faculty · ₹22.1 L Rev',
+            score: '88.4%',
+            rank: 'Rank #3',
+            isTop: false,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLegendDot(Color color, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF475569),
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
+  Widget _buildQuickBenchmarkItem({
+    required String name,
+    required String sub,
+    required String score,
+    required String rank,
+    required bool isTop,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: isTop ? const Color(0x99FAF5FF) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isTop ? const Color(0xFFEDE9FE) : const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: const TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                sub,
+                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
+              ),
+            ],
           ),
-        ),
-      ],
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                score,
+                style: TextStyle(
+                  color: isTop ? const Color(0xFF7C3AED) : const Color(0xFF1E293B),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text(
+                rank,
+                style: TextStyle(
+                  color: isTop ? const Color(0xFF059669) : const Color(0xFF64748B),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   // ===========================================================================
-  // FEATURE 9: Performance Quadrant (Branch Benchmarking)
+  // SECTION 4: Performance Quadrant Card (code.html lines 396-485)
+  // Covers Feature: Performance quadrant (branch benchmarking)
   // ===========================================================================
   Widget _buildPerformanceQuadrantCard(List<dynamic> branches) {
-    final quadrants = [
-      {
-        'id': 'q1',
-        'title': 'Quadrant I · Stars (Leaders)',
-        'desc': 'High Collection (>78%) & High Academic Health (>85)',
-        'color': const Color(0xFF10B981),
-        'branches': [
-          {'name': 'Steel Plant Branch (STEE)', 'coll': '82.3%', 'health': '86', 'exam': '84%'},
-          {'name': 'Gachibowli Campus (GACH)', 'coll': '78.5%', 'health': '88', 'exam': '86%'},
-        ],
-      },
-      {
-        'id': 'q2',
-        'title': 'Quadrant II · Growth Potential',
-        'desc': 'High Academic Health (>80) with Collection Follow-up',
-        'color': const Color(0xFF3B82F6),
-        'branches': [
-          {'name': 'Kondapur Branch (KOND)', 'coll': '72.1%', 'health': '84', 'exam': '82%'},
-        ],
-      },
-      {
-        'id': 'q3',
-        'title': 'Quadrant III · Cash Engines',
-        'desc': 'High Fee Collection (>78%) & Moderate Academic Health',
-        'color': const Color(0xFFF59E0B),
-        'branches': [
-          {'name': 'Madhapur Campus (MADH)', 'coll': '80.2%', 'health': '76', 'exam': '75%'},
-        ],
-      },
-      {
-        'id': 'q4',
-        'title': 'Quadrant IV · Watchlist (Focus)',
-        'desc': 'Requires Chairman Intervention (Fees <75% & Health <75)',
-        'color': const Color(0xFFEF4444),
-        'branches': [
-          {'name': 'Kukatpally Campus (KUKT)', 'coll': '71.0%', 'health': '75', 'exam': '74%'},
-          {'name': 'Maddipalem Branch (MADD)', 'coll': '69.4%', 'health': '74', 'exam': '72%'},
-        ],
-      },
-    ];
-
-    final filtered = _selectedQuadrant == 'all'
-        ? quadrants
-        : quadrants.where((q) => q['id'] == _selectedQuadrant).toList();
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFEDE9FE)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -1140,38 +1498,36 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Performance Quadrant',
-                      style: TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Performance quadrant',
+                    style: TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                     ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Branch benchmarking: Collection vs Academic Health',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5),
-                    ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Collection × attendance · bubble = enrolment',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEDE9FE),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFFAF5FF),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFEDE9FE)),
                 ),
                 child: const Text(
-                  '6 Campuses',
+                  'Quadrant View',
                   style: TextStyle(
                     color: Color(0xFF7C3AED),
-                    fontSize: 9.5,
+                    fontSize: 9,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -1181,475 +1537,215 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
           const SizedBox(height: 12),
 
-          // Quadrant Selector Tabs
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
+          // Scatter Plot Container
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFF1F5F9)),
+            ),
+            child: Column(
               children: [
-                _buildFilterChip('all', 'All Quadrants'),
-                _buildFilterChip('q1', 'Stars (2)'),
-                _buildFilterChip('q2', 'Growth (1)'),
-                _buildFilterChip('q3', 'Cash (1)'),
-                _buildFilterChip('q4', 'Watchlist (2)'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text('Attendance ↑', style: TextStyle(color: Color(0xFF64748B), fontSize: 8.5, fontWeight: FontWeight.w700)),
+                    Text('TOP PERFORMERS ▲', style: TextStyle(color: Color(0xFF7C3AED), fontSize: 8.5, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                SizedBox(
+                  height: 160,
+                  width: double.infinity,
+                  child: CustomPaint(
+                    painter: PerformanceQuadrantPainter(),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Center(
+                  child: Text(
+                    'Fee collection rate →',
+                    style: TextStyle(color: Color(0xFF64748B), fontSize: 8.5, fontWeight: FontWeight.w700),
+                  ),
+                ),
               ],
             ),
           ),
 
+          const SizedBox(height: 10),
+
+          // Interactive 3-Column Legend
+          const Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              _QuadrantLegendItem(color: Color(0xFF8B5CF6), label: 'Gachibowli Campus'),
+              _QuadrantLegendItem(color: Color(0xFF059669), label: 'KBHP'),
+              _QuadrantLegendItem(color: Color(0xFF06B6D4), label: 'Kondapur Branch'),
+              _QuadrantLegendItem(color: Color(0xFFA855F7), label: 'Kukatpally Campus'),
+              _QuadrantLegendItem(color: Color(0xFFF59E0B), label: 'LB Nagar'),
+              _QuadrantLegendItem(color: Color(0xFFEF4444), label: 'Maddipalem'),
+              _QuadrantLegendItem(color: Color(0xFFC084FC), label: 'Madhapur Branch'),
+              _QuadrantLegendItem(color: Color(0xFF7C3AED), label: 'QA Test Branch'),
+              _QuadrantLegendItem(color: Color(0xFF10B981), label: 'Steel Plant Branch'),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          Container(
+            padding: const EdgeInsets.only(top: 6),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFF94A3B8), shape: BoxShape.circle)),
+                const SizedBox(width: 4),
+                const Text(
+                  'bubble size = enrolment',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 8.5, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // SECTION 5: Branch Comparison Progress Bars Card (code.html lines 486-588)
+  // Covers Feature: Branch comparison (health-weighted)
+  // ===========================================================================
+  Widget _buildBranchComparisonHealthCard(List<dynamic> branches) {
+    final branchesData = [
+      {'name': 'Steel Plant Branch', 'pct': 82, 'rev': '₹25.0 L', 'color': const Color(0xFF10B981)},
+      {'name': 'Gachibowli Campus', 'pct': 78, 'rev': '₹27.3 L', 'color': const Color(0xFF8B5CF6)},
+      {'name': 'Kondapur Branch', 'pct': 78, 'rev': '₹21.4 L', 'color': const Color(0xFF06B6D4)},
+      {'name': 'Kukatpally Campus', 'pct': 76, 'rev': '₹23.4 L', 'color': const Color(0xFFA855F7)},
+      {'name': 'Maddipalem', 'pct': 75, 'rev': '₹22.8 L', 'color': const Color(0xFFEF4444)},
+      {'name': 'Madhapur Branch', 'pct': 73, 'rev': '₹20.2 L', 'color': const Color(0xFFC084FC)},
+      {'name': 'KBHP', 'pct': 52, 'rev': '₹0.0 L', 'color': const Color(0xFF059669)},
+      {'name': 'LB Nagar', 'pct': 52, 'rev': '₹0.0 L', 'color': const Color(0xFFF59E0B)},
+      {'name': 'QA Test Branch 0708', 'pct': 52, 'rev': '₹0.0 L', 'color': const Color(0xFF7C3AED)},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFEDE9FE)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Branch comparison',
+                    style: TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Health-weighted · by branch',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: const Text(
+                  'Ranked',
+                  style: TextStyle(
+                    color: Color(0xFF065F46),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
           const SizedBox(height: 12),
 
-          // Quadrant Cards
-          ...filtered.map((quad) {
-            final quadColor = quad['color'] as Color;
-            final quadBranches = quad['branches'] as List<Map<String, String>>;
+          // 9 Branch Comparison Bar Items
+          ...branchesData.map((b) {
+            final name = b['name'] as String;
+            final pct = b['pct'] as int;
+            final rev = b['rev'] as String;
+            final color = b['color'] as Color;
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: quadColor.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: quadColor.withValues(alpha: 0.25)),
-              ),
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 9.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(color: quadColor, shape: BoxShape.circle),
-                      ),
-                      const SizedBox(width: 6),
                       Text(
-                        quad['title'] as String,
-                        style: TextStyle(
-                          color: quadColor,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w800,
+                        name,
+                        style: const TextStyle(
+                          color: Color(0xFF1E293B),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '$pct% · ',
+                              style: const TextStyle(color: Color(0xFF0F172A), fontSize: 10.5, fontWeight: FontWeight.w800),
+                            ),
+                            TextSpan(
+                              text: rev,
+                              style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w800),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 3),
-                  Text(
-                    quad['desc'] as String,
-                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 9.5),
-                  ),
-                  const SizedBox(height: 8),
-                  ...quadBranches.map((b) {
-                    return Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              b['name']!,
-                              style: const TextStyle(
-                                color: Color(0xFF0F172A),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                'Coll: ${b['coll']}',
-                                style: TextStyle(
-                                  color: quadColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  'Health ${b['health']}',
-                                  style: const TextStyle(
-                                    color: Color(0xFF475569),
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String id, String label) {
-    final isSel = _selectedQuadrant == id;
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() => _selectedQuadrant = id);
-      },
-      child: Container(
-        margin: const EdgeInsets.only(right: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: isSel ? const Color(0xFF7C3AED) : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSel ? const Color(0xFF7C3AED) : const Color(0xFFE2E8F0),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSel ? Colors.white : const Color(0xFF475569),
-            fontSize: 10,
-            fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ===========================================================================
-  // FEATURE 10: Branch Comparison (Health-Weighted)
-  // ===========================================================================
-  Widget _buildBranchComparisonHealthCard(List<dynamic> branches) {
-    final list = [
-      {
-        'rank': 1,
-        'code': 'GACH',
-        'name': 'Gachibowli Campus',
-        'health': 88,
-        'status': 'Excellent',
-        'statusColor': const Color(0xFF059669),
-        'students': 380,
-        'capacity': 420,
-        'revenue': '₹58.5 L',
-        'due': '₹9.2 L',
-        'collectionPct': 86.4,
-        'attendance': 94.8,
-        'staffAttendance': 95.0,
-        'examIndex': 86,
-        'teachers': 24,
-      },
-      {
-        'rank': 2,
-        'code': 'STEE',
-        'name': 'Steel Plant Branch',
-        'health': 86,
-        'status': 'Good',
-        'statusColor': const Color(0xFF10B981),
-        'students': 420,
-        'capacity': 500,
-        'revenue': '₹62.0 L',
-        'due': '₹11.0 L',
-        'collectionPct': 82.3,
-        'attendance': 93.1,
-        'staffAttendance': 93.3,
-        'examIndex': 84,
-        'teachers': 28,
-      },
-      {
-        'rank': 3,
-        'code': 'KOND',
-        'name': 'Kondapur Branch',
-        'health': 84,
-        'status': 'Good',
-        'statusColor': const Color(0xFF10B981),
-        'students': 210,
-        'capacity': 250,
-        'revenue': '₹29.5 L',
-        'due': '₹11.2 L',
-        'collectionPct': 72.1,
-        'attendance': 92.0,
-        'staffAttendance': 94.0,
-        'examIndex': 82,
-        'teachers': 16,
-      },
-      {
-        'rank': 4,
-        'code': 'MADH',
-        'name': 'Madhapur Campus',
-        'health': 76,
-        'status': 'Good',
-        'statusColor': const Color(0xFF3B82F6),
-        'students': 190,
-        'capacity': 240,
-        'revenue': '₹24.0 L',
-        'due': '₹5.5 L',
-        'collectionPct': 80.2,
-        'attendance': 91.5,
-        'staffAttendance': 92.5,
-        'examIndex': 75,
-        'teachers': 14,
-      },
-      {
-        'rank': 5,
-        'code': 'KUKT',
-        'name': 'Kukatpally Campus',
-        'health': 75,
-        'status': 'Watch',
-        'statusColor': const Color(0xFFF59E0B),
-        'students': 160,
-        'capacity': 210,
-        'revenue': '₹21.0 L',
-        'due': '₹6.2 L',
-        'collectionPct': 71.0,
-        'attendance': 90.2,
-        'staffAttendance': 91.0,
-        'examIndex': 74,
-        'teachers': 12,
-      },
-      {
-        'rank': 6,
-        'code': 'MADD',
-        'name': 'Maddipalem Branch',
-        'health': 74,
-        'status': 'Watch',
-        'statusColor': const Color(0xFFEF4444),
-        'students': 180,
-        'capacity': 230,
-        'revenue': '₹22.8 L',
-        'due': '₹10.3 L',
-        'collectionPct': 69.4,
-        'attendance': 89.4,
-        'staffAttendance': 90.0,
-        'examIndex': 72,
-        'teachers': 13,
-      },
-    ];
-
-    final filtered = _branchFilter == 'all'
-        ? list
-        : _branchFilter == 'high'
-            ? list.where((b) => (b['health'] as int) >= 80).toList()
-            : list.where((b) => (b['health'] as int) < 80).toList();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Branch Comparison',
-                      style: TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: pct / 100.0,
+                      minHeight: 6,
+                      backgroundColor: const Color(0xFFF1F5F9),
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
                     ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Health-weighted benchmarking across campuses',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'Ranked 1-6',
-                  style: TextStyle(
-                    color: Color(0xFF475569),
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Filter Row
-          Row(
-            children: [
-              _buildBranchFilterPill('all', 'All Branches (6)'),
-              const SizedBox(width: 6),
-              _buildBranchFilterPill('high', 'High Health (3)'),
-              const SizedBox(width: 6),
-              _buildBranchFilterPill('action', 'Action Needed (3)'),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Ranked Branch Cards
-          ...filtered.map((b) {
-            final health = b['health'] as int;
-            final statusColor = b['statusColor'] as Color;
-            final coll = b['collectionPct'] as double;
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Column(
-                children: [
-                  // Top Line: Rank, Name, Health Badge
-                  Row(
-                    children: [
-                      Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '#${b['rank']}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              b['name'] as String,
-                              style: const TextStyle(
-                                color: Color(0xFF0F172A),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            Text(
-                              'Code: ${b['code']} · ${b['teachers']} Faculty',
-                              style: const TextStyle(color: Color(0xFF64748B), fontSize: 9.5),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                        decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.shield_outlined, color: statusColor, size: 10),
-                            const SizedBox(width: 3),
-                            Text(
-                              'Score $health · ${b['status']}',
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Metrics Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildBranchMetricItem('Students', '${b['students']}/${b['capacity']}'),
-                      _buildBranchMetricItem('Revenue', '${b['revenue']}'),
-                      _buildBranchMetricItem('Pending', '${b['due']}'),
-                      _buildBranchMetricItem('Attendance', '${b['attendance']}%'),
-                      _buildBranchMetricItem('Exam Idx', '${b['examIndex']}%'),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Fee Collection Progress Bar
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Fee Collection Pace',
-                            style: TextStyle(color: Color(0xFF64748B), fontSize: 9, fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            '$coll%',
-                            style: TextStyle(
-                              color: statusColor,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 3),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(3),
-                        child: LinearProgressIndicator(
-                          value: coll / 100,
-                          minHeight: 5,
-                          backgroundColor: const Color(0xFFE2E8F0),
-                          valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
@@ -1660,87 +1756,94 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     );
   }
 
-  Widget _buildBranchFilterPill(String id, String label) {
-    final isSel = _branchFilter == id;
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() => _branchFilter = id);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: isSel ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSel ? Colors.white : const Color(0xFF475569),
-            fontSize: 9.5,
-            fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBranchMetricItem(String label, String val) {
+  // ===========================================================================
+  // SECTION 6: Needs Your Attention Section (code.html lines 589-798)
+  // Covers Features: Critical alerts feed, Approvals queue, Admissions pipeline funnel
+  // ===========================================================================
+  Widget _buildNeedsYourAttentionSection(List<dynamic> alerts) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 8.5, fontWeight: FontWeight.w600),
+        // Section Title
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'Needs your attention',
+              style: TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              'Exception-first — the platform surfaces what\'s off-trend',
+              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5),
+            ),
+          ],
         ),
-        Text(
-          val,
-          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 10.5, fontWeight: FontWeight.w800),
-        ),
+
+        const SizedBox(height: 10),
+
+        // Card 1: Critical Alerts (code.html lines 595-648)
+        _buildCriticalAlertsFeedCard(alerts),
+
+        const SizedBox(height: 12),
+
+        // Card 2: Approvals Queue (code.html lines 649-735)
+        _buildApprovalsQueueCard(),
+
+        const SizedBox(height: 12),
+
+        // Card 3: Admissions Pipeline (code.html lines 736-798)
+        _buildAdmissionsFunnelCard(),
       ],
     );
   }
 
-  // ===========================================================================
-  // FEATURE 11: Critical Alerts Feed
-  // ===========================================================================
+  // Card 1 Component: Critical alerts
   Widget _buildCriticalAlertsFeedCard(List<dynamic> alerts) {
-    final items = [
+    final alertItems = [
       {
         'id': 'alt-1',
-        'level': 'CRITICAL',
-        'type': 'Finance',
-        'icon': Icons.payments_outlined,
-        'title': '₹11.2 L Outstanding Overdue (>60 Days)',
-        'meta': 'Kondapur Branch · 38% of billed overdue · 2h ago',
-        'tagColor': const Color(0xFFE11D48),
+        'tag': 'FINANCE',
+        'time': '2h ago',
+        'title': '₹13.2 L outstanding · 48% of billed',
+        'branch': 'Gachibowli Campus',
+        'isRose': true,
       },
       {
         'id': 'alt-2',
-        'level': 'URGENT',
-        'type': 'Transport',
-        'icon': Icons.directions_bus_outlined,
-        'title': 'Bus Delay on Route 4 (GPS Telemetry Lag)',
-        'meta': 'Kondapur Branch · 25 mins delay · 35m ago',
-        'tagColor': const Color(0xFFD97706),
+        'tag': 'FINANCE',
+        'time': '2h ago',
+        'title': '₹10.3 L outstanding · 45% of billed',
+        'branch': 'Maddipalem',
+        'isRose': true,
       },
       {
         'id': 'alt-3',
-        'level': 'URGENT',
-        'type': 'Facility',
-        'icon': Icons.apartment_outlined,
-        'title': 'Hostel Room A101 Plumbing Maintenance',
-        'meta': 'Steel Plant Branch · Team Dispatched · 3h ago',
-        'tagColor': const Color(0xFFD97706),
+        'tag': 'COMPLAINT',
+        'time': 'open',
+        'title': 'Transport: Bus delay on Route 4',
+        'branch': 'Kondapur Branch',
+        'isRose': true,
       },
       {
         'id': 'alt-4',
-        'level': 'COMPLIANCE',
-        'type': 'Regulatory',
-        'icon': Icons.verified_user_outlined,
-        'title': 'Annual Fire Safety Certificate Renewal Due',
-        'meta': 'Gachibowli Campus · Expiry in 7 days · 1d ago',
-        'tagColor': const Color(0xFF7C3AED),
+        'tag': 'TRANSPORT',
+        'time': 'recent',
+        'title': 'Minor Accident: Minor Accident on 2026-05-19',
+        'branch': 'Steel Plant Branch',
+        'isRose': true,
+      },
+      {
+        'id': 'alt-5',
+        'tag': 'ATTENDANCE',
+        'time': 'today',
+        'title': 'Attendance 90.5% — below 91% target',
+        'branch': 'Kondapur Branch',
+        'isRose': false,
       },
     ];
 
@@ -1749,93 +1852,234 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFFECDD3)),
+        border: Border.all(color: const Color(0xFFEDE9FE)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Critical Alerts Feed',
-                      style: TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Exception-first alerts requiring Chairman attention',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFE4E6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  '1 Critical · 3 Urgent',
-                  style: TextStyle(
-                    color: Color(0xFFBE123C),
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
+          const Text(
+            'Critical alerts',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 1),
+          const Text(
+            'Safety, finance & compliance',
+            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
           ),
 
           const SizedBox(height: 12),
 
-          // Alerts list
-          ...items.map((al) {
+          ...alertItems.map((al) {
             final id = al['id'] as String;
             final isAck = _acknowledgedAlertIds.contains(id);
-            final tagColor = al['tagColor'] as Color;
+            final isRose = al['isRose'] as bool;
+            final borderColor = isAck
+                ? const Color(0xFFCBD5E1)
+                : isRose
+                    ? const Color(0xFFF43F5E)
+                    : const Color(0xFF94A3B8);
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(left: 10),
+              decoration: BoxDecoration(
+                border: Border(left: BorderSide(color: borderColor, width: 2.5)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: isRose ? const Color(0xFFFFF1F2) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          al['tag'] as String,
+                          style: TextStyle(
+                            color: isRose ? const Color(0xFFE11D48) : const Color(0xFF475569),
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            isAck ? 'acknowledged' : al['time'] as String,
+                            style: TextStyle(
+                              color: isAck ? const Color(0xFF059669) : const Color(0xFF94A3B8),
+                              fontSize: 9,
+                              fontWeight: isAck ? FontWeight.w700 : FontWeight.w500,
+                            ),
+                          ),
+                          if (!isAck) ...[
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _acknowledgedAlertIds.add(id));
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFAF5FF),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: const Color(0xFFEDE9FE)),
+                                ),
+                                child: const Text(
+                                  'Acknowledge',
+                                  style: TextStyle(color: Color(0xFF7C3AED), fontSize: 8.5, fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    al['title'] as String,
+                    style: TextStyle(
+                      color: isAck ? const Color(0xFF64748B) : const Color(0xFF0F172A),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    '↳ ${al['branch']}',
+                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // Card 2 Component: Approvals queue
+  Widget _buildApprovalsQueueCard() {
+    final approvals = [
+      {
+        'id': 'apr-1',
+        'title': 'Fee Waiver · Hardship fee waiver — 3 students',
+        'meta': 'Gachibowli Campus · 154d waiting',
+        'amount': '₹45,000',
+      },
+      {
+        'id': 'apr-2',
+        'title': 'Capex · New science lab fit-out',
+        'meta': 'Gachibowli Campus · 154d waiting',
+        'amount': '₹8.5 L',
+      },
+      {
+        'id': 'apr-3',
+        'title': 'Fee Waiver · Hardship fee waiver — 3 students',
+        'meta': 'Kondapur Branch · 154d waiting',
+        'amount': '₹45,000',
+      },
+      {
+        'id': 'apr-4',
+        'title': 'Hiring · 3 teaching posts to approve',
+        'meta': 'Kondapur Branch · 154d waiting',
+        'amount': '',
+      },
+      {
+        'id': 'apr-5',
+        'title': 'Fee Waiver · Hardship fee waiver — 2 students',
+        'meta': '₹45,000',
+        'amount': '',
+      },
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFEDE9FE)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Approvals queue',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 1),
+          const Text(
+            'Awaiting owner sign-off',
+            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+          ),
+
+          const SizedBox(height: 12),
+
+          ...approvals.map((ap) {
+            final id = ap['id'] as String;
+            final isApproved = _approvedItemIds.contains(id);
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isAck ? const Color(0xFFF8FAFC) : const Color(0xFFFFF1F2),
+                color: isApproved ? const Color(0xFFF0FDF4) : const Color(0x80F8FAFC),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isAck ? const Color(0xFFE2E8F0) : const Color(0xFFFECDD3),
+                  color: isApproved ? const Color(0xFFBBF7D0) : const Color(0xFFF1F5F9),
                 ),
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 28,
-                    height: 28,
+                    width: 30,
+                    height: 30,
                     decoration: BoxDecoration(
-                      color: isAck ? const Color(0xFFE2E8F0) : tagColor.withValues(alpha: 0.12),
+                      color: isApproved ? const Color(0xFFDCFCE7) : const Color(0xFFFAF5FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      al['icon'] as IconData,
-                      color: isAck ? const Color(0xFF64748B) : tagColor,
-                      size: 15,
+                      isApproved ? Icons.check_circle_rounded : Icons.description_outlined,
+                      color: isApproved ? const Color(0xFF15803D) : const Color(0xFF7C3AED),
+                      size: 16,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1843,384 +2087,66 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                              decoration: BoxDecoration(
-                                color: isAck ? const Color(0xFF64748B) : tagColor,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                isAck ? 'ACKNOWLEDGED' : al['level'] as String,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              al['type'] as String,
-                              style: TextStyle(
-                                color: isAck ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 3),
                         Text(
-                          al['title'] as String,
-                          style: TextStyle(
-                            color: isAck ? const Color(0xFF64748B) : const Color(0xFF0F172A),
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
+                          ap['title'] as String,
+                          style: const TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
                         Text(
-                          al['meta'] as String,
-                          style: TextStyle(
-                            color: isAck ? const Color(0xFF94A3B8) : const Color(0xFFBE123C),
-                            fontSize: 9.5,
-                          ),
+                          ap['meta'] as String,
+                          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
                         ),
                       ],
                     ),
                   ),
-                  if (!isAck)
-                    GestureDetector(
-                      onTap: () {
-                        HapticFeedback.mediumImpact();
-                        setState(() => _acknowledgedAlertIds.add(id));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Alert acknowledged: ${al['title']}'),
-                            duration: const Duration(seconds: 2),
-                            backgroundColor: const Color(0xFF0F172A),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: tagColor.withValues(alpha: 0.4)),
-                        ),
-                        child: Text(
-                          'Acknowledge',
-                          style: TextStyle(
-                            color: tagColor,
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // ===========================================================================
-  // FEATURE 12: Approvals Queue
-  // ===========================================================================
-  Widget _buildApprovalsQueueCard() {
-    final approvals = [
-      {
-        'id': 'apr-1',
-        'type': 'Timetable Publication',
-        'title': 'Class 6 & 7 Revised Term 2 Schedule',
-        'branch': 'Steel Plant Branch',
-        'submitter': 'Principal K. Rao',
-        'age': '2d ago',
-        'impact': 'Academic Publish',
-        'icon': Icons.calendar_today_rounded,
-        'color': const Color(0xFF7C3AED),
-      },
-      {
-        'id': 'apr-2',
-        'type': 'Fee Concession',
-        'title': '25% Merit Discount · Roll #2041 (A. Sharma)',
-        'branch': 'Kondapur Branch',
-        'submitter': 'Accounts Officer',
-        'age': '1d ago',
-        'impact': '₹18,000 Waiver',
-        'icon': Icons.discount_outlined,
-        'color': const Color(0xFFD97706),
-      },
-      {
-        'id': 'apr-3',
-        'type': 'Store / Capex',
-        'title': 'Physics & Chemistry Lab Apparatus Order',
-        'branch': 'Gachibowli Campus',
-        'submitter': 'Admin Dept.',
-        'age': '3h ago',
-        'impact': '₹45,000 Capex',
-        'icon': Icons.science_outlined,
-        'color': const Color(0xFF0284C7),
-      },
-      {
-        'id': 'apr-4',
-        'type': 'HR / Leave',
-        'title': 'Senior Math Teacher Maternity Leave (6 Mos)',
-        'branch': 'Maddipalem Branch',
-        'submitter': 'HR Coordinator',
-        'age': '4d ago',
-        'impact': 'Staff Coverage',
-        'icon': Icons.person_off_outlined,
-        'color': const Color(0xFF059669),
-      },
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  if ((ap['amount'] as String).isNotEmpty) ...[
+                    const SizedBox(width: 6),
                     Text(
-                      'Approvals Queue',
-                      style: TextStyle(
+                      ap['amount'] as String,
+                      style: const TextStyle(
                         color: Color(0xFF0F172A),
-                        fontSize: 14,
+                        fontSize: 11,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Pending Chairman sign-offs across campuses',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5),
-                    ),
                   ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEDE9FE),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${approvals.length - _approvedItemIds.length} Pending Actions',
-                  style: const TextStyle(
-                    color: Color(0xFF7C3AED),
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Approval items
-          ...approvals.map((ap) {
-            final id = ap['id'] as String;
-            final isApproved = _approvedItemIds.contains(id);
-            final col = ap['color'] as Color;
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isApproved ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isApproved ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: col.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(ap['icon'] as IconData, color: col, size: 15),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  ap['type'] as String,
-                                  style: TextStyle(
-                                    color: col,
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE2E8F0),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    ap['impact'] as String,
-                                    style: const TextStyle(
-                                      color: Color(0xFF334155),
-                                      fontSize: 8.5,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              ap['title'] as String,
-                              style: const TextStyle(
-                                color: Color(0xFF0F172A),
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${ap['branch']} · ${ap['submitter']} · ${ap['age']}',
-                              style: const TextStyle(color: Color(0xFF64748B), fontSize: 9.5),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // Actions row
-                  if (isApproved)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        if (isApproved) {
+                          _approvedItemIds.remove(id);
+                        } else {
+                          _approvedItemIds.add(id);
+                        }
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.check_circle_rounded, color: Color(0xFF15803D), size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            'Approved by Chairman',
-                            style: TextStyle(
-                              color: Color(0xFF15803D),
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  else
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              HapticFeedback.mediumImpact();
-                              setState(() => _approvedItemIds.add(id));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Approved: ${ap['title']}'),
-                                  backgroundColor: const Color(0xFF059669),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF059669),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'Approve',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                        color: isApproved ? const Color(0xFFDCFCE7) : const Color(0xFFFAF5FF),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isApproved ? const Color(0xFFA7F3D0) : const Color(0xFFEDE9FE),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Opening detailed review for ${ap['title']}'),
-                                  backgroundColor: const Color(0xFF0F172A),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFCBD5E1)),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'Review',
-                                  style: TextStyle(
-                                    color: Color(0xFF334155),
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                      ),
+                      child: Text(
+                        isApproved ? 'Approved' : 'Review',
+                        style: TextStyle(
+                          color: isApproved ? const Color(0xFF15803D) : const Color(0xFF7C3AED),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
                         ),
-                      ],
+                      ),
                     ),
+                  ),
                 ],
               ),
             );
@@ -2230,16 +2156,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     );
   }
 
-  // ===========================================================================
-  // FEATURE 13: Admissions Pipeline Funnel
-  // ===========================================================================
+  // Card 3 Component: Admissions pipeline
   Widget _buildAdmissionsFunnelCard() {
     final stages = [
-      {'stage': '1. Inquiries & Leads', 'count': 480, 'pct': 100.0, 'sub': 'Baseline inquiries', 'color': const Color(0xFF7C3AED)},
-      {'stage': '2. Applications Submitted', 'count': 310, 'pct': 64.5, 'sub': '64.5% conversion', 'color': const Color(0xFF6366F1)},
-      {'stage': '3. Tests & Interviews', 'count': 240, 'pct': 50.0, 'sub': '77.4% pass & interview', 'color': const Color(0xFF3B82F6)},
-      {'stage': '4. Admissions Offered', 'count': 185, 'pct': 38.5, 'sub': '77.1% offer issued', 'color': const Color(0xFF0284C7)},
-      {'stage': '5. Final Enrolled (Paid)', 'count': 142, 'pct': 29.6, 'sub': '76.8% yield (AY 26-27)', 'color': const Color(0xFF10B981)},
+      {'label': 'Enquiries', 'count': 53, 'pct': 100, 'sub': ''},
+      {'label': 'Applications', 'count': 28, 'pct': 53, 'sub': '↳ 53% step conversion'},
+      {'label': 'Shortlisted', 'count': 18, 'pct': 34, 'sub': '↳ 64% step conversion'},
+      {'label': 'Admitted', 'count': 13, 'pct': 25, 'sub': '↳ 72% step conversion'},
+      {'label': 'Enrolled', 'count': 12, 'pct': 23, 'sub': '↳ 92% step conversion'},
     ];
 
     return Container(
@@ -2247,109 +2171,45 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFEDE9FE)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Admissions Pipeline Funnel',
-                      style: TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'AY 2026-27 intake conversion & pipeline health',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD1FAE5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  '29.6% Net Yield',
-                  style: TextStyle(
-                    color: Color(0xFF065F46),
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
+          const Text(
+            'Admissions pipeline',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 1),
+          const Text(
+            'Group conversion funnel',
+            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
           ),
 
           const SizedBox(height: 12),
 
-          // Funnel Target Tracker
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      'Target Intake: 150 Seats',
-                      style: TextStyle(color: Color(0xFF334155), fontSize: 10.5, fontWeight: FontWeight.w800),
-                    ),
-                    Text(
-                      '142 Enrolled · 94.7% Filled',
-                      style: TextStyle(color: Color(0xFF059669), fontSize: 10.5, fontWeight: FontWeight.w800),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: const LinearProgressIndicator(
-                    value: 142 / 150,
-                    minHeight: 6,
-                    backgroundColor: Color(0xFFE2E8F0),
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF059669)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          // Funnel Stages List with horizontal proportional bars
           ...stages.map((st) {
-            final pct = st['pct'] as double;
-            final color = st['color'] as Color;
+            final pct = st['pct'] as int;
+            final sub = st['sub'] as String;
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 10.0),
+              padding: const EdgeInsets.only(bottom: 9.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2357,38 +2217,40 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        st['stage'] as String,
+                        st['label'] as String,
                         style: const TextStyle(
-                          color: Color(0xFF0F172A),
+                          color: Color(0xFF1E293B),
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
-                        '${st['count']} · $pct%',
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
+                        '${st['count']}',
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
-                      value: pct / 100,
+                      value: pct / 100.0,
                       minHeight: 8,
                       backgroundColor: const Color(0xFFF1F5F9),
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    st['sub'] as String,
-                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 8.5),
-                  ),
+                  if (sub.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      sub,
+                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 8.5),
+                    ),
+                  ],
                 ],
               ),
             );
@@ -2880,15 +2742,292 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       ),
     );
   }
+}
 
-  String _formatCurrency(dynamic amount) {
-    if (amount == null) return '0';
-    final val = double.tryParse(amount.toString()) ?? 0;
-    if (val >= 10000000) {
-      return '${(val / 10000000).toStringAsFixed(2)} Cr';
-    } else if (val >= 100000) {
-      return '${(val / 100000).toStringAsFixed(2)} L';
+// =============================================================================
+// CUSTOM PAINTER: Cash Trajectory Area & Dashed Chart (Matching code.html)
+// =============================================================================
+class CashTrajectoryPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Grid horizontal dashed lines
+    final gridPaint = Paint()
+      ..color = const Color(0xFFE2E8F0)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    void drawDashedLine(double y) {
+      const dashWidth = 4.0;
+      const dashSpace = 4.0;
+      double startX = 0;
+      while (startX < w) {
+        canvas.drawLine(Offset(startX, y), Offset(startX + dashWidth, y), gridPaint);
+        startX += dashWidth + dashSpace;
+      }
     }
-    return val.toStringAsFixed(0);
+
+    drawDashedLine(h * 0.20);
+    drawDashedLine(h * 0.55);
+    drawDashedLine(h * 0.90);
+
+    // Revenue Area Gradient & Curve
+    final revPoints = [
+      Offset(0, h * 0.78),
+      Offset(w * 0.17, h * 0.60),
+      Offset(w * 0.34, h * 0.50),
+      Offset(w * 0.51, h * 0.40),
+      Offset(w * 0.68, h * 0.28),
+      Offset(w * 0.85, h * 0.20),
+      Offset(w, h * 0.15),
+    ];
+
+    final revPath = Path()..moveTo(revPoints[0].dx, revPoints[0].dy);
+    for (int i = 1; i < revPoints.length; i++) {
+      final p0 = revPoints[i - 1];
+      final p1 = revPoints[i];
+      final cp1 = Offset(p0.dx + (p1.dx - p0.dx) / 2, p0.dy);
+      final cp2 = Offset(p0.dx + (p1.dx - p0.dx) / 2, p1.dy);
+      revPath.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, p1.dx, p1.dy);
+    }
+
+    final fillPath = Path.from(revPath)
+      ..lineTo(w, h)
+      ..lineTo(0, h)
+      ..close();
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          const Color(0xFF7C3AED).withValues(alpha: 0.30),
+          const Color(0xFF7C3AED).withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, w, h))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(fillPath, fillPaint);
+
+    final linePaint = Paint()
+      ..color = const Color(0xFF7C3AED)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(revPath, linePaint);
+
+    // Points on Revenue line
+    final dotPaint = Paint()..color = const Color(0xFF7C3AED);
+    final dotBorderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawCircle(revPoints[3], 3.5, dotPaint);
+    canvas.drawCircle(revPoints[3], 3.5, dotBorderPaint);
+    canvas.drawCircle(revPoints[6], 3.5, dotPaint);
+    canvas.drawCircle(revPoints[6], 3.5, dotBorderPaint);
+
+    // OpEx Dashed Curve
+    final opexPoints = [
+      Offset(0, h * 0.85),
+      Offset(w * 0.17, h * 0.75),
+      Offset(w * 0.34, h * 0.65),
+      Offset(w * 0.51, h * 0.60),
+      Offset(w * 0.68, h * 0.52),
+      Offset(w * 0.85, h * 0.47),
+      Offset(w, h * 0.42),
+    ];
+    final opexPaint = Paint()
+      ..color = const Color(0xFFF43F5E)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    for (int i = 0; i < opexPoints.length - 1; i++) {
+      final pA = opexPoints[i];
+      final pB = opexPoints[i + 1];
+      double segDist = (pB - pA).distance;
+      int steps = (segDist / 6).floor();
+      for (int s = 0; s < steps; s += 2) {
+        final t1 = s / steps;
+        final t2 = (s + 1) / steps;
+        final pt1 = Offset.lerp(pA, pB, t1)!;
+        final pt2 = Offset.lerp(pA, pB, t2)!;
+        canvas.drawLine(pt1, pt2, opexPaint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// =============================================================================
+// CUSTOM PAINTER: Fee Realization Multi-color Donut Ring (Matching code.html)
+// =============================================================================
+class FeeRealizationRingPainter extends CustomPainter {
+  final double collectedPct;
+  final double duePct;
+  final double overduePct;
+
+  FeeRealizationRingPainter({
+    required this.collectedPct,
+    required this.duePct,
+    required this.overduePct,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const strokeWidth = 10.0;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+
+    // Background track
+    final trackPaint = Paint()
+      ..color = const Color(0xFFE2E8F0)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    canvas.drawCircle(center, radius, trackPaint);
+
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    // Start angle: -pi / 2 (top)
+    double startAngle = -3.141592653589793 / 2;
+
+    void drawArc(double pct, Color color) {
+      if (pct <= 0) return;
+      final sweepAngle = (pct / 100.0) * (2 * 3.141592653589793);
+      final p = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.butt;
+      canvas.drawArc(rect, startAngle, sweepAngle, false, p);
+      startAngle += sweepAngle;
+    }
+
+    drawArc(collectedPct, const Color(0xFF7C3AED));
+    drawArc(duePct, const Color(0xFFF59E0B));
+    drawArc(overduePct, const Color(0xFFF43F5E));
+  }
+
+  @override
+  bool shouldRepaint(covariant FeeRealizationRingPainter oldDelegate) =>
+      oldDelegate.collectedPct != collectedPct ||
+      oldDelegate.duePct != duePct ||
+      oldDelegate.overduePct != overduePct;
+}
+
+// =============================================================================
+// CUSTOM PAINTER: Performance Quadrant Scatter Plot (Matching code.html)
+// =============================================================================
+class PerformanceQuadrantPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    final dashPaint = Paint()
+      ..color = const Color(0xFFCBD5E1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final crossX = w * 0.58;
+    final crossY = h * 0.48;
+
+    // Vertical dashed line
+    double y = 10;
+    while (y < h - 10) {
+      canvas.drawLine(Offset(crossX, y), Offset(crossX, y + 4), dashPaint);
+      y += 8;
+    }
+
+    // Horizontal dashed line
+    double x = 10;
+    while (x < w - 10) {
+      canvas.drawLine(Offset(x, crossY), Offset(x + 4, crossY), dashPaint);
+      x += 8;
+    }
+
+    // Text annotations
+    void drawText(String text, Offset pos, {Color color = const Color(0xFF94A3B8), double fontSize = 8, FontWeight weight = FontWeight.w600}) {
+      final span = TextSpan(
+        text: text,
+        style: TextStyle(color: color, fontSize: fontSize, fontWeight: weight),
+      );
+      final tp = TextPainter(text: span, textDirection: TextDirection.ltr)..layout();
+      tp.paint(canvas, pos);
+    }
+
+    drawText('avg collection 68%', Offset(crossX + 4, 12));
+    drawText('avg attendance 92%', Offset(crossX + 4, crossY - 14));
+    drawText('▼ NEEDS ATTENTION', Offset(12, h - 20), color: const Color(0xFF64748B), weight: FontWeight.w700);
+
+    // Scatter bubbles from code.html SVG
+    final bubbles = [
+      {'cx': w * 0.84, 'cy': h * 0.42, 'r': 14.0, 'color': const Color(0xFF10B981)},
+      {'cx': w * 0.75, 'cy': h * 0.30, 'r': 12.0, 'color': const Color(0xFF8B5CF6)},
+      {'cx': w * 0.50, 'cy': h * 0.30, 'r': 10.0, 'color': const Color(0xFFA855F7)},
+      {'cx': w * 0.12, 'cy': h * 0.48, 'r': 5.0, 'color': const Color(0xFF059669)},
+      {'cx': w * 0.52, 'cy': h * 0.59, 'r': 9.0, 'color': const Color(0xFFEF4444)},
+      {'cx': w * 0.70, 'cy': h * 0.67, 'r': 8.0, 'color': const Color(0xFF06B6D4)},
+      {'cx': w * 0.68, 'cy': h * 0.74, 'r': 8.5, 'color': const Color(0xFFC084FC)},
+      {'cx': w * 0.69, 'cy': h * 0.78, 'r': 6.0, 'color': const Color(0xFF7C3AED)},
+      {'cx': w * 0.15, 'cy': h * 0.54, 'r': 5.0, 'color': const Color(0xFFF59E0B)},
+    ];
+
+    for (final b in bubbles) {
+      final center = Offset(b['cx'] as double, b['cy'] as double);
+      final r = b['r'] as double;
+      final c = b['color'] as Color;
+
+      final fillPaint = Paint()
+        ..color = c.withValues(alpha: 0.65)
+        ..style = PaintingStyle.fill;
+      final strokePaint = Paint()
+        ..color = c
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+
+      canvas.drawCircle(center, r, fillPaint);
+      canvas.drawCircle(center, r, strokePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// =============================================================================
+// HELPER WIDGET: Quadrant Legend Item
+// =============================================================================
+class _QuadrantLegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _QuadrantLegendItem({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF475569),
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
   }
 }
