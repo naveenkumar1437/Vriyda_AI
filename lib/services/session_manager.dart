@@ -67,8 +67,9 @@ class SessionManager {
   static const String _keyToken = 'vriyda_token';
   static const String _keyRefreshToken = 'vriyda_refresh_token';
   static const String _keyUserSession = 'vriyda_user_session';
+  static const String _keyRememberMe = 'vriyda_remember_me';
 
-  static Future<void> saveSession(UserSession session) async {
+  static Future<void> saveSession(UserSession session, {bool rememberMe = false}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyToken, session.token);
     if (session.refreshToken != null && session.refreshToken!.isNotEmpty) {
@@ -76,7 +77,17 @@ class SessionManager {
     } else {
       await prefs.remove(_keyRefreshToken);
     }
-    await prefs.setString(_keyUserSession, jsonEncode(session.toJson()));
+    await prefs.setBool(_keyRememberMe, rememberMe);
+    if (rememberMe) {
+      await prefs.setString(_keyUserSession, jsonEncode(session.toJson()));
+    } else {
+      await prefs.remove(_keyUserSession);
+    }
+  }
+
+  static Future<bool> isRemembered() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyRememberMe) ?? false;
   }
 
   static Future<String?> getToken() async {
@@ -122,7 +133,8 @@ class SessionManager {
         organizationName: session.organizationName,
         mustChangePassword: session.mustChangePassword,
       );
-      await saveSession(updated);
+      final remembered = await isRemembered();
+      await saveSession(updated, rememberMe: remembered);
     }
   }
 
@@ -131,5 +143,6 @@ class SessionManager {
     await prefs.remove(_keyToken);
     await prefs.remove(_keyRefreshToken);
     await prefs.remove(_keyUserSession);
+    await prefs.remove(_keyRememberMe);
   }
 }

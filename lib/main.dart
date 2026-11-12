@@ -25,7 +25,7 @@ class VriydaPortalApp extends StatelessWidget {
         fontFamily: '-apple-system',
         useMaterial3: true,
       ),
-      home: const VriydaSplashScreen(autoNavigate: false),
+      home: const VriydaSplashScreen(autoNavigate: true),
     );
   }
 }

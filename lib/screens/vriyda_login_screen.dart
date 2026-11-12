@@ -25,7 +25,7 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
   final _formKey = GlobalKey<FormState>();
 
   bool _obscurePassword = true;
-  bool _rememberDevice = true;
+  bool _rememberDevice = false;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -90,7 +90,11 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
       _errorMessage = null;
     });
 
-    final res = await AuthService.login(email: email, password: password);
+    final res = await AuthService.login(
+      email: email,
+      password: password,
+      rememberMe: _rememberDevice,
+    );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -473,6 +477,7 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
                             child: TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
@@ -525,6 +530,8 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
                             child: TextFormField(
                               controller: _passwordController,
                               obscureText: _obscurePassword,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => _handleSignIn(),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
