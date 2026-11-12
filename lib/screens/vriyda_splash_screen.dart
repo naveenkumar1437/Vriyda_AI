@@ -44,6 +44,7 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
     );
 
     _controller.forward();
+    _checkRelaunchSession();
 
     if (widget.autoNavigate) {
       _controller.addStatusListener((status) {
@@ -54,6 +55,31 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
               _navigateToLogin();
             }
           });
+        }
+      });
+    }
+  }
+
+  void _checkRelaunchSession() async {
+    final user = await SessionManager.getSession();
+    if (user != null && mounted) {
+      // User has already logged in previously -> automatically move to dashboard on relaunch
+      Future.delayed(const Duration(milliseconds: 2000), () {
+        if (mounted && !_hasNavigated) {
+          _hasNavigated = true;
+          if (user.isOwner) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => ChairmanDashboardScreen(user: user),
+              ),
+            );
+          } else {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => const VriydaLoginScreen(),
+              ),
+            );
+          }
         }
       });
     }
