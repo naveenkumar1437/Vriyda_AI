@@ -34,12 +34,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Interactive state for Group Overview
   int _activeKpiSet = 0;
   Timer? _kpiTimer;
+  late final PageController _kpiPageController;
   final Set<String> _approvedItemIds = {};
   final Set<String> _acknowledgedAlertIds = {};
 
   @override
   void initState() {
     super.initState();
+    _kpiPageController = PageController(initialPage: _activeKpiSet);
     _fetchDashboard();
     _startKpiTimer();
   }
@@ -47,6 +49,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   @override
   void dispose() {
     _kpiTimer?.cancel();
+    _kpiPageController.dispose();
     super.dispose();
   }
 
@@ -54,17 +57,26 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     _kpiTimer?.cancel();
     _kpiTimer = Timer.periodic(const Duration(seconds: 4), (t) {
       if (!mounted) return;
-      setState(() {
-        _activeKpiSet = (_activeKpiSet + 1) % 3;
-      });
+      final nextSet = (_activeKpiSet + 1) % 3;
+      if (_kpiPageController.hasClients) {
+        _kpiPageController.animateToPage(
+          nextSet,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOutCubic,
+        );
+      }
     });
   }
 
   void _selectKpiSet(int index) {
     HapticFeedback.selectionClick();
-    setState(() {
-      _activeKpiSet = index;
-    });
+    if (_kpiPageController.hasClients) {
+      _kpiPageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOutCubic,
+      );
+    }
     _startKpiTimer();
   }
 
@@ -633,7 +645,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       // SET 1: Core Performance
       [
         {
-          'label': 'STUDENTS',
+          'label': 'Students',
           'value': '$students',
           'badge': '+12%',
           'badgeColor': const Color(0xFF059669),
@@ -641,7 +653,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           'valColor': const Color(0xFF0F172A),
         },
         {
-          'label': 'REVENUE',
+          'label': 'Revenue',
           'value': '₹1.4 Cr',
           'badge': '89%',
           'badgeColor': const Color(0xFF7C3AED),
@@ -649,7 +661,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           'valColor': const Color(0xFF7C3AED),
         },
         {
-          'label': 'FEES',
+          'label': 'Fees',
           'value': '$collectionPct%',
           'badge': '₹94.7 L',
           'badgeColor': const Color(0xFF64748B),
@@ -657,7 +669,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           'valColor': const Color(0xFF0F172A),
         },
         {
-          'label': 'ATTEND.',
+          'label': 'Attendance',
           'value': '$attendance%',
           'badge': 'Good',
           'badgeColor': const Color(0xFF059669),
@@ -668,7 +680,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       // SET 2: Growth & People
       [
         {
-          'label': 'ALERTS',
+          'label': 'Alerts',
           'value': '$criticalAlerts Crit',
           'badge': 'Action',
           'badgeColor': const Color(0xFFE11D48),
@@ -676,7 +688,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           'valColor': const Color(0xFFE11D48),
         },
         {
-          'label': 'ADMISS.',
+          'label': 'Admissions',
           'value': '28',
           'badge': 'Ph 1',
           'badgeColor': const Color(0xFF7C3AED),
@@ -684,7 +696,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           'valColor': const Color(0xFF7C3AED),
         },
         {
-          'label': 'STAFF',
+          'label': 'Staff',
           'value': '47',
           'badge': '22 Open',
           'badgeColor': const Color(0xFFD97706),
@@ -692,7 +704,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           'valColor': const Color(0xFF0F172A),
         },
         {
-          'label': 'ATTRITION',
+          'label': 'Attrition',
           'value': '4.9%',
           'badge': '<6%',
           'badgeColor': const Color(0xFF059669),
@@ -703,7 +715,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       // SET 3: Operations & Attendance
       [
         {
-          'label': 'MARGIN',
+          'label': 'Margin',
           'value': '35.8%',
           'badge': 'EBITDA',
           'badgeColor': const Color(0xFF059669),
@@ -711,7 +723,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           'valColor': const Color(0xFF7C3AED),
         },
         {
-          'label': 'STU ATT.',
+          'label': 'Stu Attend',
           'value': '92.4%',
           'badge': '114 In',
           'badgeColor': const Color(0xFF64748B),
@@ -719,7 +731,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           'valColor': const Color(0xFF059669),
         },
         {
-          'label': 'STF ATT.',
+          'label': 'Staff Attend',
           'value': '95.7%',
           'badge': '45 In',
           'badgeColor': const Color(0xFF7C3AED),
@@ -727,7 +739,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           'valColor': const Color(0xFF0F172A),
         },
         {
-          'label': 'CAPACITY',
+          'label': 'Capacity',
           'value': '$capacityUtil%',
           'badge': '$students St',
           'badgeColor': const Color(0xFF64748B),
@@ -736,8 +748,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         },
       ],
     ];
-
-    final currentCards = sets[_activeKpiSet];
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -847,94 +857,126 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
           const SizedBox(height: 12),
 
-          // 4 Compact Circular Cards in 1 Row
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: Row(
-              key: ValueKey<int>(_activeKpiSet),
-              children: currentCards.map((c) {
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                    child: AspectRatio(
-                      aspectRatio: 1.0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xCCEDE9FE),
-                            width: 1.2,
+          // Horizontal Sliding Carousel for the 3 KPI Sets (Core Performance, Growth & People, Operations & Attendance)
+          // Slides automatically horizontally every 4s AND allows user to manually swipe/slide smoothly
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final availableWidth = constraints.maxWidth;
+              final itemWidth = availableWidth / 4;
+              final circleSize = (itemWidth - 10).clamp(58.0, 68.0);
+              final numFontSize = circleSize >= 64 ? 15.5 : 14.0;
+              final badgeFontSize = circleSize >= 64 ? 8.5 : 7.5;
+
+              return SizedBox(
+                height: circleSize + 28,
+                child: PageView.builder(
+                  controller: _kpiPageController,
+                  physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
+                  onPageChanged: (idx) {
+                    setState(() {
+                      _activeKpiSet = idx;
+                    });
+                    _startKpiTimer();
+                  },
+                  itemCount: sets.length,
+                  itemBuilder: (context, setIndex) {
+                    final cards = sets[setIndex];
+                    return Row(
+                      children: cards.map((c) {
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Circular card containing prominent numbers and badge
+                                Container(
+                                  width: circleSize,
+                                  height: circleSize,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xCCEDE9FE),
+                                      width: 1.2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF7C3AED).withValues(alpha: 0.16),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.04),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Increased font size for inside numbers
+                                      Text(
+                                        c['value'] as String,
+                                        style: TextStyle(
+                                          color: c['valColor'] as Color,
+                                          fontSize: numFontSize,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: -0.4,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: c['badgeBg'] as Color,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: (c['badgeColor'] as Color).withValues(alpha: 0.2),
+                                            width: 0.8,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          c['badge'] as String,
+                                          style: TextStyle(
+                                            color: c['badgeColor'] as Color,
+                                            fontSize: badgeFontSize,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                // Text label displayed underneath against each circle
+                                Text(
+                                  c['label'] as String,
+                                  style: const TextStyle(
+                                    color: Color(0xFF475569),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.2,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF7C3AED).withValues(alpha: 0.16),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 4,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              c['label'] as String,
-                              style: const TextStyle(
-                                color: Color(0xFF94A3B8),
-                                fontSize: 8,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.2,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              c['value'] as String,
-                              style: TextStyle(
-                                color: c['valColor'] as Color,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.3,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: c['badgeBg'] as Color,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: (c['badgeColor'] as Color).withValues(alpha: 0.2),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: Text(
-                                c['badge'] as String,
-                                style: TextStyle(
-                                  color: c['badgeColor'] as Color,
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              );
+            },
           ),
 
           const SizedBox(height: 10),
