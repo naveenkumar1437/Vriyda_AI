@@ -42,19 +42,22 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3000),
+      duration: const Duration(milliseconds: 1600),
     );
 
-    _controller.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _controller.forward();
 
-    if (widget.autoNavigate) {
-      // Exactly after 3 seconds, evaluate session and navigate automatically
-      _navigationTimer = Timer(const Duration(milliseconds: 3000), () {
-        if (mounted && !_hasNavigated) {
-          _navigateAfterSplash();
-        }
-      });
-    }
+      if (widget.autoNavigate) {
+        // Ensure splash screen visibly stays on screen for a full 3 seconds
+        _navigationTimer = Timer(const Duration(milliseconds: 3000), () {
+          if (mounted && !_hasNavigated) {
+            _navigateAfterSplash();
+          }
+        });
+      }
+    });
   }
 
   Future<void> _navigateAfterSplash() async {

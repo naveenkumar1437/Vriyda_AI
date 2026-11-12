@@ -536,3 +536,27 @@ SESSION RECORD: 2026-11-10 to 2026-11-11
   3. Compiled and deployed APK on Pixel 4a emulator (`emulator-5554`).
   4. Case A Verified: Fresh launch (`pm clear`) displays splash screen without a Sign-in button, automatically navigates to Login screen after 3 seconds, and "Keep me signed in on this device" is confirmed UNCHECKED.
   5. Case B Verified: User checked "Keep me signed in on this device", signed in with credentials, successfully reached Chairman Dashboard. Upon force stopping and relaunching the app, the splash screen displays for 3 seconds and automatically routes directly to Chairman Dashboard without requesting login.
+--------------------------------------------------------------------------------
+
+[ENTRY #26]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "splash screen should stay for 3 seconds"
+- PURPOSE OF CHANGES:
+  Ensure splash screen remains visible on screen for a full, solid 3 seconds:
+  1. Post-Frame Callback Synchronization:
+     - Wrapped animation start (`_controller.forward()`) and navigation timer (`_navigationTimer = Timer(const Duration(milliseconds: 3000), ...)`) inside `WidgetsBinding.instance.addPostFrameCallback((_) { ... })`.
+     - This guarantees the 3000ms timer starts strictly only after the first frame has painted on the physical display / emulator, eliminating time consumed by Android process startup and Flutter engine warmup.
+  2. Animation Duration Optimization:
+     - Shortened entrance `AnimationController` duration from 3000ms to 1600ms so that all brand elements, live counters, and typography reveal smoothly and hold still for 1.4s of clear reading time before transition.
+  3. Seamless Window Handover (Dark Splash Integration):
+     - Updated Android `NormalTheme` in `values/styles.xml` and `values-night/styles.xml` to use `@android:style/Theme.Black.NoTitleBar` and `android:windowBackground` pointing to `@drawable/launch_background` (`#14173E`), removing white flash during engine boot.
+- CHANGED / MODIFIED FILES:
+  • android/app/src/main/res/values/styles.xml (Updated NormalTheme to Black.NoTitleBar and launch_background)
+  • android/app/src/main/res/values-night/styles.xml (Updated NormalTheme to launch_background)
+  • lib/screens/vriyda_splash_screen.dart (Wrapped timer and animation start in addPostFrameCallback; tuned animation duration to 1600ms)
+  • blueprint.txt (Updated: Audit entry #26)
+- SUMMARY OF ACTIONS:
+  1. Ran `flutter analyze` and `flutter test` (all passed).
+  2. Rebuilt APK and tested on Pixel 4a emulator.
+  3. Captured multi-second frame timeline verifying the splash screen remains visibly rendered on screen for 3 full seconds after first paint, before automatically navigating.
