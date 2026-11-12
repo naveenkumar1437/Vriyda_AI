@@ -42,7 +42,7 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 1000),
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -50,9 +50,27 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
       _controller.forward();
 
       if (widget.autoNavigate) {
-        // Ensure splash screen visibly stays on screen for a full 3 seconds
-        _navigationTimer = Timer(const Duration(milliseconds: 3000), () {
+        debugPrint('[SPLASH] First frame rendered, entrance animation started.');
+        // Ensure splash screen remains visibly readable on screen for at least 3 seconds
+        // We wait until the entrance animation finishes revealing all elements,
+        // and then keep the splash screen visible for a solid 3.2 seconds.
+        _controller.addStatusListener((status) {
+          if (status == AnimationStatus.completed && mounted && !_hasNavigated) {
+            debugPrint('[SPLASH] Entrance animation completed, starting 3.2s display timer.');
+            _navigationTimer?.cancel();
+            _navigationTimer = Timer(const Duration(milliseconds: 3200), () {
+              if (mounted && !_hasNavigated) {
+                debugPrint('[SPLASH] 3.2s display timer completed, auto-navigating.');
+                _navigateAfterSplash();
+              }
+            });
+          }
+        });
+
+        // Safety fallback timer ensuring navigation happens even if animation ticker is halted
+        _navigationTimer = Timer(const Duration(milliseconds: 4500), () {
           if (mounted && !_hasNavigated) {
+            debugPrint('[SPLASH] Safety fallback timer fired, auto-navigating.');
             _navigateAfterSplash();
           }
         });
