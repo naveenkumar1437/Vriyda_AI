@@ -631,120 +631,128 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Capacity Used, Critical Alerts, Staff Attendance
   // ===========================================================================
   Widget _buildRotatingCircularKpiStage(Map<String, dynamic>? group) {
-    final students = group?['students'] ?? 123;
-    final capacityUtil = group?['capacityUtil'] ?? 80.9;
-    final collectionPct = group?['collectionPct'] ?? 67.6;
-    final attendance = group?['attendance'] ?? 92.1;
-    final criticalAlerts = group?['alertsCritical'] ?? 1;
+    // Dynamic values from backend if present, fallback to exact web reference screen values
+    final students = group?['students'] ?? 122;
+    final ytdRevenue = group?['revenue'] ?? '₹1.4 Cr';
+    final collectionPct = group?['collectionPct'] ?? 68.2;
+    final studentAttendance = group?['studentAttendanceRatio'] ?? '22/122';
+    final cashToday = group?['cashCollectedToday'] ?? '₹0.2 L';
+    final newAdmissions = group?['newAdmissions'] ?? 25;
+    final staffFilled = group?['staffCount'] ?? 46;
+    final studentAttrition = group?['attrition'] ?? 4.9;
+    final operatingMargin = group?['ebitdaMargin'] ?? 36.7;
+    final staffAttendance = group?['staffAttendanceRatio'] ?? '0/46';
+    final outstanding = group?['outstandingFees'] ?? '₹45.0 L';
+    final criticalAlerts = group?['alertsCritical'] ?? 4;
 
-    final categories = ['Core Performance', 'Growth & People', 'Operations & Attendance'];
+    final categories = ['Core Performance', 'Cash & Staffing', 'Operations & Margins'];
     final categoryName = categories[_activeKpiSet];
 
-    // Card definitions for the 3 sets (Exactly 4 circular cards per set)
+    // 3 sets × 4 cards = 12 metrics matching exact web reference screen
     final List<List<Map<String, dynamic>>> sets = [
       // SET 1: Core Performance
       [
         {
-          'label': 'Students',
+          'label': 'Active Students',
           'value': '$students',
-          'badge': '+12%',
+          'badge': '+11.9%',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
           'valColor': const Color(0xFF0F172A),
         },
         {
-          'label': 'Revenue',
-          'value': '₹1.4 Cr',
-          'badge': '89%',
+          'label': 'YTD Revenue',
+          'value': '$ytdRevenue',
+          'badge': '+0%',
           'badgeColor': const Color(0xFF7C3AED),
           'badgeBg': const Color(0xFFFAF5FF),
           'valColor': const Color(0xFF7C3AED),
         },
         {
-          'label': 'Fees',
+          'label': 'Fees Collected',
           'value': '$collectionPct%',
-          'badge': '₹94.7 L',
+          'badge': '-19.8 pts',
+          'badgeColor': const Color(0xFFE11D48),
+          'badgeBg': const Color(0xFFFFE4E6),
+          'valColor': const Color(0xFF0F172A),
+        },
+        {
+          'label': 'Student Attend',
+          'value': '$studentAttendance',
+          'badge': '18.0%',
           'badgeColor': const Color(0xFF64748B),
           'badgeBg': const Color(0xFFF1F5F9),
           'valColor': const Color(0xFF0F172A),
         },
+      ],
+      // SET 2: Cash & Staffing
+      [
         {
-          'label': 'Attendance',
-          'value': '$attendance%',
-          'badge': 'Good',
+          'label': 'Cash Today',
+          'value': '$cashToday',
+          'badge': 'Counters',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
           'valColor': const Color(0xFF059669),
         },
-      ],
-      // SET 2: Growth & People
-      [
         {
-          'label': 'Alerts',
-          'value': '$criticalAlerts Crit',
-          'badge': 'Action',
-          'badgeColor': const Color(0xFFE11D48),
-          'badgeBg': const Color(0xFFFFE4E6),
-          'valColor': const Color(0xFFE11D48),
-        },
-        {
-          'label': 'Admissions',
-          'value': '28',
-          'badge': 'Ph 1',
+          'label': 'New Admissions',
+          'value': '$newAdmissions',
+          'badge': 'This Month',
           'badgeColor': const Color(0xFF7C3AED),
           'badgeBg': const Color(0xFFFAF5FF),
           'valColor': const Color(0xFF7C3AED),
         },
         {
-          'label': 'Staff',
-          'value': '47',
-          'badge': '22 Open',
+          'label': 'Staff Filled',
+          'value': '$staffFilled',
+          'badge': '23 Open',
           'badgeColor': const Color(0xFFD97706),
           'badgeBg': const Color(0xFFFFFBEB),
           'valColor': const Color(0xFF0F172A),
         },
         {
-          'label': 'Attrition',
-          'value': '4.9%',
-          'badge': '<6%',
+          'label': 'Student Attrition',
+          'value': '$studentAttrition%',
+          'badge': '-1.1 pts',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
           'valColor': const Color(0xFF059669),
         },
       ],
-      // SET 3: Operations & Attendance
+      // SET 3: Operations & Margins
       [
         {
-          'label': 'Margin',
-          'value': '35.8%',
+          'label': 'Operating Margin',
+          'value': '$operatingMargin%',
           'badge': 'EBITDA',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
           'valColor': const Color(0xFF7C3AED),
         },
         {
-          'label': 'Stu Attend',
-          'value': '92.4%',
-          'badge': '114 In',
-          'badgeColor': const Color(0xFF64748B),
-          'badgeBg': const Color(0xFFF1F5F9),
-          'valColor': const Color(0xFF059669),
-        },
-        {
           'label': 'Staff Attend',
-          'value': '95.7%',
-          'badge': '45 In',
-          'badgeColor': const Color(0xFF7C3AED),
-          'badgeBg': const Color(0xFFFAF5FF),
-          'valColor': const Color(0xFF0F172A),
+          'value': '$staffAttendance',
+          'badge': '0 Absent',
+          'badgeColor': const Color(0xFFE11D48),
+          'badgeBg': const Color(0xFFFFE4E6),
+          'valColor': const Color(0xFFE11D48),
         },
         {
-          'label': 'Capacity',
-          'value': '$capacityUtil%',
-          'badge': '$students St',
-          'badgeColor': const Color(0xFF64748B),
-          'badgeBg': const Color(0xFFF1F5F9),
-          'valColor': const Color(0xFF7C3AED),
+          'label': 'Outstanding Fees',
+          'value': '$outstanding',
+          'badge': 'Due',
+          'badgeColor': const Color(0xFFD97706),
+          'badgeBg': const Color(0xFFFFFBEB),
+          'valColor': const Color(0xFFD97706),
+        },
+        {
+          'label': 'Critical Alerts',
+          'value': '$criticalAlerts Crit',
+          'badge': 'Action',
+          'badgeColor': const Color(0xFFE11D48),
+          'badgeBg': const Color(0xFFFFE4E6),
+          'valColor': const Color(0xFFE11D48),
         },
       ],
     ];
@@ -916,18 +924,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      // Increased font size for inside numbers
-                                      Text(
-                                        c['value'] as String,
-                                        style: TextStyle(
-                                          color: c['valColor'] as Color,
-                                          fontSize: numFontSize,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: -0.4,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                      // Increased font size for inside numbers with auto-scaling for ratios
+                                      Builder(builder: (context) {
+                                        final valStr = c['value'] as String;
+                                        final dynamicNumFontSize = valStr.length > 5
+                                            ? (circleSize >= 64 ? 13.0 : 12.0)
+                                            : numFontSize;
+                                        return Text(
+                                          valStr,
+                                          style: TextStyle(
+                                            color: c['valColor'] as Color,
+                                            fontSize: dynamicNumFontSize,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: -0.4,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        );
+                                      }),
                                       const SizedBox(height: 2),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),

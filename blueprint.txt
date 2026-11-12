@@ -607,3 +607,38 @@ SESSION RECORD: 2026-11-10 to 2026-11-11
   2. Built debug APK and installed on Pixel 4a emulator.
   3. Verified automatic horizontal sliding every 4 seconds.
   4. Verified manual swipe gestures across Core Performance, Growth & People, and Operations & Attendance with high-resolution screenshot captures.
+--------------------------------------------------------------------------------
+
+[ENTRY #29]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "whatever option swe are showing in rotating kpi slider that was wrong i wil giev web screen for referecne but dont chngae the exsitn design just update options and count if we have apis to show that show or else hardcode it as of now for group overview"
+- PURPOSE OF CHANGES:
+  1. Synchronize Group Overview KPI Metrics with Official Web Dashboard Reference:
+     - Retained the executive mobile 4-circle rotating card design, labels underneath, and horizontal auto-advance / manual touch swiping.
+     - Updated all metrics, counts, badges, and labels across the 3 slider sets to match the provided web screen reference exactly:
+       • Set 1 (Core Performance):
+         - Active Students: 122 (+11.9%)
+         - YTD Revenue: ₹1.4 Cr (+0%)
+         - Fees Collected: 68.2% (-19.8 pts)
+         - Student Attend: 22/122 (18.0%)
+       • Set 2 (Cash & Staffing):
+         - Cash Today: ₹0.2 L (Counters)
+         - New Admissions: 25 (This Month)
+         - Staff Filled: 46 (23 Open)
+         - Student Attrition: 4.9% (-1.1 pts)
+       • Set 3 (Operations & Margins):
+         - Operating Margin: 36.7% (EBITDA)
+         - Staff Attend: 0/46 (0 Absent)
+         - Outstanding Fees: ₹45.0 L (Due)
+         - Critical Alerts: 4 Crit (Action)
+  2. Dynamic Typography Scaling:
+     - Added auto-scaling logic (`dynamicNumFontSize`) for lengthier ratio strings (such as "22/122" and "₹45.0 L") inside the circular cards so no text gets clipped on small mobile screens.
+- CHANGED / MODIFIED FILES:
+  • lib/screens/chairman_dashboard_screen.dart (Aligned all 12 rotating KPI slider metrics, counts, badges, categories with web reference dashboard; added dynamic font scaling)
+  • blueprint.txt (Updated: Audit entry #29)
+- SUMMARY OF ACTIONS:
+  1. Ran `flutter analyze` (0 issues found) and `flutter test` (all passed).
+  2. Built debug APK and verified layout and swipe transitions on Pixel 4a emulator.
+  3. Committed and pushed to `main` and `phase1` branches.
+--------------------------------------------------------------------------------
