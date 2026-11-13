@@ -642,3 +642,24 @@ SESSION RECORD: 2026-11-10 to 2026-11-11
   2. Built debug APK and verified layout and swipe transitions on Pixel 4a emulator.
   3. Committed and pushed to `main` and `phase1` branches.
 --------------------------------------------------------------------------------
+[ENTRY #30]
+- USER: apple (NaveenDevG)
+- PROMPT:
+  "Remove textof EST text from splash screen" & "hey please push the code to main branch first"
+- PURPOSE OF CHANGES:
+  1. Remove EST Text from Splash Screen:
+     - In `lib/widgets/animated_hero_section.dart`, removed the `_buildEyebrow()` pill widget and its `EST. 2026 · HYDERABAD` text.
+     - Streamlined the hero layout so heading lines ("A calmer way to run your campus.") display cleanly at the top of the central hero area.
+  2. iOS CocoaPods Setup:
+     - Configured CocoaPods dependencies and workspace integration for `Runner.xcworkspace`.
+- CHANGED / MODIFIED FILES:
+  • lib/widgets/animated_hero_section.dart (Removed EST. 2026 · HYDERABAD pill widget)
+  • ios/Podfile.lock (CocoaPods dependency lockfile generated)
+  • ios/Runner.xcodeproj/project.pbxproj (Pods build phases and xcconfig references)
+  • ios/Runner.xcworkspace/contents.xcworkspacedata (Linked Pods.xcodeproj)
+  • blueprint.txt (Updated: Audit entry #30)
+- SUMMARY OF ACTIONS:
+  1. Ran `flutter analyze` (0 issues found) and `flutter test` (all tests passed).
+  2. Built debug APK and verified splash screen on Android emulator.
+  3. Committed and pushed changes to `main` branch.
+--------------------------------------------------------------------------------
