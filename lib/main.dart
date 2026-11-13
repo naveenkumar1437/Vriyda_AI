@@ -1,16 +1,29 @@
 import 'package:flutter/material.dart';
-import 'screens/vriyda_splash_screen.dart';
+import 'screens/chairman_dashboard_screen.dart';
+import 'services/session_manager.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const VriydaPortalApp());
+  final session = await SessionManager.getSession();
+  runApp(VriydaPortalApp(initialSession: session));
 }
 
 class VriydaPortalApp extends StatelessWidget {
-  const VriydaPortalApp({super.key});
+  final UserSession? initialSession;
+  const VriydaPortalApp({super.key, this.initialSession});
 
   @override
   Widget build(BuildContext context) {
+    final defaultChairman = UserSession(
+      id: 'usr-demo-owner',
+      token: 'demo-chairman-token',
+      email: 'chairman@sairavindra.edu',
+      name: 'Chairman',
+      role: 'owner',
+      organizationName: 'Sai Ravindra School',
+      mustChangePassword: false,
+    );
+
     return MaterialApp(
       title: 'Vriyda Portal',
       debugShowCheckedModeBanner: false,
@@ -25,7 +38,7 @@ class VriydaPortalApp extends StatelessWidget {
         fontFamily: '-apple-system',
         useMaterial3: true,
       ),
-      home: const VriydaSplashScreen(autoNavigate: false),
+      home: ChairmanDashboardScreen(user: initialSession ?? defaultChairman),
     );
   }
 }
