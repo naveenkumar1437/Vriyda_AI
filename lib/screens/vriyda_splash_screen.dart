@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../widgets/animated_background.dart';
@@ -33,6 +34,7 @@ class VriydaSplashScreen extends StatefulWidget {
 class _VriydaSplashScreenState extends State<VriydaSplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  Timer? _navigationTimer;
   bool _hasNavigated = false;
 
   @override
@@ -40,96 +42,96 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 4000),
+      duration: const Duration(milliseconds: 1000),
     );
 
-    _controller.forward();
-    _checkRelaunchSession();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _controller.forward();
 
-    if (widget.autoNavigate) {
-      _controller.addStatusListener((status) {
-        if (status == AnimationStatus.completed && !_hasNavigated) {
-          // Allow the complete animated splash screen with counters & particles to be fully enjoyed
-          Future.delayed(const Duration(milliseconds: 2500), () {
-            if (mounted && !_hasNavigated) {
-              _navigateToLogin();
-            }
-          });
-        }
-      });
-    }
-  }
-
-  void _checkRelaunchSession() async {
-    final user = await SessionManager.getSession();
-    if (user != null && mounted) {
-      // User has already logged in previously -> automatically move to dashboard on relaunch
-      Future.delayed(const Duration(milliseconds: 2000), () {
-        if (mounted && !_hasNavigated) {
-          _hasNavigated = true;
-          if (user.isOwner) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => ChairmanDashboardScreen(user: user),
-              ),
-            );
-          } else {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => const VriydaLoginScreen(),
-              ),
-            );
+      if (widget.autoNavigate) {
+        debugPrint('[SPLASH] First frame rendered, entrance animation started.');
+        // Ensure splash screen remains visibly readable on screen for at least 3 seconds
+        // We wait until the entrance animation finishes revealing all elements,
+        // and then keep the splash screen visible for a solid 3.2 seconds.
+        _controller.addStatusListener((status) {
+          if (status == AnimationStatus.completed && mounted && !_hasNavigated) {
+            debugPrint('[SPLASH] Entrance animation completed, starting 3.2s display timer.');
+            _navigationTimer?.cancel();
+            _navigationTimer = Timer(const Duration(milliseconds: 3200), () {
+              if (mounted && !_hasNavigated) {
+                debugPrint('[SPLASH] 3.2s display timer completed, auto-navigating.');
+                _navigateAfterSplash();
+              }
+            });
           }
-        }
-      });
-    }
+        });
+
+        // Safety fallback timer ensuring navigation happens even if animation ticker is halted
+        _navigationTimer = Timer(const Duration(milliseconds: 4500), () {
+          if (mounted && !_hasNavigated) {
+            debugPrint('[SPLASH] Safety fallback timer fired, auto-navigating.');
+            _navigateAfterSplash();
+          }
+        });
+      }
+    });
   }
 
-  void _navigateToLogin() async {
+  Future<void> _navigateAfterSplash() async {
     if (_hasNavigated || !mounted) return;
     _hasNavigated = true;
 
+    final isRemembered = await SessionManager.isRemembered();
     final user = await SessionManager.getSession();
+
     if (!mounted) return;
 
-    if (user != null && user.isOwner) {
+    if (isRemembered && user != null && user.isOwner) {
+      // User checked 'Keep me signed in' and session is active -> redirect to Chairman Dashboard
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => ChairmanDashboardScreen(user: user),
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 600),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              ChairmanDashboardScreen(user: user),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
         ),
       );
-      return;
+    } else {
+      // First time launch, unchecked 'Keep me signed in', or logged out -> redirect to Login screen
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 700),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const VriydaLoginScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final fadeAnimation = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOutCubic,
+            );
+            final slideAnimation = Tween<Offset>(
+              begin: const Offset(0, 0.04),
+              end: Offset.zero,
+            ).animate(fadeAnimation);
+
+            return FadeTransition(
+              opacity: fadeAnimation,
+              child: SlideTransition(
+                position: slideAnimation,
+                child: child,
+              ),
+            );
+          },
+        ),
+      );
     }
-
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 750),
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const VriydaLoginScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final fadeAnimation = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeInOutCubic,
-          );
-          final slideAnimation = Tween<Offset>(
-            begin: const Offset(0, 0.04),
-            end: Offset.zero,
-          ).animate(fadeAnimation);
-
-          return FadeTransition(
-            opacity: fadeAnimation,
-            child: SlideTransition(
-              position: slideAnimation,
-              child: child,
-            ),
-          );
-        },
-      ),
-    );
   }
 
   @override
   void dispose() {
+    _navigationTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -272,49 +274,9 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
                                   ),
                                 ),
 
-                                // Footer at bottom with Get Started / Sign In link
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    AnimatedFooter(
-                                      progress: footerProgress,
-                                    ),
-                                    Opacity(
-                                      opacity: footerProgress,
-                                      child: GestureDetector(
-                                        onTap: _navigateToLogin,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF4F46E5).withValues(alpha: 0.35),
-                                            borderRadius: BorderRadius.circular(20),
-                                            border: Border.all(
-                                              color: const Color(0xFF818CF8).withValues(alpha: 0.5),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: const [
-                                              Text(
-                                                'Sign in',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              SizedBox(width: 4),
-                                              Icon(
-                                                Icons.arrow_forward_rounded,
-                                                color: Colors.white,
-                                                size: 14,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                // Footer at bottom
+                                AnimatedFooter(
+                                  progress: footerProgress,
                                 ),
                               ],
                             );

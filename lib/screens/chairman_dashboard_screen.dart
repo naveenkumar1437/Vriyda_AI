@@ -36,6 +36,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Interactive state for Group Overview
   int _activeKpiSet = 0;
   Timer? _kpiTimer;
+  late final PageController _kpiPageController;
   final Set<String> _approvedItemIds = {};
   final Set<String> _acknowledgedAlertIds = {};
 
@@ -55,6 +56,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _kpiPageController = PageController(initialPage: _activeKpiSet);
     _branchSearchController.addListener(() {
       if (mounted) {
         setState(() {
@@ -70,6 +72,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   @override
   void dispose() {
     _kpiTimer?.cancel();
+    _kpiPageController.dispose();
     _branchSearchController.dispose();
     super.dispose();
   }
@@ -78,17 +81,26 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     _kpiTimer?.cancel();
     _kpiTimer = Timer.periodic(const Duration(seconds: 4), (t) {
       if (!mounted) return;
-      setState(() {
-        _activeKpiSet = (_activeKpiSet + 1) % 3;
-      });
+      final nextSet = (_activeKpiSet + 1) % 3;
+      if (_kpiPageController.hasClients) {
+        _kpiPageController.animateToPage(
+          nextSet,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOutCubic,
+        );
+      }
     });
   }
 
   void _selectKpiSet(int index) {
     HapticFeedback.selectionClick();
-    setState(() {
-      _activeKpiSet = index;
-    });
+    if (_kpiPageController.hasClients) {
+      _kpiPageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOutCubic,
+      );
+    }
     _startKpiTimer();
   }
 
@@ -521,6 +533,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         'icon': Icons.alt_route_rounded,
       },
       {'id': 'view-users', 'label': 'Users', 'icon': Icons.people_outline},
+      {'id': 'view-attendance', 'label': 'Attendance', 'icon': Icons.fact_check_outlined},
       {
         'id': 'view-lookup',
         'label': 'Student Lookup',
@@ -780,129 +793,131 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Capacity Used, Critical Alerts, Staff Attendance
   // ===========================================================================
   Widget _buildRotatingCircularKpiStage(Map<String, dynamic>? group) {
-    final students = group?['students'] ?? 123;
-    final capacityUtil = group?['capacityUtil'] ?? 80.9;
-    final collectionPct = group?['collectionPct'] ?? 67.6;
-    final attendance = group?['attendance'] ?? 92.1;
-    final criticalAlerts = group?['alertsCritical'] ?? 1;
+    // Dynamic values from backend if present, fallback to exact web reference screen values
+    final students = group?['students'] ?? 122;
+    final ytdRevenue = group?['revenue'] ?? '₹1.4 Cr';
+    final collectionPct = group?['collectionPct'] ?? 68.2;
+    final studentAttendance = group?['studentAttendanceRatio'] ?? '22/122';
+    final cashToday = group?['cashCollectedToday'] ?? '₹0.2 L';
+    final newAdmissions = group?['newAdmissions'] ?? 25;
+    final staffFilled = group?['staffCount'] ?? 46;
+    final studentAttrition = group?['attrition'] ?? 4.9;
+    final operatingMargin = group?['ebitdaMargin'] ?? 36.7;
+    final staffAttendance = group?['staffAttendanceRatio'] ?? '0/46';
+    final outstanding = group?['outstandingFees'] ?? '₹45.0 L';
+    final criticalAlerts = group?['alertsCritical'] ?? 4;
 
-    final categories = [
-      'Core Performance',
-      'Growth & People',
-      'Operations & Attendance',
-    ];
+    final categories = ['Core Performance', 'Cash & Staffing', 'Operations & Margins'];
     final categoryName = categories[_activeKpiSet];
 
-    // Card definitions for the 3 sets (Exactly 4 circular cards per set)
+    // 3 sets × 4 cards = 12 metrics matching exact web reference screen
     final List<List<Map<String, dynamic>>> sets = [
       // SET 1: Core Performance
       [
         {
-          'label': 'STUDENTS',
+          'label': 'Active Students',
           'value': '$students',
-          'badge': '+12%',
+          'badge': '+11.9%',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
           'valColor': const Color(0xFF0F172A),
         },
         {
-          'label': 'REVENUE',
-          'value': '₹1.4 Cr',
-          'badge': '89%',
+          'label': 'YTD Revenue',
+          'value': '$ytdRevenue',
+          'badge': '+0%',
           'badgeColor': const Color(0xFF7C3AED),
           'badgeBg': const Color(0xFFFAF5FF),
           'valColor': const Color(0xFF7C3AED),
         },
         {
-          'label': 'FEES',
+          'label': 'Fees Collected',
           'value': '$collectionPct%',
-          'badge': '₹94.7 L',
+          'badge': '-19.8 pts',
+          'badgeColor': const Color(0xFFE11D48),
+          'badgeBg': const Color(0xFFFFE4E6),
+          'valColor': const Color(0xFF0F172A),
+        },
+        {
+          'label': 'Student Attend',
+          'value': '$studentAttendance',
+          'badge': '18.0%',
           'badgeColor': const Color(0xFF64748B),
           'badgeBg': const Color(0xFFF1F5F9),
           'valColor': const Color(0xFF0F172A),
         },
+      ],
+      // SET 2: Cash & Staffing
+      [
         {
-          'label': 'ATTEND.',
-          'value': '$attendance%',
-          'badge': 'Good',
+          'label': 'Cash Today',
+          'value': '$cashToday',
+          'badge': 'Counters',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
           'valColor': const Color(0xFF059669),
         },
-      ],
-      // SET 2: Growth & People
-      [
         {
-          'label': 'ALERTS',
-          'value': '$criticalAlerts Crit',
-          'badge': 'Action',
-          'badgeColor': const Color(0xFFE11D48),
-          'badgeBg': const Color(0xFFFFE4E6),
-          'valColor': const Color(0xFFE11D48),
-        },
-        {
-          'label': 'ADMISS.',
-          'value': '28',
-          'badge': 'Ph 1',
+          'label': 'New Admissions',
+          'value': '$newAdmissions',
+          'badge': 'This Month',
           'badgeColor': const Color(0xFF7C3AED),
           'badgeBg': const Color(0xFFFAF5FF),
           'valColor': const Color(0xFF7C3AED),
         },
         {
-          'label': 'STAFF',
-          'value': '47',
-          'badge': '22 Open',
+          'label': 'Staff Filled',
+          'value': '$staffFilled',
+          'badge': '23 Open',
           'badgeColor': const Color(0xFFD97706),
           'badgeBg': const Color(0xFFFFFBEB),
           'valColor': const Color(0xFF0F172A),
         },
         {
-          'label': 'ATTRITION',
-          'value': '4.9%',
-          'badge': '<6%',
+          'label': 'Student Attrition',
+          'value': '$studentAttrition%',
+          'badge': '-1.1 pts',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
           'valColor': const Color(0xFF059669),
         },
       ],
-      // SET 3: Operations & Attendance
+      // SET 3: Operations & Margins
       [
         {
-          'label': 'MARGIN',
-          'value': '35.8%',
+          'label': 'Operating Margin',
+          'value': '$operatingMargin%',
           'badge': 'EBITDA',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
           'valColor': const Color(0xFF7C3AED),
         },
         {
-          'label': 'STU ATT.',
-          'value': '92.4%',
-          'badge': '114 In',
-          'badgeColor': const Color(0xFF64748B),
-          'badgeBg': const Color(0xFFF1F5F9),
-          'valColor': const Color(0xFF059669),
+          'label': 'Staff Attend',
+          'value': '$staffAttendance',
+          'badge': '0 Absent',
+          'badgeColor': const Color(0xFFE11D48),
+          'badgeBg': const Color(0xFFFFE4E6),
+          'valColor': const Color(0xFFE11D48),
         },
         {
-          'label': 'STF ATT.',
-          'value': '95.7%',
-          'badge': '45 In',
-          'badgeColor': const Color(0xFF7C3AED),
-          'badgeBg': const Color(0xFFFAF5FF),
-          'valColor': const Color(0xFF0F172A),
+          'label': 'Outstanding Fees',
+          'value': '$outstanding',
+          'badge': 'Due',
+          'badgeColor': const Color(0xFFD97706),
+          'badgeBg': const Color(0xFFFFFBEB),
+          'valColor': const Color(0xFFD97706),
         },
         {
-          'label': 'CAPACITY',
-          'value': '$capacityUtil%',
-          'badge': '$students St',
-          'badgeColor': const Color(0xFF64748B),
-          'badgeBg': const Color(0xFFF1F5F9),
-          'valColor': const Color(0xFF7C3AED),
+          'label': 'Critical Alerts',
+          'value': '$criticalAlerts Crit',
+          'badge': 'Action',
+          'badgeColor': const Color(0xFFE11D48),
+          'badgeBg': const Color(0xFFFFE4E6),
+          'valColor': const Color(0xFFE11D48),
         },
       ],
     ];
-
-    final currentCards = sets[_activeKpiSet];
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -1014,101 +1029,132 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
           const SizedBox(height: 12),
 
-          // 4 Compact Circular Cards in 1 Row
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: Row(
-              key: ValueKey<int>(_activeKpiSet),
-              children: currentCards.map((c) {
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                    child: AspectRatio(
-                      aspectRatio: 1.0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xCCEDE9FE),
-                            width: 1.2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFF7C3AED,
-                              ).withValues(alpha: 0.16),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 4,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              c['label'] as String,
-                              style: const TextStyle(
-                                color: Color(0xFF94A3B8),
-                                fontSize: 8,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.2,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              c['value'] as String,
-                              style: TextStyle(
-                                color: c['valColor'] as Color,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.3,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: c['badgeBg'] as Color,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: (c['badgeColor'] as Color).withValues(
-                                    alpha: 0.2,
+          // Horizontal Sliding Carousel for the 3 KPI Sets (Core Performance, Growth & People, Operations & Attendance)
+          // Slides automatically horizontally every 4s AND allows user to manually swipe/slide smoothly
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final availableWidth = constraints.maxWidth;
+              final itemWidth = availableWidth / 4;
+              final circleSize = (itemWidth - 10).clamp(58.0, 68.0);
+              final numFontSize = circleSize >= 64 ? 15.5 : 14.0;
+              final badgeFontSize = circleSize >= 64 ? 8.5 : 7.5;
+
+              return SizedBox(
+                height: circleSize + 28,
+                child: PageView.builder(
+                  controller: _kpiPageController,
+                  physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
+                  onPageChanged: (idx) {
+                    setState(() {
+                      _activeKpiSet = idx;
+                    });
+                    _startKpiTimer();
+                  },
+                  itemCount: sets.length,
+                  itemBuilder: (context, setIndex) {
+                    final cards = sets[setIndex];
+                    return Row(
+                      children: cards.map((c) {
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Circular card containing prominent numbers and badge
+                                Container(
+                                  width: circleSize,
+                                  height: circleSize,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xCCEDE9FE),
+                                      width: 1.2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF7C3AED).withValues(alpha: 0.16),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.04),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
                                   ),
-                                  width: 0.8,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Increased font size for inside numbers with auto-scaling for ratios
+                                      Builder(builder: (context) {
+                                        final valStr = c['value'] as String;
+                                        final dynamicNumFontSize = valStr.length > 5
+                                            ? (circleSize >= 64 ? 13.0 : 12.0)
+                                            : numFontSize;
+                                        return Text(
+                                          valStr,
+                                          style: TextStyle(
+                                            color: c['valColor'] as Color,
+                                            fontSize: dynamicNumFontSize,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: -0.4,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        );
+                                      }),
+                                      const SizedBox(height: 2),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: c['badgeBg'] as Color,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: (c['badgeColor'] as Color).withValues(alpha: 0.2),
+                                            width: 0.8,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          c['badge'] as String,
+                                          style: TextStyle(
+                                            color: c['badgeColor'] as Color,
+                                            fontSize: badgeFontSize,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                c['badge'] as String,
-                                style: TextStyle(
-                                  color: c['badgeColor'] as Color,
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w700,
+                                const SizedBox(height: 6),
+                                // Text label displayed underneath against each circle
+                                Text(
+                                  c['label'] as String,
+                                  style: const TextStyle(
+                                    color: Color(0xFF475569),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.2,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              );
+            },
           ),
 
           const SizedBox(height: 10),
@@ -4953,34 +4999,299 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildAttendanceView() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final dummyBranches = [
+      {
+        'name': 'Steel Plant Branch',
+        'studentPct': 93.1,
+        'studentPresent': 391,
+        'studentRoster': 420,
+        'studentAbsent': 22,
+        'studentLeave': 7,
+        'staffPct': 93.3,
+        'staffPresent': 42,
+        'staffRoster': 45,
+      },
+      {
+        'name': 'Gachibowli Campus',
+        'studentPct': 94.8,
+        'studentPresent': 360,
+        'studentRoster': 380,
+        'studentAbsent': 14,
+        'studentLeave': 6,
+        'staffPct': 95.2,
+        'staffPresent': 40,
+        'staffRoster': 42,
+      },
+      {
+        'name': 'Kondapur Branch',
+        'studentPct': 89.6,
+        'studentPresent': 278,
+        'studentRoster': 310,
+        'studentAbsent': 24,
+        'studentLeave': 8,
+        'staffPct': 91.4,
+        'staffPresent': 32,
+        'staffRoster': 35,
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Campus Attendance Command',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Campus Attendance',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFEFF),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFA5F3FC)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.fact_check_rounded, color: Color(0xFF0891B2), size: 13),
+                        SizedBox(width: 4),
+                        Text(
+                          'DUMMY PREVIEW',
+                          style: TextStyle(
+                            color: Color(0xFF0891B2),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.fact_check_rounded,
-                color: Color(0xFF06B6D4),
-                size: 20,
+              const SizedBox(height: 6),
+              const Text(
+                'Group-wide student & staff daily attendance snapshot across branches.',
+                style: TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildAttendanceStatTile(
+                      label: 'Students Present',
+                      value: '92.4%',
+                      subtext: '1,029 / 1,110',
+                      color: const Color(0xFF10B981),
+                      bgColor: const Color(0xFFECFDF5),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildAttendanceStatTile(
+                      label: 'Staff Present',
+                      value: '93.4%',
+                      subtext: '114 / 122',
+                      color: const Color(0xFF7C3AED),
+                      bgColor: const Color(0xFFF5F3FF),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildAttendanceStatTile(
+                      label: 'Absent Today',
+                      value: '60',
+                      subtext: 'Students across 3 branches',
+                      color: const Color(0xFFEF4444),
+                      bgColor: const Color(0xFFFEF2F2),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildAttendanceStatTile(
+                      label: 'On Leave',
+                      value: '21',
+                      subtext: 'Approved leaves',
+                      color: const Color(0xFFF59E0B),
+                      bgColor: const Color(0xFFFFFBEB),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          SizedBox(height: 8),
+        ),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Branch Breakdown',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...dummyBranches.map((branch) {
+                final studentPct = branch['studentPct'] as double;
+                final staffPct = branch['staffPct'] as double;
+                final isLow = studentPct < 90.0;
+                final barColor = isLow ? const Color(0xFFF59E0B) : const Color(0xFF10B981);
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              branch['name'] as String,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${studentPct.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              color: barColor,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: (studentPct / 100).clamp(0.0, 1.0),
+                          minHeight: 6,
+                          backgroundColor: const Color(0xFFE2E8F0),
+                          valueColor: AlwaysStoppedAnimation<Color>(barColor),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 4,
+                        children: [
+                          Text(
+                            'Students: ${branch['studentPresent']}/${branch['studentRoster']}',
+                            style: const TextStyle(color: Color(0xFF475569), fontSize: 11),
+                          ),
+                          Text(
+                            'Absent: ${branch['studentAbsent']}',
+                            style: const TextStyle(color: Color(0xFFEF4444), fontSize: 11),
+                          ),
+                          Text(
+                            'Leave: ${branch['studentLeave']}',
+                            style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 11),
+                          ),
+                          Text(
+                            'Staff: ${branch['staffPresent']}/${branch['staffRoster']} (${staffPct.toStringAsFixed(1)}%)',
+                            style: const TextStyle(color: Color(0xFF7C3AED), fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAttendanceStatTile({
+    required String label,
+    required String value,
+    required String subtext,
+    required Color color,
+    required Color bgColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
-            'Real-time biometric sync across all branches. Overall student attendance: 92.4%, Staff: 94.2%.',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: color,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtext,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 10,
+            ),
           ),
         ],
       ),
