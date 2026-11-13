@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// Cinematic Hero Section featuring:
-/// - Eyebrow ("EST. 2026 · HYDERABAD")
 /// - Two-line heading ("A calmer way to run" in white, "your campus." in lavender)
 /// - Subtitle description with staggered fade/slide
 /// - Subtle light sweep effect behind the heading
@@ -27,11 +26,6 @@ class AnimatedHeroSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Eyebrow
-        _buildEyebrow(),
-
-        const SizedBox(height: 18),
-
         // Hero Heading Line 1 ("A calmer way to run")
         _buildHeadingLine(
           text: 'A calmer way to run',
@@ -53,52 +47,6 @@ class AnimatedHeroSection extends StatelessWidget {
         // Description
         _buildDescription(),
       ],
-    );
-  }
-
-  Widget _buildEyebrow() {
-    final t = eyebrowProgress.clamp(0.0, 1.0);
-    final curve = Curves.easeOutCubic.transform(t);
-
-    return Opacity(
-      opacity: t,
-      child: Transform.translate(
-        offset: Offset(0, (1.0 - curve) * 14.0),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.12),
-              width: 1.0,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFF34D399), // Emerald pulse
-                ),
-              ),
-              const SizedBox(width: 7),
-              const Text(
-                'EST. 2026 · HYDERABAD',
-                style: TextStyle(
-                  color: Color(0xFFC7D2FE),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.4,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
