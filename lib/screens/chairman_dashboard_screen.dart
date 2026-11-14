@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import '../data/live_dashboard_payload.dart';
 import '../services/api_config.dart';
 import '../services/auth_service.dart';
 import '../services/session_manager.dart';
@@ -26,9 +27,9 @@ class ChairmanDashboardScreen extends StatefulWidget {
 }
 
 class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
-  bool _isLoading = true;
+  bool _isLoading = false;
   String? _errorMessage;
-  Map<String, dynamic>? _dashboardData;
+  Map<String, dynamic>? _dashboardData = kDefaultLiveDashboardData;
   String _activeView = 'view-overview';
   bool _isArcMenuOpen = false;
 
@@ -59,10 +60,436 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       'all'; // 'all' | 'not-marked' | 'present' | 'absentees' | 'teaching' | 'non-teaching' | 'leave' | 'absent'
   String _attendanceSearchQuery = '';
 
-  static final List<Map<String, dynamic>> _attendanceStudentRecords = [
+  bool _showAllAttendanceStudents = false;
+  bool _showAllAttendanceStaff = false;
+
+  static List<Map<String, dynamic>>? _cachedAllStudentsList;
+  static List<Map<String, dynamic>> _getAllStudentRecords() {
+    if (_cachedAllStudentsList != null) return _cachedAllStudentsList!;
+    _cachedAllStudentsList = [
+    {
+      'initials': 'AS',
+      'name': 'Aarav S.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'hostel-residents',
+      'status': 'Not marked',
+      'rollNo': 'GB-10-01',
+      'meta': 'Class 10 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'AV',
+      'name': 'Aadhya V.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'hostel-residents',
+      'status': 'Not marked',
+      'rollNo': 'GB-9-02',
+      'meta': 'Class 9 • Sec B • Gachibowli',
+    },
+    {
+      'initials': 'VP',
+      'name': 'Vihaan P.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-8-03',
+      'meta': 'Class 8 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'AR',
+      'name': 'Ananya R.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-7-04',
+      'meta': 'Class 7 • Sec B • Gachibowli',
+    },
+    {
+      'initials': 'RR',
+      'name': 'Reyansh R.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-6-05',
+      'meta': 'Class 6 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'DN',
+      'name': 'Diya N.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-5-06',
+      'meta': 'Class 5 • Sec B • Gachibowli',
+    },
     {
       'initials': 'AK',
-      'name': 'Aadhya K.',
+      'name': 'Advik K.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-4-07',
+      'meta': 'Class 4 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'IS',
+      'name': 'Isha S.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-3-08',
+      'meta': 'Class 3 • Sec B • Gachibowli',
+    },
+    {
+      'initials': 'KG',
+      'name': 'Kabir G.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-2-09',
+      'meta': 'Class 2 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'MJ',
+      'name': 'Meera J.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 1',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-1-10',
+      'meta': 'Class 1 • Sec B • Gachibowli',
+    },
+    {
+      'initials': 'DB',
+      'name': 'Dhruv B.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-10-11',
+      'meta': 'Class 10 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'RP',
+      'name': 'Riya P.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-9-12',
+      'meta': 'Class 9 • Sec B • Gachibowli',
+    },
+    {
+      'initials': 'AN',
+      'name': 'Atharv N.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-8-13',
+      'meta': 'Class 8 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'SC',
+      'name': 'Saanvi C.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-7-14',
+      'meta': 'Class 7 • Sec B • Gachibowli',
+    },
+    {
+      'initials': 'IM',
+      'name': 'Ishaan M.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-6-15',
+      'meta': 'Class 6 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'PP',
+      'name': 'Pooja P.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-5-16',
+      'meta': 'Class 5 • Sec B • Gachibowli',
+    },
+    {
+      'initials': 'SS',
+      'name': 'Sai S.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-4-17',
+      'meta': 'Class 4 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'TV',
+      'name': 'Tanvi V.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-3-18',
+      'meta': 'Class 3 • Sec B • Gachibowli',
+    },
+    {
+      'initials': 'AP',
+      'name': 'Arjun P.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-2-19',
+      'meta': 'Class 2 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'KR',
+      'name': 'Kavya R.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 1',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-1-20',
+      'meta': 'Class 1 • Sec B • Gachibowli',
+    },
+    {
+      'initials': 'AR',
+      'name': 'Aditya R.',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'GB-10-21',
+      'meta': 'Class 10 • Sec A • Gachibowli',
+    },
+    {
+      'initials': 'AN',
+      'name': 'Ananya N.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'hostel-residents',
+      'status': 'Not marked',
+      'rollNo': 'KD-10-01',
+      'meta': 'Class 10 • Sec A • Kondapur',
+    },
+    {
+      'initials': 'RK',
+      'name': 'Reyansh K.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'hostel-residents',
+      'status': 'Not marked',
+      'rollNo': 'KD-9-02',
+      'meta': 'Class 9 • Sec B • Kondapur',
+    },
+    {
+      'initials': 'DS',
+      'name': 'Diya S.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-8-03',
+      'meta': 'Class 8 • Sec A • Kondapur',
+    },
+    {
+      'initials': 'AG',
+      'name': 'Advik G.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-7-04',
+      'meta': 'Class 7 • Sec B • Kondapur',
+    },
+    {
+      'initials': 'IJ',
+      'name': 'Isha J.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-6-05',
+      'meta': 'Class 6 • Sec A • Kondapur',
+    },
+    {
+      'initials': 'KB',
+      'name': 'Kabir B.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-5-06',
+      'meta': 'Class 5 • Sec B • Kondapur',
+    },
+    {
+      'initials': 'MP',
+      'name': 'Meera P.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-4-07',
+      'meta': 'Class 4 • Sec A • Kondapur',
+    },
+    {
+      'initials': 'DN',
+      'name': 'Dhruv N.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-3-08',
+      'meta': 'Class 3 • Sec B • Kondapur',
+    },
+    {
+      'initials': 'RC',
+      'name': 'Riya C.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-2-09',
+      'meta': 'Class 2 • Sec A • Kondapur',
+    },
+    {
+      'initials': 'AM',
+      'name': 'Atharv M.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 1',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-1-10',
+      'meta': 'Class 1 • Sec B • Kondapur',
+    },
+    {
+      'initials': 'SP',
+      'name': 'Saanvi P.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-10-11',
+      'meta': 'Class 10 • Sec A • Kondapur',
+    },
+    {
+      'initials': 'IS',
+      'name': 'Ishaan S.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-9-12',
+      'meta': 'Class 9 • Sec B • Kondapur',
+    },
+    {
+      'initials': 'PV',
+      'name': 'Pooja V.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-8-13',
+      'meta': 'Class 8 • Sec A • Kondapur',
+    },
+    {
+      'initials': 'SP',
+      'name': 'Sai P.',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KD-7-14',
+      'meta': 'Class 7 • Sec B • Kondapur',
+    },
+    {
+      'initials': 'AB',
+      'name': 'Advik B.',
       'branchId': 'kukatpally',
       'branchName': 'Kukatpally Campus',
       'class': 'Class 10',
@@ -73,182 +500,1050 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       'meta': 'Class 10 • Sec A • Kukatpally',
     },
     {
-      'initials': 'AK',
-      'name': 'Aadhya Kumar',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-10-04',
-      'meta': 'Class 10 • Sec A • Kondapur',
-    },
-    {
-      'initials': 'AK',
-      'name': 'Aarav Kumar',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-02-02',
-      'meta': 'Class 2 • Sec A • Maddipalem',
-    },
-    {
-      'initials': 'AP',
-      'name': 'Aarav Patel',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'GB-06-08',
-      'meta': 'Class 6 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'AS',
-      'name': 'Aarav Sharma',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-10-12',
-      'meta': 'Class 10 • Sec A • Steel Plant',
-    },
-    {
-      'initials': 'VN',
-      'name': 'Varun Nambiar',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 10',
+      'initials': 'IP',
+      'name': 'Isha P.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 9',
       'section': 'Sec B',
       'residency': 'hostel-residents',
       'status': 'Not marked',
-      'rollNo': 'SP-10-24',
-      'meta': 'Class 10 • Sec B • Steel Plant',
+      'rollNo': 'KP-9-02',
+      'meta': 'Class 9 • Sec B • Kukatpally',
     },
     {
-      'initials': 'SR',
-      'name': 'Sanya Reddy',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 9',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-09-05',
-      'meta': 'Class 9 • Sec A • Steel Plant',
-    },
-    {
-      'initials': 'RK',
-      'name': 'Rohan Kulkarni',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 5',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-05-03',
-      'meta': 'Class 5 • Sec A • Steel Plant',
-    },
-    {
-      'initials': 'DR',
-      'name': 'Diya Rao',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-02-11',
-      'meta': 'Class 2 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'NM',
-      'name': 'Nikhil Menon',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 1',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-01-07',
-      'meta': 'Class 1 • Sec A • Maddipalem',
-    },
-    {
-      'initials': 'PA',
-      'name': 'Pranav Anand',
+      'initials': 'KN',
+      'name': 'Kabir N.',
       'branchId': 'kukatpally',
       'branchName': 'Kukatpally Campus',
       'class': 'Class 8',
       'section': 'Sec A',
-      'residency': 'hostel-residents',
+      'residency': 'day-scholars',
       'status': 'Not marked',
-      'rollNo': 'KP-08-14',
+      'rollNo': 'KP-8-03',
       'meta': 'Class 8 • Sec A • Kukatpally',
     },
     {
-      'initials': 'KV',
-      'name': 'Kavya Varma',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
+      'initials': 'MC',
+      'name': 'Meera C.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
       'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-7-04',
+      'meta': 'Class 7 • Sec B • Kukatpally',
+    },
+    {
+      'initials': 'DM',
+      'name': 'Dhruv M.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 6',
       'section': 'Sec A',
       'residency': 'day-scholars',
       'status': 'Not marked',
-      'rollNo': 'KD-07-09',
-      'meta': 'Class 7 • Sec A • Kondapur',
+      'rollNo': 'KP-6-05',
+      'meta': 'Class 6 • Sec A • Kukatpally',
     },
     {
-      'initials': 'IS',
-      'name': 'Ishaan Sen',
+      'initials': 'RP',
+      'name': 'Riya P.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-5-06',
+      'meta': 'Class 5 • Sec B • Kukatpally',
+    },
+    {
+      'initials': 'AS',
+      'name': 'Atharv S.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-4-07',
+      'meta': 'Class 4 • Sec A • Kukatpally',
+    },
+    {
+      'initials': 'SV',
+      'name': 'Saanvi V.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-3-08',
+      'meta': 'Class 3 • Sec B • Kukatpally',
+    },
+    {
+      'initials': 'IP',
+      'name': 'Ishaan P.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-2-09',
+      'meta': 'Class 2 • Sec A • Kukatpally',
+    },
+    {
+      'initials': 'PR',
+      'name': 'Pooja R.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 1',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-1-10',
+      'meta': 'Class 1 • Sec B • Kukatpally',
+    },
+    {
+      'initials': 'SR',
+      'name': 'Sai R.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-10-11',
+      'meta': 'Class 10 • Sec A • Kukatpally',
+    },
+    {
+      'initials': 'TN',
+      'name': 'Tanvi N.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-9-12',
+      'meta': 'Class 9 • Sec B • Kukatpally',
+    },
+    {
+      'initials': 'AK',
+      'name': 'Arjun K.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-8-13',
+      'meta': 'Class 8 • Sec A • Kukatpally',
+    },
+    {
+      'initials': 'KS',
+      'name': 'Kavya S.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-7-14',
+      'meta': 'Class 7 • Sec B • Kukatpally',
+    },
+    {
+      'initials': 'AG',
+      'name': 'Aditya G.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-6-15',
+      'meta': 'Class 6 • Sec A • Kukatpally',
+    },
+    {
+      'initials': 'NJ',
+      'name': 'Neha J.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-5-16',
+      'meta': 'Class 5 • Sec B • Kukatpally',
+    },
+    {
+      'initials': 'RB',
+      'name': 'Rohan B.',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'KP-4-17',
+      'meta': 'Class 4 • Sec A • Kukatpally',
+    },
+    {
+      'initials': 'MP',
+      'name': 'Meera P.',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'hostel-residents',
+      'status': 'Not marked',
+      'rollNo': 'MD-10-01',
+      'meta': 'Class 10 • Sec A • Maddipalem',
+    },
+    {
+      'initials': 'DS',
+      'name': 'Dhruv S.',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MD-9-02',
+      'meta': 'Class 9 • Sec B • Maddipalem',
+    },
+    {
+      'initials': 'RV',
+      'name': 'Riya V.',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MD-8-03',
+      'meta': 'Class 8 • Sec A • Maddipalem',
+    },
+    {
+      'initials': 'AP',
+      'name': 'Atharv P.',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MD-7-04',
+      'meta': 'Class 7 • Sec B • Maddipalem',
+    },
+    {
+      'initials': 'SR',
+      'name': 'Saanvi R.',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MD-6-05',
+      'meta': 'Class 6 • Sec A • Maddipalem',
+    },
+    {
+      'initials': 'IR',
+      'name': 'Ishaan R.',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MD-5-06',
+      'meta': 'Class 5 • Sec B • Maddipalem',
+    },
+    {
+      'initials': 'PN',
+      'name': 'Pooja N.',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MD-4-07',
+      'meta': 'Class 4 • Sec A • Maddipalem',
+    },
+    {
+      'initials': 'SK',
+      'name': 'Sai K.',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MD-3-08',
+      'meta': 'Class 3 • Sec B • Maddipalem',
+    },
+    {
+      'initials': 'TS',
+      'name': 'Tanvi S.',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MD-2-09',
+      'meta': 'Class 2 • Sec A • Maddipalem',
+    },
+    {
+      'initials': 'AR',
+      'name': 'Atharv R.',
       'branchId': 'madhapur',
       'branchName': 'Madhapur Branch',
       'class': 'Class 10',
       'section': 'Sec A',
       'residency': 'hostel-residents',
       'status': 'Not marked',
-      'rollNo': 'MP-10-02',
+      'rollNo': 'MP-10-01',
       'meta': 'Class 10 • Sec A • Madhapur',
     },
     {
-      'initials': 'MG',
-      'name': 'Meera Gupta',
+      'initials': 'SN',
+      'name': 'Saanvi N.',
       'branchId': 'madhapur',
       'branchName': 'Madhapur Branch',
       'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'hostel-residents',
+      'status': 'Not marked',
+      'rollNo': 'MP-9-02',
+      'meta': 'Class 9 • Sec B • Madhapur',
+    },
+    {
+      'initials': 'IK',
+      'name': 'Ishaan K.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 8',
       'section': 'Sec A',
       'residency': 'day-scholars',
       'status': 'Not marked',
-      'rollNo': 'MP-09-08',
-      'meta': 'Class 9 • Sec A • Madhapur',
+      'rollNo': 'MP-8-03',
+      'meta': 'Class 8 • Sec A • Madhapur',
     },
-  ];
-
-  static final List<Map<String, dynamic>> _attendanceStaffRecords = [
     {
-      'initials': 'KR',
-      'name': 'Dr. K. S. Rao',
-      'role': 'PGT Physics • Steel Plant',
-      'category': 'teaching',
-      'subRole': 'teaching',
+      'initials': 'PS',
+      'name': 'Pooja S.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-7-04',
+      'meta': 'Class 7 • Sec B • Madhapur',
+    },
+    {
+      'initials': 'SG',
+      'name': 'Sai G.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-6-05',
+      'meta': 'Class 6 • Sec A • Madhapur',
+    },
+    {
+      'initials': 'TJ',
+      'name': 'Tanvi J.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-5-06',
+      'meta': 'Class 5 • Sec B • Madhapur',
+    },
+    {
+      'initials': 'AB',
+      'name': 'Arjun B.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-4-07',
+      'meta': 'Class 4 • Sec A • Madhapur',
+    },
+    {
+      'initials': 'KP',
+      'name': 'Kavya P.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-3-08',
+      'meta': 'Class 3 • Sec B • Madhapur',
+    },
+    {
+      'initials': 'AN',
+      'name': 'Aditya N.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-2-09',
+      'meta': 'Class 2 • Sec A • Madhapur',
+    },
+    {
+      'initials': 'NC',
+      'name': 'Neha C.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 1',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-1-10',
+      'meta': 'Class 1 • Sec B • Madhapur',
+    },
+    {
+      'initials': 'RM',
+      'name': 'Rohan M.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-10-11',
+      'meta': 'Class 10 • Sec A • Madhapur',
+    },
+    {
+      'initials': 'AP',
+      'name': 'Anika P.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-9-12',
+      'meta': 'Class 9 • Sec B • Madhapur',
+    },
+    {
+      'initials': 'KS',
+      'name': 'Krishna S.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-8-13',
+      'meta': 'Class 8 • Sec A • Madhapur',
+    },
+    {
+      'initials': 'SV',
+      'name': 'Sneha V.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-7-14',
+      'meta': 'Class 7 • Sec B • Madhapur',
+    },
+    {
+      'initials': 'RP',
+      'name': 'Rahul P.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-6-15',
+      'meta': 'Class 6 • Sec A • Madhapur',
+    },
+    {
+      'initials': 'PR',
+      'name': 'Priya R.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-5-16',
+      'meta': 'Class 5 • Sec B • Madhapur',
+    },
+    {
+      'initials': 'MR',
+      'name': 'Manish R.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-4-17',
+      'meta': 'Class 4 • Sec A • Madhapur',
+    },
+    {
+      'initials': 'DN',
+      'name': 'Divya N.',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'MP-3-18',
+      'meta': 'Class 3 • Sec B • Madhapur',
+    },
+    {
+      'initials': 'PJ',
+      'name': 'Pooja J.',
       'branchId': 'steel-plant',
       'branchName': 'Steel Plant Branch',
-      'department': 'Physics',
-      'shift': 'general',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'hostel-residents',
       'status': 'Present',
-      'subStatus': '08:42 AM',
-      'phone': '+91 98490 12345',
+      'rollNo': 'SP-10-01',
+      'meta': 'Class 10 • Sec A • Steel',
     },
+    {
+      'initials': 'SB',
+      'name': 'Sai B.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'hostel-residents',
+      'status': 'Present',
+      'rollNo': 'SP-9-02',
+      'meta': 'Class 9 • Sec B • Steel',
+    },
+    {
+      'initials': 'TP',
+      'name': 'Tanvi P.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'hostel-residents',
+      'status': 'Present',
+      'rollNo': 'SP-8-03',
+      'meta': 'Class 8 • Sec A • Steel',
+    },
+    {
+      'initials': 'AN',
+      'name': 'Arjun N.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-7-04',
+      'meta': 'Class 7 • Sec B • Steel',
+    },
+    {
+      'initials': 'KC',
+      'name': 'Kavya C.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-6-05',
+      'meta': 'Class 6 • Sec A • Steel',
+    },
+    {
+      'initials': 'AM',
+      'name': 'Aditya M.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-5-06',
+      'meta': 'Class 5 • Sec B • Steel',
+    },
+    {
+      'initials': 'NP',
+      'name': 'Neha P.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-4-07',
+      'meta': 'Class 4 • Sec A • Steel',
+    },
+    {
+      'initials': 'RS',
+      'name': 'Rohan S.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-3-08',
+      'meta': 'Class 3 • Sec B • Steel',
+    },
+    {
+      'initials': 'AV',
+      'name': 'Anika V.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-2-09',
+      'meta': 'Class 2 • Sec A • Steel',
+    },
+    {
+      'initials': 'KP',
+      'name': 'Krishna P.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 1',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-1-10',
+      'meta': 'Class 1 • Sec B • Steel',
+    },
+    {
+      'initials': 'SR',
+      'name': 'Sneha R.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-10-11',
+      'meta': 'Class 10 • Sec A • Steel',
+    },
+    {
+      'initials': 'RR',
+      'name': 'Rahul R.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-9-12',
+      'meta': 'Class 9 • Sec B • Steel',
+    },
+    {
+      'initials': 'PN',
+      'name': 'Priya N.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-8-13',
+      'meta': 'Class 8 • Sec A • Steel',
+    },
+    {
+      'initials': 'MK',
+      'name': 'Manish K.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-7-14',
+      'meta': 'Class 7 • Sec B • Steel',
+    },
+    {
+      'initials': 'DS',
+      'name': 'Divya S.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-6-15',
+      'meta': 'Class 6 • Sec A • Steel',
+    },
+    {
+      'initials': 'VG',
+      'name': 'Varun G.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-5-16',
+      'meta': 'Class 5 • Sec B • Steel',
+    },
+    {
+      'initials': 'SJ',
+      'name': 'Swati J.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-4-17',
+      'meta': 'Class 4 • Sec A • Steel',
+    },
+    {
+      'initials': 'NB',
+      'name': 'Nikhil B.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-3-18',
+      'meta': 'Class 3 • Sec B • Steel',
+    },
+    {
+      'initials': 'SP',
+      'name': 'Shreya P.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-2-19',
+      'meta': 'Class 2 • Sec A • Steel',
+    },
+    {
+      'initials': 'KN',
+      'name': 'Kiran N.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 1',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-1-20',
+      'meta': 'Class 1 • Sec B • Steel',
+    },
+    {
+      'initials': 'MC',
+      'name': 'Megha C.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-10-21',
+      'meta': 'Class 10 • Sec A • Steel',
+    },
+    {
+      'initials': 'VM',
+      'name': 'Vikram M.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Present',
+      'rollNo': 'SP-9-22',
+      'meta': 'Class 9 • Sec B • Steel',
+    },
+    {
+      'initials': 'AP',
+      'name': 'Anjali P.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Absent',
+      'rollNo': 'SP-8-23',
+      'meta': 'Class 8 • Sec A • Steel',
+    },
+    {
+      'initials': 'SS',
+      'name': 'Siddharth S.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Absent',
+      'rollNo': 'SP-7-24',
+      'meta': 'Class 7 • Sec B • Steel',
+    },
+    {
+      'initials': 'PV',
+      'name': 'Preeti V.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Absent',
+      'rollNo': 'SP-6-25',
+      'meta': 'Class 6 • Sec A • Steel',
+    },
+    {
+      'initials': 'HP',
+      'name': 'Harsh P.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Absent',
+      'rollNo': 'SP-5-26',
+      'meta': 'Class 5 • Sec B • Steel',
+    },
+    {
+      'initials': 'DR',
+      'name': 'Deepika R.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Absent',
+      'rollNo': 'SP-4-27',
+      'meta': 'Class 4 • Sec A • Steel',
+    },
+    {
+      'initials': 'KR',
+      'name': 'Karthik R.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-3-28',
+      'meta': 'Class 3 • Sec B • Steel',
+    },
+    {
+      'initials': 'BN',
+      'name': 'Bhavana N.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-2-29',
+      'meta': 'Class 2 • Sec A • Steel',
+    },
+    {
+      'initials': 'PK',
+      'name': 'Pranav K.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 1',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-1-30',
+      'meta': 'Class 1 • Sec B • Steel',
+    },
+    {
+      'initials': 'HS',
+      'name': 'Harini S.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-10-31',
+      'meta': 'Class 10 • Sec A • Steel',
+    },
+    {
+      'initials': 'TG',
+      'name': 'Tarun G.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-9-32',
+      'meta': 'Class 9 • Sec B • Steel',
+    },
+    {
+      'initials': 'KJ',
+      'name': 'Keerthi J.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-8-33',
+      'meta': 'Class 8 • Sec A • Steel',
+    },
+    {
+      'initials': 'AB',
+      'name': 'Aarav B.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 7',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-7-34',
+      'meta': 'Class 7 • Sec B • Steel',
+    },
+    {
+      'initials': 'AP',
+      'name': 'Aadhya P.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 6',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-6-35',
+      'meta': 'Class 6 • Sec A • Steel',
+    },
+    {
+      'initials': 'VN',
+      'name': 'Vihaan N.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 5',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-5-36',
+      'meta': 'Class 5 • Sec B • Steel',
+    },
+    {
+      'initials': 'AC',
+      'name': 'Ananya C.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 4',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-4-37',
+      'meta': 'Class 4 • Sec A • Steel',
+    },
+    {
+      'initials': 'RM',
+      'name': 'Reyansh M.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 3',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-3-38',
+      'meta': 'Class 3 • Sec B • Steel',
+    },
+    {
+      'initials': 'DP',
+      'name': 'Diya P.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 2',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-2-39',
+      'meta': 'Class 2 • Sec A • Steel',
+    },
+    {
+      'initials': 'AS',
+      'name': 'Advik S.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 1',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-1-40',
+      'meta': 'Class 1 • Sec B • Steel',
+    },
+    {
+      'initials': 'IV',
+      'name': 'Isha V.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 10',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-10-41',
+      'meta': 'Class 10 • Sec A • Steel',
+    },
+    {
+      'initials': 'KP',
+      'name': 'Kabir P.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 9',
+      'section': 'Sec B',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-9-42',
+      'meta': 'Class 9 • Sec B • Steel',
+    },
+    {
+      'initials': 'MR',
+      'name': 'Meera R.',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'class': 'Class 8',
+      'section': 'Sec A',
+      'residency': 'day-scholars',
+      'status': 'Not marked',
+      'rollNo': 'SP-8-43',
+      'meta': 'Class 8 • Sec A • Steel',
+    },
+    ];
+    return _cachedAllStudentsList!;
+  }
+
+
+  static List<Map<String, dynamic>>? _cachedAllStaffList;
+  static List<Map<String, dynamic>> _getAllStaffRecords() {
+    if (_cachedAllStaffList != null) return _cachedAllStaffList!;
+    _cachedAllStaffList = [
     {
       'initials': 'MA',
       'name': 'M. Ananya',
-      'role': 'TGT English • Gachibowli',
+      'role': 'TGT English • Gachibowli Campus',
       'category': 'teaching',
       'subRole': 'teaching',
       'branchId': 'gachibowli',
@@ -260,9 +1555,625 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       'phone': '+91 94401 56789',
     },
     {
+      'initials': 'RV',
+      'name': 'R. Verma',
+      'role': 'PGT Physics • Gachibowli Campus',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'department': 'Physics',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:35 AM',
+      'phone': '+91 98491 23456',
+    },
+    {
+      'initials': 'BP',
+      'name': 'B. Prabhakar',
+      'role': 'Administrative Officer • Gachibowli Campus',
+      'category': 'non-teaching',
+      'subRole': 'admin-officer',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:35 AM',
+      'phone': '+91 97011 55667',
+    },
+    {
+      'initials': 'MS',
+      'name': 'Mrs. Meenakshi S.',
+      'role': 'Principal • Gachibowli Campus',
+      'category': 'non-teaching',
+      'subRole': 'principal',
+      'branchId': 'gachibowli',
+      'branchName': 'Gachibowli Campus',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:10 AM',
+      'phone': '+91 98492 33445',
+    },
+    {
+      'initials': 'KS',
+      'name': 'K. Sneha',
+      'role': 'PRT Science • Kondapur Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'department': 'Science',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:30 AM',
+      'phone': '+91 97766 55443',
+    },
+    {
+      'initials': 'VN',
+      'name': 'V. Nair',
+      'role': 'TGT Social • Kondapur Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'department': 'Social Studies',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:40 AM',
+      'phone': '+91 98855 12345',
+    },
+    {
+      'initials': 'SS',
+      'name': 'S. Sharma',
+      'role': 'Administrative Officer • Kondapur Branch',
+      'category': 'non-teaching',
+      'subRole': 'admin-officer',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:25 AM',
+      'phone': '+91 97000 88214',
+    },
+    {
+      'initials': 'KS',
+      'name': 'Dr. K. Srinivas',
+      'role': 'Principal • Kondapur Branch',
+      'category': 'non-teaching',
+      'subRole': 'principal',
+      'branchId': 'kondapur',
+      'branchName': 'Kondapur Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:05 AM',
+      'phone': '+91 98480 11223',
+    },
+    {
+      'initials': 'PD',
+      'name': 'P. Deepika',
+      'role': 'TGT Telugu • Kukatpally Campus',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'department': 'Telugu',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:25 AM',
+      'phone': '+91 94411 22334',
+    },
+    {
+      'initials': 'AK',
+      'name': 'A. Karthik',
+      'role': 'TGT Hindi • Kukatpally Campus',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'department': 'Hindi',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:35 AM',
+      'phone': '+91 93910 33412',
+    },
+    {
+      'initials': 'NR',
+      'name': 'N. Rao',
+      'role': 'Administrative Officer • Kukatpally Campus',
+      'category': 'non-teaching',
+      'subRole': 'admin-officer',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:30 AM',
+      'phone': '+91 91210 44556',
+    },
+    {
+      'initials': 'RV',
+      'name': 'Mrs. Radhika V.',
+      'role': 'Principal • Kukatpally Campus',
+      'category': 'non-teaching',
+      'subRole': 'principal',
+      'branchId': 'kukatpally',
+      'branchName': 'Kukatpally Campus',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:00 AM',
+      'phone': '+91 98844 55667',
+    },
+    {
+      'initials': 'GS',
+      'name': 'G. Srinivas',
+      'role': 'TGT Maths • Maddipalem Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'department': 'Mathematics',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:30 AM',
+      'phone': '+91 98844 55667',
+    },
+    {
+      'initials': 'LB',
+      'name': 'L. Bhavani',
+      'role': 'PRT English • Maddipalem Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'department': 'English',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:45 AM',
+      'phone': '+91 99887 66554',
+    },
+    {
+      'initials': 'SV',
+      'name': 'S. Venkat',
+      'role': 'Administrative Officer • Maddipalem Branch',
+      'category': 'non-teaching',
+      'subRole': 'admin-officer',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:35 AM',
+      'phone': '+91 91212 99011',
+    },
+    {
+      'initials': 'TA',
+      'name': 'T. Anand',
+      'role': 'Administrative Officer • Maddipalem Branch',
+      'category': 'non-teaching',
+      'subRole': 'admin-officer',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:40 AM',
+      'phone': '+91 97011 22334',
+    },
+    {
+      'initials': 'VP',
+      'name': 'Dr. V. Prasad',
+      'role': 'Principal • Maddipalem Branch',
+      'category': 'non-teaching',
+      'subRole': 'principal',
+      'branchId': 'maddipalem',
+      'branchName': 'Maddipalem Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:15 AM',
+      'phone': '+91 98450 66778',
+    },
+    {
+      'initials': 'DS',
+      'name': 'D. Sandeep',
+      'role': 'TGT Computers • Madhapur Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'department': 'Computers',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:40 AM',
+      'phone': '+91 94401 22334',
+    },
+    {
+      'initials': 'BP',
+      'name': 'B. Priya',
+      'role': 'PRT Art • Madhapur Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'department': 'Arts & Crafts',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:50 AM',
+      'phone': '+91 98490 33445',
+    },
+    {
+      'initials': 'MV',
+      'name': 'M. V. Reddy',
+      'role': 'Administrative Officer • Madhapur Branch',
+      'category': 'non-teaching',
+      'subRole': 'admin-officer',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:30 AM',
+      'phone': '+91 91234 56780',
+    },
+    {
+      'initials': 'SD',
+      'name': 'Mrs. Sunita D.',
+      'role': 'Principal • Madhapur Branch',
+      'category': 'non-teaching',
+      'subRole': 'principal',
+      'branchId': 'madhapur',
+      'branchName': 'Madhapur Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:10 AM',
+      'phone': '+91 97766 11223',
+    },
+    {
+      'initials': 'KS',
+      'name': 'Dr. K. S. Rao',
+      'role': 'Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Physics',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:42 AM',
+      'phone': '+91 98490 12345',
+    },
+    {
+      'initials': 'MS',
+      'name': 'M. Suresh',
+      'role': 'Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Chemistry',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:35 AM',
+      'phone': '+91 94401 67890',
+    },
+    {
+      'initials': 'CL',
+      'name': 'Ch. Lakshmi',
+      'role': 'Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Biology',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:40 AM',
+      'phone': '+91 98492 45678',
+    },
+    {
+      'initials': 'BN',
+      'name': 'B. Naidu',
+      'role': 'Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'English',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:30 AM',
+      'phone': '+91 97011 34567',
+    },
+    {
+      'initials': 'SR',
+      'name': 'S. Ramana',
+      'role': 'Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Telugu',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:45 AM',
+      'phone': '+91 91210 56789',
+    },
+    {
+      'initials': 'KA',
+      'name': 'K. Appalaraju',
+      'role': 'Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Social',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:25 AM',
+      'phone': '+91 93910 67890',
+    },
+    {
+      'initials': 'PS',
+      'name': 'P. Satyavathi',
+      'role': 'Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Hindi',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:38 AM',
+      'phone': '+91 98852 78901',
+    },
+    {
+      'initials': 'DJ',
+      'name': 'D. Jagadeesh',
+      'role': 'Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Computers',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:50 AM',
+      'phone': '+91 98450 89012',
+    },
+    {
+      'initials': 'TU',
+      'name': 'T. Uma',
+      'role': 'Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Mathematics',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:32 AM',
+      'phone': '+91 97766 90123',
+    },
+    {
+      'initials': 'KV',
+      'name': 'K. V. Subbarao',
+      'role': 'Senior Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Academics',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:20 AM',
+      'phone': '+91 94411 01234',
+    },
+    {
+      'initials': 'VG',
+      'name': 'V. Govinda Rao',
+      'role': 'Maths Teacher • Steel Plant Branch',
+      'category': 'teaching',
+      'subRole': 'teaching',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Mathematics',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:28 AM',
+      'phone': '+91 99887 12345',
+    },
+    {
+      'initials': 'LV',
+      'name': 'L. Varalakshmi',
+      'role': 'Librarian • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'librarian',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Library',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:50 AM',
+      'phone': '+91 98855 66778',
+    },
+    {
+      'initials': 'BS',
+      'name': 'B. Simhachalam',
+      'role': 'Librarian • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'librarian',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Library',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:45 AM',
+      'phone': '+91 97000 77889',
+    },
+    {
+      'initials': 'GD',
+      'name': 'G. Dhanalakshmi',
+      'role': 'Librarian • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'librarian',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Library',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:40 AM',
+      'phone': '+91 91212 88990',
+    },
+    {
+      'initials': 'PR',
+      'name': 'P. Rambabu',
+      'role': 'Librarian • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'librarian',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Library',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:55 AM',
+      'phone': '+91 98491 99001',
+    },
+    {
+      'initials': 'MA',
+      'name': 'M. Apparao',
+      'role': 'Librarian • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'librarian',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Library',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:35 AM',
+      'phone': '+91 94401 00112',
+    },
+    {
+      'initials': 'KR',
+      'name': 'K. Ramesh',
+      'role': 'Administrative Officer • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'admin-officer',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:30 AM',
+      'phone': '+91 91210 44556',
+    },
+    {
+      'initials': 'PS',
+      'name': 'P. S. Murthy',
+      'role': 'Administrative Officer • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'admin-officer',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:40 AM',
+      'phone': '+91 97011 11223',
+    },
+    {
+      'initials': 'AV',
+      'name': 'Dr. A. V. Rao',
+      'role': 'Principal • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'principal',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:00 AM',
+      'phone': '+91 94401 22334',
+    },
+    {
+      'initials': 'KS',
+      'name': 'K. Swamy',
+      'role': 'Principal • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'principal',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:15 AM',
+      'phone': '+91 98492 22334',
+    },
+    {
+      'initials': 'VR',
+      'name': 'V. R. Sharma',
+      'role': 'Account Manager • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'account-mgr',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Accounts',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:45 AM',
+      'phone': '+91 98450 11223',
+    },
+    {
+      'initials': 'GA',
+      'name': 'G. Appa Rao',
+      'role': 'Bus Attendant • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'bus-attendant',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Transport',
+      'shift': 'morning',
+      'status': 'Absent',
+      'subStatus': '08:10 AM',
+      'phone': '+91 93910 11223',
+    },
+    {
+      'initials': 'DS',
+      'name': 'D. Somulu',
+      'role': 'Hostel Warden • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'hostel-warden',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Hostel',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '07:45 AM',
+      'phone': '+91 98852 11223',
+    },
+    {
+      'initials': 'KP',
+      'name': 'K. Padmavati',
+      'role': 'Receptionist • Steel Plant Branch',
+      'category': 'non-teaching',
+      'subRole': 'receptionist',
+      'branchId': 'steel-plant',
+      'branchName': 'Steel Plant Branch',
+      'department': 'Administration',
+      'shift': 'general',
+      'status': 'Present',
+      'subStatus': '08:25 AM',
+      'phone': '+91 97766 22334',
+    },
+    {
       'initials': 'RK',
       'name': 'Rajesh Kumar',
-      'role': 'Transport Mgr • Steel Plant',
+      'role': 'Transport Manager • Steel Plant Branch',
       'category': 'non-teaching',
       'subRole': 'transport-mgr',
       'branchId': 'steel-plant',
@@ -273,133 +2184,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       'subStatus': '08:15 AM',
       'phone': '+91 98852 44321',
     },
-    {
-      'initials': 'SV',
-      'name': 'S. Venkat',
-      'role': 'Admin Officer • Maddipalem',
-      'category': 'non-teaching',
-      'subRole': 'account-mgr',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:35 AM',
-      'phone': '+91 91212 99011',
-    },
-    {
-      'initials': 'LD',
-      'name': 'Lakshmi Devi',
-      'role': 'Librarian • Kondapur',
-      'category': 'non-teaching',
-      'subRole': 'librarian',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'department': 'Library',
-      'shift': 'general',
-      'status': 'On Leave',
-      'subStatus': 'Casual',
-      'phone': '+91 97000 88214',
-    },
-    {
-      'initials': 'SB',
-      'name': 'Suresh Babu',
-      'role': 'Bus Attendant • Kukatpally',
-      'category': 'non-teaching',
-      'subRole': 'bus-attendant',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'department': 'Transport',
-      'shift': 'morning',
-      'status': 'Absent',
-      'subStatus': 'Uninformed',
-      'phone': '+91 93910 33412',
-    },
-    {
-      'initials': 'HW',
-      'name': 'Harish Warrier',
-      'role': 'Hostel Warden • Gachibowli',
-      'category': 'non-teaching',
-      'subRole': 'hostel-warden',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'department': 'Administration',
-      'shift': 'evening',
-      'status': 'Present',
-      'subStatus': '07:50 AM',
-      'phone': '+91 98480 33221',
-    },
-    {
-      'initials': 'RP',
-      'name': 'Ritu Priya',
-      'role': 'Receptionist • Madhapur',
-      'category': 'non-teaching',
-      'subRole': 'receptionist',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:40 AM',
-      'phone': '+91 99887 66554',
-    },
-    {
-      'initials': 'PS',
-      'name': 'P. Sreenivas',
-      'role': 'PGT Mathematics • Kukatpally',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'department': 'Physics',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:25 AM',
-      'phone': '+91 94411 22334',
-    },
-    {
-      'initials': 'GS',
-      'name': 'Geetha Sharma',
-      'role': 'Primary Teacher • Maddipalem',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'department': 'English',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:30 AM',
-      'phone': '+91 98844 55667',
-    },
-    {
-      'initials': 'AN',
-      'name': 'Anil Nair',
-      'role': 'Facilities Incharge • Steel Plant',
-      'category': 'non-teaching',
-      'subRole': 'bus-attendant',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Facilities & Security',
-      'shift': 'morning',
-      'status': 'Absent',
-      'subStatus': 'Sick Leave',
-      'phone': '+91 91234 56780',
-    },
-    {
-      'initials': 'SK',
-      'name': 'Sunita Krishnan',
-      'role': 'Secondary Faculty • Kondapur',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'department': 'English',
-      'shift': 'general',
-      'status': 'On Leave',
-      'subStatus': 'Half Day',
-      'phone': '+91 97766 55443',
-    },
-  ];
+    ];
+    return _cachedAllStaffList!;
+  }
 
   @override
   void initState() {
@@ -444,14 +2231,16 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Future<void> _fetchDashboard() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (_dashboardData == null) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     final token = await SessionManager.getToken();
 
-    if (token != null && token != 'demo-chairman-token') {
+    if (token != null && token.isNotEmpty) {
       try {
         final res = await http.get(
           Uri.parse(ApiConfig.ownerDashboard),
@@ -460,31 +2249,31 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
         if (res.statusCode == 200) {
           final body = jsonDecode(res.body);
-          if (mounted) {
+          if (mounted && body is Map<String, dynamic>) {
             setState(() {
-              _dashboardData = body is Map<String, dynamic> ? body : null;
+              _dashboardData = body;
               _isLoading = false;
             });
+            return;
           }
-          return;
         } else if (res.statusCode == 401) {
           final refreshed = await AuthService.refreshToken();
           if (refreshed) {
             final newToken = await SessionManager.getToken();
-            if (newToken != null) {
+            if (newToken != null && newToken.isNotEmpty) {
               final retryRes = await http.get(
                 Uri.parse(ApiConfig.ownerDashboard),
                 headers: ApiConfig.authHeaders(newToken),
               );
               if (retryRes.statusCode == 200) {
                 final body = jsonDecode(retryRes.body);
-                if (mounted) {
+                if (mounted && body is Map<String, dynamic>) {
                   setState(() {
-                    _dashboardData = body is Map<String, dynamic> ? body : null;
+                    _dashboardData = body;
                     _isLoading = false;
                   });
+                  return;
                 }
-                return;
               }
             }
           }
@@ -1093,18 +2882,47 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Capacity Used, Critical Alerts, Staff Attendance
   // ===========================================================================
   Widget _buildRotatingCircularKpiStage(Map<String, dynamic>? group) {
-    // Dynamic values from backend if present, fallback to exact web reference screen values
+    // Dynamic values from backend
     final students = group?['students'] ?? 122;
-    final ytdRevenue = group?['revenue'] ?? '₹1.4 Cr';
-    final collectionPct = group?['collectionPct'] ?? 68.2;
-    final studentAttendance = group?['studentAttendanceRatio'] ?? '22/122';
-    final cashToday = group?['cashCollectedToday'] ?? '₹0.2 L';
-    final newAdmissions = group?['newAdmissions'] ?? 25;
-    final staffFilled = group?['staffCount'] ?? 46;
-    final studentAttrition = group?['attrition'] ?? 4.9;
-    final operatingMargin = group?['ebitdaMargin'] ?? 36.7;
-    final staffAttendance = group?['staffAttendanceRatio'] ?? '0/46';
-    final outstanding = group?['outstandingFees'] ?? '₹45.0 L';
+    final studentsDelta = group?['studentsDelta'] != null ? '+${group!['studentsDelta']}%' : '+11.9%';
+
+    final rawRev = group?['revenueYTD'] ?? group?['revenue'];
+    final ytdRevenue = rawRev is num
+        ? '₹${(rawRev / 10000000).toStringAsFixed(1)} Cr'
+        : (rawRev?.toString() ?? '₹1.4 Cr');
+    final revenueDelta = group?['revenueDelta'] != null ? '+${group!['revenueDelta']}%' : '+0%';
+
+    final collectionPct = (group?['collectionPct'] as num?)?.toDouble() ?? 68.2;
+
+    final attStudents = _dashboardData?['attendance']?['students'] as Map<String, dynamic>?;
+    final stuPres = (attStudents?['present'] as num?)?.toInt() ?? 22;
+    final stuRoster = (attStudents?['roster'] as num?)?.toInt() ?? (students is int ? students : 122);
+    final studentAttendance = '$stuPres/$stuRoster';
+    final stuPct = (attStudents?['attendancePct'] as num?)?.toDouble() ?? (stuRoster > 0 ? (stuPres / stuRoster * 100) : 0.0);
+    final stuBadge = '${stuPct.toStringAsFixed(1)}%';
+
+    final rawCash = group?['cashToday'] ?? group?['cashCollectedToday'];
+    final cashToday = rawCash is num
+        ? '₹${(rawCash / 100000).toStringAsFixed(1)} L'
+        : (rawCash?.toString() ?? '₹0.2 L');
+
+    final newAdmissions = group?['newAdmissionsMTD'] ?? group?['newAdmissions'] ?? 25;
+    final staffFilled = group?['staffFilled'] ?? group?['staffCount'] ?? 46;
+    final staffVacant = group?['staffVacant'] ?? 23;
+    final studentAttrition = (group?['attritionPct'] ?? group?['attrition'] as num?)?.toDouble() ?? 4.9;
+    final operatingMargin = (group?['ebitdaMargin'] as num?)?.toDouble() ?? 35.9;
+
+    final attStaff = _dashboardData?['attendance']?['staff'] as Map<String, dynamic>?;
+    final staffPres = (attStaff?['present'] as num?)?.toInt() ?? 0;
+    final staffRoster = (attStaff?['roster'] as num?)?.toInt() ?? (staffFilled is int ? staffFilled : 46);
+    final staffAttendance = '$staffPres/$staffRoster';
+    final staffAbsent = (attStaff?['absent'] as num?)?.toInt() ?? 1;
+
+    final rawOut = group?['outstanding'] ?? group?['outstandingFees'];
+    final outstanding = rawOut is num
+        ? '₹${(rawOut / 100000).toStringAsFixed(1)} L'
+        : (rawOut?.toString() ?? '₹45.0 L');
+
     final criticalAlerts = group?['alertsCritical'] ?? 4;
 
     final categories = ['Core Performance', 'Cash & Staffing', 'Operations & Margins'];
@@ -1117,22 +2935,22 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         {
           'label': 'Active Students',
           'value': '$students',
-          'badge': '+11.9%',
+          'badge': studentsDelta,
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
           'valColor': const Color(0xFF0F172A),
         },
         {
           'label': 'YTD Revenue',
-          'value': '$ytdRevenue',
-          'badge': '+0%',
+          'value': ytdRevenue,
+          'badge': revenueDelta,
           'badgeColor': const Color(0xFF7C3AED),
           'badgeBg': const Color(0xFFFAF5FF),
           'valColor': const Color(0xFF7C3AED),
         },
         {
           'label': 'Fees Collected',
-          'value': '$collectionPct%',
+          'value': '${collectionPct.toStringAsFixed(1)}%',
           'badge': '-19.8 pts',
           'badgeColor': const Color(0xFFE11D48),
           'badgeBg': const Color(0xFFFFE4E6),
@@ -1140,8 +2958,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         },
         {
           'label': 'Student Attend',
-          'value': '$studentAttendance',
-          'badge': '18.0%',
+          'value': studentAttendance,
+          'badge': stuBadge,
           'badgeColor': const Color(0xFF64748B),
           'badgeBg': const Color(0xFFF1F5F9),
           'valColor': const Color(0xFF0F172A),
@@ -1151,7 +2969,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       [
         {
           'label': 'Cash Today',
-          'value': '$cashToday',
+          'value': cashToday,
           'badge': 'Counters',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
@@ -1168,14 +2986,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         {
           'label': 'Staff Filled',
           'value': '$staffFilled',
-          'badge': '23 Open',
+          'badge': '$staffVacant Open',
           'badgeColor': const Color(0xFFD97706),
           'badgeBg': const Color(0xFFFFFBEB),
           'valColor': const Color(0xFF0F172A),
         },
         {
           'label': 'Student Attrition',
-          'value': '$studentAttrition%',
+          'value': '${studentAttrition.toStringAsFixed(1)}%',
           'badge': '-1.1 pts',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
@@ -1186,7 +3004,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       [
         {
           'label': 'Operating Margin',
-          'value': '$operatingMargin%',
+          'value': '${operatingMargin.toStringAsFixed(1)}%',
           'badge': 'EBITDA',
           'badgeColor': const Color(0xFF059669),
           'badgeBg': const Color(0xFFECFDF5),
@@ -1194,15 +3012,15 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         },
         {
           'label': 'Staff Attend',
-          'value': '$staffAttendance',
-          'badge': '0 Absent',
+          'value': staffAttendance,
+          'badge': '$staffAbsent Absent',
           'badgeColor': const Color(0xFFE11D48),
           'badgeBg': const Color(0xFFFFE4E6),
           'valColor': const Color(0xFFE11D48),
         },
         {
           'label': 'Outstanding Fees',
-          'value': '$outstanding',
+          'value': outstanding,
           'badge': 'Due',
           'badgeColor': const Color(0xFFD97706),
           'badgeBg': const Color(0xFFFFFBEB),
@@ -1483,6 +3301,35 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Covers Feature: Revenue vs Operating Expenses (trend)
   // ===========================================================================
   Widget _buildFinancialPerformanceCard(Map<String, dynamic>? group) {
+    final collection = _dashboardData?['collection'] as Map<String, dynamic>?;
+    final colPct = (collection?['collectionPct'] as num?)?.toDouble() ??
+        (group?['collectionPct'] as num?)?.toDouble() ??
+        68.2;
+    final duePct = (collection?['duePct'] as num?)?.toDouble() ?? 18.4;
+    final overduePct = (collection?['overduePct'] as num?)?.toDouble() ?? 13.3;
+
+    final rawCollected = collection?['collected'] ?? group?['collectedYTD'] ?? 9658180;
+    final colStr = rawCollected is num ? '₹${(rawCollected / 100000).toStringAsFixed(1)} L' : '₹96.6 L';
+
+    final rawDue = collection?['due'] ?? 2608167;
+    final dueStr = rawDue is num ? '₹${(rawDue / 100000).toStringAsFixed(1)} L' : '₹26.1 L';
+
+    final rawOverdue = collection?['overdue'] ?? 1888673;
+    final overdueStr = rawOverdue is num ? '₹${(rawOverdue / 100000).toStringAsFixed(1)} L' : '₹18.9 L';
+
+    final aging = collection?['aging'] as Map<String, dynamic>?;
+    final num a0 = (aging?['current'] as num?) ?? 2608167;
+    final num a30 = (aging?['days30'] as num?) ?? 944336;
+    final num a60 = (aging?['days60'] as num?) ?? 566602;
+    final num a90 = (aging?['days90Plus'] as num?) ?? 377735;
+    final num totalOut = a0 + a30 + a60 + a90;
+    final totalOutStr = '₹${(totalOut / 100000).toStringAsFixed(1)} L Total';
+
+    final a0Pct = totalOut > 0 ? (a0 / totalOut * 100).toStringAsFixed(1) : '58.0';
+    final a30Pct = totalOut > 0 ? (a30 / totalOut * 100).toStringAsFixed(1) : '21.0';
+    final a60Pct = totalOut > 0 ? (a60 / totalOut * 100).toStringAsFixed(1) : '12.6';
+    final a90Pct = totalOut > 0 ? (a90 / totalOut * 100).toStringAsFixed(1) : '8.4';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1572,12 +3419,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.circle, color: Color(0xFF10B981), size: 5),
-                        SizedBox(width: 4),
+                      children: [
+                        const Icon(Icons.circle, color: Color(0xFF10B981), size: 5),
+                        const SizedBox(width: 4),
                         Text(
-                          'EBITDA ₹4.0 L (32%)',
-                          style: TextStyle(
+                          'EBITDA ${(group?['ebitdaMargin'] ?? 35.9)}%',
+                          style: const TextStyle(
                             color: Color(0xFF065F46),
                             fontSize: 9.5,
                             fontWeight: FontWeight.w800,
@@ -1678,7 +3525,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 SizedBox(
                   height: 90,
                   width: double.infinity,
-                  child: CustomPaint(painter: CashTrajectoryPainter()),
+                  child: CustomPaint(
+                    painter: CashTrajectoryPainter(
+                      ebitdaMargin: (group?['ebitdaMargin'] as num?)?.toDouble() ?? 35.9,
+                      collectionPct: (group?['collectionPct'] as num?)?.toDouble() ?? 68.2,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Container(
@@ -1775,23 +3627,23 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       CustomPaint(
                         size: const Size(76, 76),
                         painter: FeeRealizationRingPainter(
-                          collectedPct: 67.6,
-                          duePct: 18.9,
-                          overduePct: 13.5,
+                          collectedPct: colPct,
+                          duePct: duePct,
+                          overduePct: overduePct,
                         ),
                       ),
                       Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Text(
-                            '67.6%',
-                            style: TextStyle(
+                            '${colPct.toStringAsFixed(1)}%',
+                            style: const TextStyle(
                               color: Color(0xFF7C3AED),
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          Text(
+                          const Text(
                             'REALIZED',
                             style: TextStyle(
                               color: Color(0xFF94A3B8),
@@ -1833,9 +3685,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               ),
                             ],
                           ),
-                          const Text(
-                            '₹94.5 L',
-                            style: TextStyle(
+                          Text(
+                            colStr,
+                            style: const TextStyle(
                               color: Color(0xFF7C3AED),
                               fontSize: 11,
                               fontWeight: FontWeight.w900,
@@ -1868,9 +3720,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               ),
                             ],
                           ),
-                          const Text(
-                            '₹26.4 L',
-                            style: TextStyle(
+                          Text(
+                            dueStr,
+                            style: const TextStyle(
                               color: Color(0xFFD97706),
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
@@ -1903,9 +3755,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               ),
                             ],
                           ),
-                          const Text(
-                            '₹19.1 L',
-                            style: TextStyle(
+                          Text(
+                            overdueStr,
+                            style: const TextStyle(
                               color: Color(0xFFE11D48),
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
@@ -1925,8 +3777,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           // Receivables Aging
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
+            children: [
+              const Text(
                 'RECEIVABLES AGING',
                 style: TextStyle(
                   color: Color(0xFF1E293B),
@@ -1936,8 +3788,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ),
               ),
               Text(
-                '₹45.5 L Total',
-                style: TextStyle(
+                totalOutStr,
+                style: const TextStyle(
                   color: Color(0xFF64748B),
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
@@ -1950,32 +3802,32 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             children: [
               _buildAgingBox(
                 '0–30 D',
-                '₹18.7 L',
-                '41.1%',
+                '₹${(a0 / 100000).toStringAsFixed(1)} L',
+                '$a0Pct%',
                 const Color(0xFF059669),
                 const Color(0xFFF8FAFC),
               ),
               const SizedBox(width: 6),
               _buildAgingBox(
                 '31–60 D',
-                '₹12.3 L',
-                '27.0%',
+                '₹${(a30 / 100000).toStringAsFixed(1)} L',
+                '$a30Pct%',
                 const Color(0xFFD97706),
                 const Color(0xFFF8FAFC),
               ),
               const SizedBox(width: 6),
               _buildAgingBox(
                 '61–90 D',
-                '₹8.7 L',
-                '19.1%',
+                '₹${(a60 / 100000).toStringAsFixed(1)} L',
+                '$a60Pct%',
                 const Color(0xFFE11D48),
                 const Color(0xFFF8FAFC),
               ),
               const SizedBox(width: 6),
               _buildAgingBox(
                 '90+ D',
-                '₹5.9 L',
-                '12.8%',
+                '₹${(a90 / 100000).toStringAsFixed(1)} L',
+                '$a90Pct%',
                 const Color(0xFFBE123C),
                 const Color(0xFFFFF1F2),
                 borderColor: const Color(0xFFFECDD3),
@@ -2041,6 +3893,15 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // SECTION 3: Branch Performance Benchmark Quick Widget (code.html lines 355-395)
   // ===========================================================================
   Widget _buildBranchBenchmarkQuickWidget() {
+    final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
+    final totalBranchesCount = branches.isNotEmpty ? branches.length : 6;
+
+    final sorted = List<Map<String, dynamic>>.from(
+      branches.map((e) => e as Map<String, dynamic>),
+    );
+    sorted.sort((a, b) => ((b['revenue'] as num?) ?? 0).compareTo((a['revenue'] as num?) ?? 0));
+    final top3 = sorted.take(3).toList();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -2086,9 +3947,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFFEDE9FE)),
                   ),
-                  child: const Text(
-                    'All 9 Branches →',
-                    style: TextStyle(
+                  child: Text(
+                    'All $totalBranchesCount Branches →',
+                    style: const TextStyle(
                       color: Color(0xFF7C3AED),
                       fontSize: 9.5,
                       fontWeight: FontWeight.w800,
@@ -2101,30 +3962,52 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
           const SizedBox(height: 12),
 
-          // Top 3 branches
-          _buildQuickBenchmarkItem(
-            name: 'Steel Plant Branch',
-            sub: '42 Students · 10 Faculty · ₹38.2 L Rev',
-            score: '94.2%',
-            rank: 'Rank #1',
-            isTop: true,
-          ),
-          const SizedBox(height: 6),
-          _buildQuickBenchmarkItem(
-            name: 'Gachibowli Campus',
-            sub: '38 Students · 8 Faculty · ₹34.5 L Rev',
-            score: '91.8%',
-            rank: 'Rank #2',
-            isTop: false,
-          ),
-          const SizedBox(height: 6),
-          _buildQuickBenchmarkItem(
-            name: 'Kondapur Branch',
-            sub: '24 Students · 6 Faculty · ₹22.1 L Rev',
-            score: '88.4%',
-            rank: 'Rank #3',
-            isTop: false,
-          ),
+          if (top3.isNotEmpty)
+            ...top3.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final b = entry.value;
+              final name = b['name']?.toString() ?? 'Branch';
+              final stu = b['students'] ?? 0;
+              final teachers = b['teachers'] ?? b['staffTeach'] ?? 2;
+              final rev = b['revenue'];
+              final revStr = rev is num ? '₹${(rev / 100000).toStringAsFixed(1)} L Rev' : '₹0.0 L Rev';
+              final health = b['health'] ?? 75;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6.0),
+                child: _buildQuickBenchmarkItem(
+                  name: name,
+                  sub: '$stu Students · $teachers Faculty · $revStr',
+                  score: '$health%',
+                  rank: 'Rank #${idx + 1}',
+                  isTop: idx == 0,
+                ),
+              );
+            })
+          else ...[
+            _buildQuickBenchmarkItem(
+              name: 'Gachibowli Campus',
+              sub: '21 Students · 2 Faculty · ₹27.3 L Rev',
+              score: '75%',
+              rank: 'Rank #1',
+              isTop: true,
+            ),
+            const SizedBox(height: 6),
+            _buildQuickBenchmarkItem(
+              name: 'Steel Plant Branch',
+              sub: '43 Students · 2 Faculty · ₹26.5 L Rev',
+              score: '70%',
+              rank: 'Rank #2',
+              isTop: false,
+            ),
+            const SizedBox(height: 6),
+            _buildQuickBenchmarkItem(
+              name: 'Kukatpally Campus',
+              sub: '17 Students · 2 Faculty · ₹23.4 L Rev',
+              score: '76%',
+              rank: 'Rank #3',
+              isTop: false,
+            ),
+          ],
         ],
       ),
     );
@@ -2202,6 +4085,28 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Covers Feature: Performance quadrant (branch benchmarking)
   // ===========================================================================
   Widget _buildPerformanceQuadrantCard(List<dynamic> branches) {
+    final branchList = (branches.isNotEmpty ? branches : (_dashboardData?['branches'] as List<dynamic>? ?? []));
+    final group = _dashboardData?['group'] as Map<String, dynamic>?;
+    final double avgCollection = (group?['collectionPct'] as num?)?.toDouble() ?? 68.2;
+    final double avgAttendance = (group?['attendance'] as num?)?.toDouble() ?? 92.1;
+    final List<Map<String, dynamic>> branchQuadrantData = branchList.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final b = entry.value as Map<String, dynamic>;
+      final name = b['name']?.toString() ?? 'Branch';
+      final color = _getBranchColor(name, idx);
+      final double colPct = (b['collectionPct'] as num?)?.toDouble() ?? 68.0;
+      final double attPct = (b['attendancePct'] as num?)?.toDouble() ?? 92.0;
+      final int students = (b['students'] as num?)?.toInt() ?? 10;
+      return {
+        'name': name,
+        'code': b['code']?.toString() ?? '',
+        'color': color,
+        'collectionPct': colPct,
+        'attendancePct': attPct,
+        'students': students,
+      };
+    }).toList();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -2306,7 +4211,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 SizedBox(
                   height: 160,
                   width: double.infinity,
-                  child: CustomPaint(painter: PerformanceQuadrantPainter()),
+                  child: CustomPaint(
+                    painter: PerformanceQuadrantPainter(
+                      branches: branchQuadrantData,
+                      avgCollection: avgCollection,
+                      avgAttendance: avgAttendance,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 const Center(
@@ -2325,42 +4236,16 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
           const SizedBox(height: 10),
 
-          // Interactive 3-Column Legend
-          const Wrap(
+          // Interactive Dynamic Legend
+          Wrap(
             spacing: 8,
             runSpacing: 4,
-            children: [
-              _QuadrantLegendItem(
-                color: Color(0xFF8B5CF6),
-                label: 'Gachibowli Campus',
-              ),
-              _QuadrantLegendItem(color: Color(0xFF059669), label: 'KBHP'),
-              _QuadrantLegendItem(
-                color: Color(0xFF06B6D4),
-                label: 'Kondapur Branch',
-              ),
-              _QuadrantLegendItem(
-                color: Color(0xFFA855F7),
-                label: 'Kukatpally Campus',
-              ),
-              _QuadrantLegendItem(color: Color(0xFFF59E0B), label: 'LB Nagar'),
-              _QuadrantLegendItem(
-                color: Color(0xFFEF4444),
-                label: 'Maddipalem',
-              ),
-              _QuadrantLegendItem(
-                color: Color(0xFFC084FC),
-                label: 'Madhapur Branch',
-              ),
-              _QuadrantLegendItem(
-                color: Color(0xFF7C3AED),
-                label: 'QA Test Branch',
-              ),
-              _QuadrantLegendItem(
-                color: Color(0xFF10B981),
-                label: 'Steel Plant Branch',
-              ),
-            ],
+            children: branchQuadrantData.map((b) {
+              return _QuadrantLegendItem(
+                color: b['color'] as Color,
+                label: b['name'] as String,
+              );
+            }).toList(),
           ),
 
           const SizedBox(height: 8),
@@ -2403,62 +4288,25 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Covers Feature: Branch comparison (health-weighted)
   // ===========================================================================
   Widget _buildBranchComparisonHealthCard(List<dynamic> branches) {
-    final branchesData = [
-      {
-        'name': 'Steel Plant Branch',
-        'pct': 82,
-        'rev': '₹25.0 L',
-        'color': const Color(0xFF10B981),
-      },
-      {
-        'name': 'Gachibowli Campus',
-        'pct': 78,
-        'rev': '₹27.3 L',
-        'color': const Color(0xFF8B5CF6),
-      },
-      {
-        'name': 'Kondapur Branch',
-        'pct': 78,
-        'rev': '₹21.4 L',
-        'color': const Color(0xFF06B6D4),
-      },
-      {
-        'name': 'Kukatpally Campus',
-        'pct': 76,
-        'rev': '₹23.4 L',
-        'color': const Color(0xFFA855F7),
-      },
-      {
-        'name': 'Maddipalem',
-        'pct': 75,
-        'rev': '₹22.8 L',
-        'color': const Color(0xFFEF4444),
-      },
-      {
-        'name': 'Madhapur Branch',
-        'pct': 73,
-        'rev': '₹20.2 L',
-        'color': const Color(0xFFC084FC),
-      },
-      {
-        'name': 'KBHP',
-        'pct': 52,
-        'rev': '₹0.0 L',
-        'color': const Color(0xFF059669),
-      },
-      {
-        'name': 'LB Nagar',
-        'pct': 52,
-        'rev': '₹0.0 L',
-        'color': const Color(0xFFF59E0B),
-      },
-      {
-        'name': 'QA Test Branch 0708',
-        'pct': 52,
-        'rev': '₹0.0 L',
-        'color': const Color(0xFF7C3AED),
-      },
-    ];
+    final branchList = (branches.isNotEmpty ? branches : (_dashboardData?['branches'] as List<dynamic>? ?? []));
+    final branchesData = branchList.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final m = entry.value as Map<String, dynamic>;
+      final name = m['name']?.toString() ?? 'Branch';
+      final health = (m['health'] as num?)?.toInt() ?? 75;
+      final rev = m['revenue'];
+      final revStr = rev is num ? '₹${(rev / 100000).toStringAsFixed(1)} L' : '₹0.0 L';
+      final col = _getBranchColor(name, idx);
+
+      return {
+        'name': name,
+        'pct': health,
+        'rev': revStr,
+        'color': col,
+      };
+    }).toList();
+
+    branchesData.sort((a, b) => (b['pct'] as int).compareTo(a['pct'] as int));
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -2642,48 +4490,52 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // Card 1 Component: Critical alerts
   Widget _buildCriticalAlertsFeedCard(List<dynamic> alerts) {
-    final alertItems = [
-      {
-        'id': 'alt-1',
-        'tag': 'FINANCE',
-        'time': '2h ago',
-        'title': '₹13.2 L outstanding · 48% of billed',
-        'branch': 'Gachibowli Campus',
-        'isRose': true,
-      },
-      {
-        'id': 'alt-2',
-        'tag': 'FINANCE',
-        'time': '2h ago',
-        'title': '₹10.3 L outstanding · 45% of billed',
-        'branch': 'Maddipalem',
-        'isRose': true,
-      },
-      {
-        'id': 'alt-3',
-        'tag': 'COMPLAINT',
-        'time': 'open',
-        'title': 'Transport: Bus delay on Route 4',
-        'branch': 'Kondapur Branch',
-        'isRose': true,
-      },
-      {
-        'id': 'alt-4',
-        'tag': 'TRANSPORT',
-        'time': 'recent',
-        'title': 'Minor Accident: Minor Accident on 2026-05-19',
-        'branch': 'Steel Plant Branch',
-        'isRose': true,
-      },
-      {
-        'id': 'alt-5',
-        'tag': 'ATTENDANCE',
-        'time': 'today',
-        'title': 'Attendance 90.5% — below 91% target',
-        'branch': 'Kondapur Branch',
-        'isRose': false,
-      },
-    ];
+    final alertList = (alerts.isNotEmpty ? alerts : (_dashboardData?['alerts'] as List<dynamic>? ?? []));
+    final alertItems = alertList.isNotEmpty
+        ? alertList.take(6).map((al) {
+            final m = al as Map<String, dynamic>;
+            final id = m['id']?.toString() ?? 'alt-${m['branch']}-${m['text'] ?? m['title']}';
+            final type = (m['type']?.toString() ?? 'ALERT').toUpperCase();
+            final time = m['time']?.toString() ?? 'today';
+            final title = m['text']?.toString() ?? m['title']?.toString() ?? '';
+            final branch = m['branch']?.toString() ?? '';
+            final level = (m['level'] ?? m['severity'])?.toString().toLowerCase();
+            final isRose = level == 'critical' || level == 'danger';
+            return {
+              'id': id,
+              'tag': type,
+              'time': time,
+              'title': title,
+              'branch': branch,
+              'isRose': isRose,
+            };
+          }).toList()
+        : [
+            {
+              'id': 'alt-1',
+              'tag': 'FINANCE',
+              'time': '2h ago',
+              'title': '₹13.2 L outstanding · 48% of billed',
+              'branch': 'Gachibowli Campus',
+              'isRose': true,
+            },
+            {
+              'id': 'alt-2',
+              'tag': 'FINANCE',
+              'time': '2h ago',
+              'title': '₹10.3 L outstanding · 45% of billed',
+              'branch': 'Maddipalem',
+              'isRose': true,
+            },
+            {
+              'id': 'alt-3',
+              'tag': 'COMPLAINT',
+              'time': 'open',
+              'title': 'Transport: Bus delay on Route 4',
+              'branch': 'Kondapur Branch',
+              'isRose': true,
+            },
+          ];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -2847,38 +4699,45 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // Card 2 Component: Approvals queue
   Widget _buildApprovalsQueueCard() {
-    final approvals = [
-      {
-        'id': 'apr-1',
-        'title': 'Fee Waiver · Hardship fee waiver — 3 students',
-        'meta': 'Gachibowli Campus · 154d waiting',
-        'amount': '₹45,000',
-      },
-      {
-        'id': 'apr-2',
-        'title': 'Capex · New science lab fit-out',
-        'meta': 'Gachibowli Campus · 154d waiting',
-        'amount': '₹8.5 L',
-      },
-      {
-        'id': 'apr-3',
-        'title': 'Fee Waiver · Hardship fee waiver — 3 students',
-        'meta': 'Kondapur Branch · 154d waiting',
-        'amount': '₹45,000',
-      },
-      {
-        'id': 'apr-4',
-        'title': 'Hiring · 3 teaching posts to approve',
-        'meta': 'Kondapur Branch · 154d waiting',
-        'amount': '',
-      },
-      {
-        'id': 'apr-5',
-        'title': 'Fee Waiver · Hardship fee waiver — 2 students',
-        'meta': '₹45,000',
-        'amount': '',
-      },
-    ];
+    final rawApprovals = _dashboardData?['approvals'] as List<dynamic>? ?? [];
+    final approvals = rawApprovals.isNotEmpty
+        ? rawApprovals.take(6).map((ap) {
+            final m = ap as Map<String, dynamic>;
+            final id = m['id']?.toString() ?? 'apr-${m['type']}-${m['branch']}';
+            final type = m['type']?.toString() ?? 'Approval';
+            final text = m['text']?.toString() ?? '';
+            final title = m['title']?.toString() ?? (text.isNotEmpty ? '$type · $text' : type);
+            final branch = m['branch']?.toString() ?? '';
+            final age = m['age']?.toString() ?? '';
+            final meta = m['meta']?.toString() ?? (age.isNotEmpty ? '$branch · $age waiting' : branch);
+            final num? amt = m['amount'] as num?;
+            String amtStr = '';
+            if (amt != null && amt > 0) {
+              amtStr = amt >= 100000
+                  ? '₹${(amt / 100000).toStringAsFixed(1)} L'
+                  : '₹${amt.toInt()}';
+            }
+            return {
+              'id': id,
+              'title': title,
+              'meta': meta,
+              'amount': amtStr,
+            };
+          }).toList()
+        : [
+            {
+              'id': 'apr-1',
+              'title': 'Fee Waiver · Hardship fee waiver — 3 students',
+              'meta': 'Gachibowli Campus · 154d waiting',
+              'amount': '₹45,000',
+            },
+            {
+              'id': 'apr-2',
+              'title': 'Capex · New science lab fit-out',
+              'meta': 'Gachibowli Campus · 154d waiting',
+              'amount': '₹8.5 L',
+            },
+          ];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -3045,33 +4904,42 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // Card 3 Component: Admissions pipeline
   Widget _buildAdmissionsFunnelCard() {
-    final stages = [
-      {'label': 'Enquiries', 'count': 53, 'pct': 100, 'sub': ''},
-      {
-        'label': 'Applications',
-        'count': 28,
-        'pct': 53,
-        'sub': '↳ 53% step conversion',
-      },
-      {
-        'label': 'Shortlisted',
-        'count': 18,
-        'pct': 34,
-        'sub': '↳ 64% step conversion',
-      },
-      {
-        'label': 'Admitted',
-        'count': 13,
-        'pct': 25,
-        'sub': '↳ 72% step conversion',
-      },
-      {
-        'label': 'Enrolled',
-        'count': 12,
-        'pct': 23,
-        'sub': '↳ 92% step conversion',
-      },
-    ];
+    final rawFunnel = _dashboardData?['funnel'] as List<dynamic>? ?? [];
+    num maxVal = 1;
+    for (final fn in rawFunnel) {
+      if (fn is Map) {
+        final v = (fn['value'] ?? fn['count'] as num?) ?? 0;
+        if (v > maxVal) maxVal = v;
+      }
+    }
+    num prevCount = 0;
+    final stages = rawFunnel.isNotEmpty
+        ? rawFunnel.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final m = entry.value as Map<String, dynamic>;
+            final label = m['stage']?.toString() ?? m['label']?.toString() ?? '';
+            final count = (m['value'] as num?)?.toInt() ?? (m['count'] as num?)?.toInt() ?? 0;
+            final pct = (m['pct'] as num?)?.round() ?? ((count / maxVal) * 100).clamp(10, 100).round();
+            String sub = '';
+            if (idx > 0 && prevCount > 0) {
+              final stepConv = ((count / prevCount) * 100).round();
+              sub = '↳ $stepConv% step conversion';
+            }
+            prevCount = count;
+            return {
+              'label': label,
+              'count': count,
+              'pct': pct,
+              'sub': sub,
+            };
+          }).toList()
+        : [
+            {'label': 'Enquiries', 'count': 16, 'pct': 64, 'sub': ''},
+            {'label': 'Applications', 'count': 25, 'pct': 100, 'sub': '↳ 156% step conversion'},
+            {'label': 'Shortlisted', 'count': 9, 'pct': 36, 'sub': '↳ 36% step conversion'},
+            {'label': 'Admitted', 'count': 8, 'pct': 32, 'sub': '↳ 89% step conversion'},
+            {'label': 'Enrolled', 'count': 2, 'pct': 8, 'sub': '↳ 25% step conversion'},
+          ];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -3174,6 +5042,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // --- Sub-Views (Branch Tree, Student 360, Finance, Ops) ---
   Widget _buildBranchTreeView(List<dynamic> branches) {
+    final org = _dashboardData?['orgName'] ?? 'Sai Ravindra School';
+    final totalStu = _dashboardData?['group']?['students'] ?? 122;
+    final branchList = branches.isNotEmpty
+        ? branches
+        : (_dashboardData?['branches'] as List<dynamic>? ?? []);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -3194,21 +5068,21 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
           ),
           const SizedBox(height: 14),
-          _buildTreeItem('ABC Educational Trust (HQ)', 'Organisation', 6, true),
+          _buildTreeItem(
+            '$org (HQ)',
+            'Organisation',
+            totalStu is int ? totalStu : 122,
+            true,
+          ),
           Padding(
             padding: const EdgeInsets.only(left: 20),
             child: Column(
-              children: [
-                _buildTreeItem('Steel Plant Branch', 'City Campus', 420, false),
-                _buildTreeItem('Gachibowli Campus', 'City Campus', 380, false),
-                _buildTreeItem(
-                  'Kondapur Branch',
-                  'Suburban Campus',
-                  290,
-                  false,
-                ),
-                _buildTreeItem('Madhapur Branch', 'City Campus', 150, false),
-              ],
+              children: branchList.map((b) {
+                final bm = b as Map<String, dynamic>;
+                final name = bm['name']?.toString() ?? 'Branch';
+                final stu = (bm['students'] as num?)?.toInt() ?? 0;
+                return _buildTreeItem(name, 'Campus Node', stu, false);
+              }).toList(),
             ),
           ),
         ],
@@ -3667,8 +5541,28 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       case 'madhapur':
         return 'Madhapur Branch';
       default:
-        return 'All branches (9)';
+        final count = (_dashboardData?['branches'] as List?)?.length ?? 6;
+        return 'All branches ($count)';
     }
+  }
+
+  Color _getBranchColor(String name, int index) {
+    final lower = name.toLowerCase();
+    if (lower.contains('steel')) return const Color(0xFF10B981);
+    if (lower.contains('gachi')) return const Color(0xFF8B5CF6);
+    if (lower.contains('kondapur')) return const Color(0xFF06B6D4);
+    if (lower.contains('kukat')) return const Color(0xFFA855F7);
+    if (lower.contains('maddipalem')) return const Color(0xFFEF4444);
+    if (lower.contains('madhapur')) return const Color(0xFFF59E0B);
+    const palette = [
+      Color(0xFF8B5CF6),
+      Color(0xFF06B6D4),
+      Color(0xFFA855F7),
+      Color(0xFFEF4444),
+      Color(0xFFF59E0B),
+      Color(0xFF10B981),
+    ];
+    return palette[index % palette.length];
   }
 
   void _showFilterPicker({
@@ -3797,15 +5691,47 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   void _showBranchPicker() {
-    const options = [
-      {'id': 'all', 'label': 'All branches (9)'},
-      {'id': 'steel-plant', 'label': 'Steel Plant Branch (36 Roll / 12 Staff)'},
-      {'id': 'gachibowli', 'label': 'Gachibowli Campus (21 Roll / 10 Staff)'},
-      {'id': 'maddipalem', 'label': 'Maddipalem Branch (18 Roll / 7 Staff)'},
-      {'id': 'kukatpally', 'label': 'Kukatpally Campus (17 Roll / 7 Staff)'},
-      {'id': 'kondapur', 'label': 'Kondapur Branch (14 Roll / 6 Staff)'},
-      {'id': 'madhapur', 'label': 'Madhapur Branch (9 Roll / 4 Staff)'},
+    final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
+    final totalCount = branches.isNotEmpty ? branches.length : 6;
+
+    final List<Map<String, String>> options = [
+      {'id': 'all', 'label': 'All branches ($totalCount)'},
     ];
+
+    if (branches.isNotEmpty) {
+      for (final b in branches) {
+        final bm = b as Map<String, dynamic>;
+        final name = bm['name']?.toString() ?? 'Branch';
+        final stu = bm['students'] ?? 0;
+        final stf = bm['staffTotal'] ?? bm['teachers'] ?? 4;
+        final lower = name.toLowerCase();
+        final id = lower.contains('steel')
+            ? 'steel-plant'
+            : lower.contains('gachi')
+                ? 'gachibowli'
+                : lower.contains('maddipalem')
+                    ? 'maddipalem'
+                    : lower.contains('kukat')
+                        ? 'kukatpally'
+                        : lower.contains('kondapur')
+                            ? 'kondapur'
+                            : 'madhapur';
+        options.add({
+          'id': id,
+          'label': '$name ($stu Roll / $stf Staff)',
+        });
+      }
+    } else {
+      options.addAll([
+        {'id': 'steel-plant', 'label': 'Steel Plant Branch (43 Roll / 25 Staff)'},
+        {'id': 'gachibowli', 'label': 'Gachibowli Campus (21 Roll / 4 Staff)'},
+        {'id': 'maddipalem', 'label': 'Maddipalem Branch (18 Roll / 5 Staff)'},
+        {'id': 'kukatpally', 'label': 'Kukatpally Campus (17 Roll / 4 Staff)'},
+        {'id': 'kondapur', 'label': 'Kondapur Branch (14 Roll / 4 Staff)'},
+        {'id': 'madhapur', 'label': 'Madhapur Branch (9 Roll / 4 Staff)'},
+      ]);
+    }
+
     _showFilterPicker(
       title: 'Filter by Branch',
       options: options,
@@ -3921,86 +5847,236 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         _selectedClassFilter = 'all';
         _selectedSectionFilter = 'all';
         _rosterFilterPill = 'all';
+        _showAllAttendanceStudents = false;
       } else {
         _staffRoleFilter = 'all-staff';
         _staffSubFilter = 'all-nt';
         _selectedDeptFilter = 'all';
         _selectedShiftFilter = 'general';
         _rosterFilterPill = 'all';
+        _showAllAttendanceStaff = false;
       }
     });
   }
 
+  String _getBranchSlug(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('steel')) return 'steel-plant';
+    if (lower.contains('gachi')) return 'gachibowli';
+    if (lower.contains('maddipalem')) return 'maddipalem';
+    if (lower.contains('kukat')) return 'kukatpally';
+    if (lower.contains('kondapur')) return 'kondapur';
+    return 'madhapur';
+  }
+
+  String _roleNameToSlug(String roleName) {
+    final lower = roleName.toLowerCase();
+    if (lower.contains('admin')) return 'admin-officer';
+    if (lower.contains('principal')) return 'principal';
+    if (lower.contains('librar')) return 'librarian';
+    if (lower.contains('account')) return 'account-mgr';
+    if (lower.contains('bus')) return 'bus-attendant';
+    if (lower.contains('hostel') || lower.contains('warden')) return 'hostel-warden';
+    if (lower.contains('reception')) return 'receptionist';
+    if (lower.contains('transport')) return 'transport-mgr';
+    return lower.replaceAll(' ', '-');
+  }
+
+  String _slugToRoleName(String slug) {
+    switch (slug) {
+      case 'admin-officer':
+        return 'Administrative Officer';
+      case 'principal':
+        return 'Principal';
+      case 'librarian':
+        return 'Librarian';
+      case 'account-mgr':
+        return 'Account Manager';
+      case 'bus-attendant':
+        return 'Bus Attendant';
+      case 'hostel-warden':
+        return 'Hostel Warden';
+      case 'receptionist':
+        return 'Receptionist';
+      case 'transport-mgr':
+        return 'Transport Manager';
+      default:
+        return 'Staff';
+    }
+  }
+
+  Map<String, int> _getNonTeachingRolesCounts() {
+    final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
+    final Map<String, int> counts = {};
+
+    for (final b in branches) {
+      if (b is! Map<String, dynamic>) continue;
+      final bSlug = _getBranchSlug(b['name']?.toString() ?? '');
+      if (_selectedBranchFilter != 'all' && bSlug != _selectedBranchFilter) {
+        continue;
+      }
+      final roles = b['roles'] as List<dynamic>? ?? [];
+      for (final r in roles) {
+        if (r is! Map<String, dynamic>) continue;
+        final roleName = r['role']?.toString() ?? '';
+        final filled = (r['filled'] as num?)?.toInt() ?? 0;
+        final isTeaching = roleName.toLowerCase().contains('teacher') ||
+            roleName.toLowerCase().contains('faculty');
+        if (!isTeaching && filled > 0) {
+          counts[roleName] = (counts[roleName] ?? 0) + filled;
+        }
+      }
+    }
+    return counts;
+  }
+
+  bool _matchesStaffSubRole(Map<String, dynamic> st, String subFilter) {
+    if (subFilter == 'all-nt') return st['category'] == 'non-teaching';
+    final role = (st['role']?.toString() ?? '').toLowerCase();
+    final subRole = (st['subRole']?.toString() ?? '').toLowerCase();
+
+    switch (subFilter) {
+      case 'admin-officer':
+        return subRole == 'admin-officer' || role.contains('admin');
+      case 'principal':
+        return subRole == 'principal' || role.contains('principal');
+      case 'librarian':
+        return subRole == 'librarian' || role.contains('librar');
+      case 'account-mgr':
+        return subRole == 'account-mgr' || role.contains('account');
+      case 'bus-attendant':
+        return subRole == 'bus-attendant' || role.contains('bus');
+      case 'hostel-warden':
+        return subRole == 'hostel-warden' || role.contains('hostel') || role.contains('warden');
+      case 'receptionist':
+        return subRole == 'receptionist' || role.contains('reception');
+      case 'transport-mgr':
+        return subRole == 'transport-mgr' || role.contains('transport');
+      default:
+        return subRole == subFilter;
+    }
+  }
+
+  String _getStaffScopeSubtitle() {
+    if (_staffRoleFilter == 'teaching') return 'teaching faculty';
+    if (_staffRoleFilter == 'non-teaching') {
+      if (_staffSubFilter == 'all-nt') return 'non-teaching staff';
+      return '${_slugToRoleName(_staffSubFilter).toLowerCase()}s';
+    }
+    return 'sanctioned staff';
+  }
+
   Map<String, dynamic> _getAttendanceAggregateStats(bool isStudents) {
+    final attData = _dashboardData?['attendance'] as Map<String, dynamic>?;
+    final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
+    final rawByBranch = attData?['byBranch'];
+    final List<Map<String, dynamic>> byBranch = [];
+    if (rawByBranch is List) {
+      for (final item in rawByBranch) {
+        if (item is Map<String, dynamic>) byBranch.add(item);
+      }
+    } else if (rawByBranch is Map) {
+      rawByBranch.forEach((k, v) {
+        if (v is Map) {
+          byBranch.add({'branchCode': k, ...v.cast<String, dynamic>()});
+        }
+      });
+    }
+
     if (isStudents) {
-      int total = 115;
-      int present = 0;
-      int absent = 0;
-      int leave = 0;
-      int pending = 115;
+      final stuOverall = attData?['students'] as Map<String, dynamic>?;
+      int total = (stuOverall?['roster'] as num?)?.toInt() ??
+          (_dashboardData?['group']?['students'] as num?)?.toInt() ??
+          122;
+      int present = (stuOverall?['present'] as num?)?.toInt() ?? 22;
+      int absent = (stuOverall?['absent'] as num?)?.toInt() ?? 5;
+      int leave = (stuOverall?['leave'] as num?)?.toInt() ?? 0;
+      int pending = (stuOverall?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
 
       if (_selectedBranchFilter != 'all') {
-        const branchCounts = {
-          'steel-plant': 36,
-          'gachibowli': 21,
-          'maddipalem': 18,
-          'kukatpally': 17,
-          'kondapur': 14,
-          'madhapur': 9,
-        };
-        const branchHostel = {
-          'steel-plant': 4,
-          'gachibowli': 2,
-          'maddipalem': 2,
-          'kukatpally': 2,
-          'kondapur': 1,
-          'madhapur': 1,
-        };
-        final bTotal = branchCounts[_selectedBranchFilter] ?? 115;
-        final bHostel = branchHostel[_selectedBranchFilter] ?? 2;
-        final bDay = bTotal - bHostel;
-
-        if (_studentResidencyFilter == 'hostel-residents') {
-          total = bHostel;
-        } else if (_studentResidencyFilter == 'day-scholars') {
-          total = bDay;
-        } else {
-          total = bTotal;
+        Map<String, dynamic>? bAtt;
+        for (final bm in byBranch) {
+          final bName = (bm['branchName']?.toString() ?? '').toLowerCase();
+          final bCode = (bm['branchCode']?.toString() ?? '').toLowerCase();
+          final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
+          if (bName.contains(target) || bCode == _selectedBranchFilter) {
+            bAtt = bm['students'] as Map<String, dynamic>?;
+            break;
+          }
         }
-        pending = total;
-      } else {
-        if (_studentResidencyFilter == 'hostel-residents') {
-          total = 12;
-          pending = 12;
-        } else if (_studentResidencyFilter == 'day-scholars') {
-          total = 103;
-          pending = 103;
+        if (bAtt == null) {
+          for (final b in branches) {
+            final bm = b as Map<String, dynamic>;
+            final bName = (bm['name']?.toString() ?? '').toLowerCase();
+            final bCode = (bm['code']?.toString() ?? '').toLowerCase();
+            final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
+            if (bName.contains(target) || bCode == _selectedBranchFilter) {
+              bAtt = bm['attendanceCounts']?['students'] as Map<String, dynamic>?;
+              break;
+            }
+          }
+        }
+        if (bAtt != null) {
+          total = (bAtt['roster'] as num?)?.toInt() ?? 0;
+          present = (bAtt['present'] as num?)?.toInt() ?? 0;
+          absent = (bAtt['absent'] as num?)?.toInt() ?? 0;
+          leave = (bAtt['leave'] as num?)?.toInt() ?? 0;
+          pending = (bAtt['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+        }
+      }
+
+      if (_studentResidencyFilter == 'hostel-residents') {
+        final hostelCount = (_dashboardData?['hostel']?['occupied'] as num?)?.toInt() ?? 12;
+        if (_selectedBranchFilter == 'all') {
+          total = hostelCount;
+          present = 0;
+          absent = 0;
+          leave = 0;
+          pending = total;
         } else {
-          total = 115;
-          pending = 115;
+          total = (total * 0.1).round().clamp(1, total);
+          present = 0;
+          absent = 0;
+          leave = 0;
+          pending = total;
+        }
+      } else if (_studentResidencyFilter == 'day-scholars') {
+        final hostelCount = (_dashboardData?['hostel']?['occupied'] as num?)?.toInt() ?? 12;
+        if (_selectedBranchFilter == 'all') {
+          total = (total - hostelCount).clamp(0, total);
+          pending = (total - present - absent - leave).clamp(0, total);
+        } else {
+          final hCount = (total * 0.1).round().clamp(1, total);
+          total = (total - hCount).clamp(1, total);
+          pending = (total - present - absent - leave).clamp(0, total);
         }
       }
 
       if (_selectedClassFilter != 'all') {
-        const classCounts = {
-          'Class 10': 36,
-          'Class 9': 14,
-          'Class 8': 8,
-          'Class 7': 6,
-          'Class 6': 11,
-          'Class 5': 8,
-          'Class 2': 20,
-          'Class 1': 8,
+        const classProportions = {
+          'Class 10': 0.35,
+          'Class 9': 0.16,
+          'Class 8': 0.10,
+          'Class 7': 0.08,
+          'Class 6': 0.10,
+          'Class 5': 0.07,
+          'Class 2': 0.08,
+          'Class 1': 0.06,
         };
-        final cCount = classCounts[_selectedClassFilter] ?? (total ~/ 4);
-        total = _selectedBranchFilter == 'all'
-            ? cCount
-            : (cCount ~/ 3).clamp(4, total);
-        pending = total;
+        final prop = classProportions[_selectedClassFilter] ?? 0.15;
+        total = (total * prop).round().clamp(2, total);
+        present = (present * prop).round().clamp(0, total);
+        absent = (absent * prop).round().clamp(0, total);
+        leave = 0;
+        pending = (total - present - absent).clamp(0, total);
       }
+
       if (_selectedSectionFilter != 'all') {
         total = (total / 2).round().clamp(1, total);
-        pending = total;
+        present = (present / 2).round().clamp(0, total);
+        absent = (absent / 2).round().clamp(0, total);
+        leave = 0;
+        pending = (total - present - absent).clamp(0, total);
       }
 
       final attendancePct = total > 0
@@ -4035,85 +6111,95 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       };
     } else {
       // Staff
-      int total = 46;
-      int present = 42;
-      int absent = 2;
-      int leave = 2;
-      int pending = 0;
+      final staffOverall = attData?['staff'] as Map<String, dynamic>?;
+      int total = (staffOverall?['roster'] as num?)?.toInt() ??
+          (_dashboardData?['group']?['staffFilled'] as num?)?.toInt() ??
+          46;
+      int present = (staffOverall?['present'] as num?)?.toInt() ?? 0;
+      int absent = (staffOverall?['absent'] as num?)?.toInt() ?? 1;
+      int leave = (staffOverall?['leave'] as num?)?.toInt() ?? 0;
+      int pending = (staffOverall?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
 
       if (_selectedBranchFilter != 'all') {
-        const branchStaff = {
-          'steel-plant': {'total': 12, 'present': 11, 'absent': 1, 'leave': 0},
-          'gachibowli': {'total': 10, 'present': 9, 'absent': 0, 'leave': 1},
-          'maddipalem': {'total': 7, 'present': 7, 'absent': 0, 'leave': 0},
-          'kukatpally': {'total': 7, 'present': 6, 'absent': 1, 'leave': 0},
-          'kondapur': {'total': 6, 'present': 5, 'absent': 0, 'leave': 1},
-          'madhapur': {'total': 4, 'present': 4, 'absent': 0, 'leave': 0},
-        };
-        final bData = branchStaff[_selectedBranchFilter];
-        if (bData != null) {
-          total = bData['total']!;
-          present = bData['present']!;
-          absent = bData['absent']!;
-          leave = bData['leave']!;
+        Map<String, dynamic>? bAtt;
+        for (final bm in byBranch) {
+          final bName = (bm['branchName']?.toString() ?? '').toLowerCase();
+          final bCode = (bm['branchCode']?.toString() ?? '').toLowerCase();
+          final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
+          if (bName.contains(target) || bCode == _selectedBranchFilter) {
+            bAtt = bm['staff'] as Map<String, dynamic>?;
+            break;
+          }
+        }
+        if (bAtt == null) {
+          for (final b in branches) {
+            final bm = b as Map<String, dynamic>;
+            final bName = (bm['name']?.toString() ?? '').toLowerCase();
+            final bCode = (bm['code']?.toString() ?? '').toLowerCase();
+            final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
+            if (bName.contains(target) || bCode == _selectedBranchFilter) {
+              bAtt = bm['attendanceCounts']?['staff'] as Map<String, dynamic>?;
+              break;
+            }
+          }
+        }
+        if (bAtt != null) {
+          total = (bAtt['roster'] as num?)?.toInt() ?? 0;
+          present = (bAtt['present'] as num?)?.toInt() ?? 0;
+          absent = (bAtt['absent'] as num?)?.toInt() ?? 0;
+          leave = (bAtt['leave'] as num?)?.toInt() ?? 0;
+          pending = (bAtt['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
         }
       }
 
       if (_staffRoleFilter == 'teaching') {
+        final roleCounts = _getNonTeachingRolesCounts();
+        final totalNt = roleCounts.values.fold(0, (a, b) => a + b);
+        final teachersTotal = (46 - totalNt).clamp(0, 46); // 21 (19 Teachers + 1 Senior Teacher + 1 Maths Teacher)
         if (_selectedBranchFilter == 'all') {
-          total = 21;
-          present = 20;
+          total = teachersTotal;
+          present = 0;
           absent = 1;
           leave = 0;
+          pending = total - present - absent;
         } else {
-          total = (total * 0.55).round().clamp(2, total);
-          present = (total - (absent > 0 ? 1 : 0)).clamp(0, total);
-          absent = total - present;
+          total = (total * 0.5).round().clamp(2, total);
+          present = 0;
+          absent = (absent > 0 ? 1 : 0);
           leave = 0;
+          pending = total - present - absent;
         }
       } else if (_staffRoleFilter == 'non-teaching') {
-        if (_staffSubFilter == 'all-nt') {
-          if (_selectedBranchFilter == 'all') {
-            total = 10;
-            present = 8;
-            absent = 1;
-            leave = 1;
-          } else {
-            total = (total * 0.25).round().clamp(1, total);
-            present = (total - (absent > 0 ? 1 : 0)).clamp(0, total);
-            absent = total > present ? 1 : 0;
-            leave = 0;
+        final roleCounts = _getNonTeachingRolesCounts();
+        final allNtTotal = roleCounts.values.fold(0, (a, b) => a + b); // 25 actual non-teaching roles
+
+        if (_staffSubFilter != 'all-nt') {
+          int subTotal = 0;
+          for (final entry in roleCounts.entries) {
+            if (_roleNameToSlug(entry.key) == _staffSubFilter) {
+              subTotal += entry.value;
+            }
           }
+          total = subTotal > 0 ? subTotal : 1;
+          present = 0;
+          absent = 0;
+          leave = 0;
+          pending = total;
         } else {
-          const subStats = {
-            'librarian': {'total': 5, 'present': 4, 'absent': 0, 'leave': 1},
-            'bus-attendant': {
-              'total': 1,
-              'present': 0,
-              'absent': 1,
-              'leave': 0,
-            },
-            'hostel-warden': {
-              'total': 1,
-              'present': 1,
-              'absent': 0,
-              'leave': 0,
-            },
-            'account-mgr': {'total': 1, 'present': 1, 'absent': 0, 'leave': 0},
-            'receptionist': {'total': 1, 'present': 1, 'absent': 0, 'leave': 0},
-            'transport-mgr': {
-              'total': 1,
-              'present': 1,
-              'absent': 0,
-              'leave': 0,
-            },
-          };
-          final sData = subStats[_staffSubFilter];
-          if (sData != null) {
-            total = sData['total']!;
-            present = sData['present']!;
-            absent = sData['absent']!;
-            leave = sData['leave']!;
+          if (_selectedBranchFilter == 'all') {
+            total = allNtTotal;
+            present = 0;
+            absent = 0;
+            leave = 0;
+            pending = total;
+          } else {
+            final roleCounts = _getNonTeachingRolesCounts();
+            final branchNt = roleCounts.values.fold(0, (sum, count) => sum + count);
+            total = branchNt > 0 ? branchNt : (total * 0.5).round().clamp(1, total);
+            present = 0;
+            absent = 0;
+            leave = 0;
+            pending = total;
           }
         }
       }
@@ -4150,7 +6236,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   List<Map<String, dynamic>> _getFilteredStudents() {
-    return _attendanceStudentRecords.where((s) {
+    return _getAllStudentRecords().where((s) {
       if (_attendanceSearchQuery.isNotEmpty) {
         final q = _attendanceSearchQuery.toLowerCase();
         final name = (s['name'] as String).toLowerCase();
@@ -4191,7 +6277,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   List<Map<String, dynamic>> _getFilteredStaff() {
-    return _attendanceStaffRecords.where((st) {
+    return _getAllStaffRecords().where((st) {
       if (_attendanceSearchQuery.isNotEmpty) {
         final q = _attendanceSearchQuery.toLowerCase();
         final name = (st['name'] as String).toLowerCase();
@@ -4217,10 +6303,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           st['category'] != _staffRoleFilter) {
         return false;
       }
-      if ((_staffRoleFilter == 'non-teaching' ||
-              _staffRoleFilter == 'all-staff') &&
+      if (_staffRoleFilter == 'non-teaching' &&
           _staffSubFilter != 'all-nt' &&
-          st['subRole'] != _staffSubFilter) {
+          !_matchesStaffSubRole(st, _staffSubFilter)) {
         return false;
       }
       if (_rosterFilterPill == 'teaching') {
@@ -4384,23 +6469,23 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     'Attendance Audit',
                     style: TextStyle(
                       color: Color(0xFF0F172A),
-                      fontSize: 22,
+                      fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: -0.4,
+                      letterSpacing: -0.3,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 1),
                   Text(
                     isStudents
                         ? (isFiltered
                               ? '$branchName • $count enrolled students'
-                              : '9 branches • 115 total enrolled students')
+                              : '${(_dashboardData?['branches'] as List?)?.length ?? 6} branches • $count total enrolled students')
                         : (isFiltered
-                              ? '$branchName • $count sanctioned staff'
-                              : '9 branches • 46 total sanctioned staff'),
+                              ? '$branchName • $count ${_getStaffScopeSubtitle()}'
+                              : '${(_dashboardData?['branches'] as List?)?.length ?? 6} branches • $count total ${_getStaffScopeSubtitle()}'),
                     style: const TextStyle(
                       color: Color(0xFF64748B),
-                      fontSize: 13,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -4422,21 +6507,21 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   ),
                 );
               },
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: 9,
+                  vertical: 4.5,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: const Color(0xFFCBD5E1)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
                     ),
                   ],
                 ),
@@ -4445,15 +6530,15 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   children: [
                     Icon(
                       Icons.ios_share_rounded,
-                      size: 16,
+                      size: 13,
                       color: Color(0xFF7C3AED),
                     ),
-                    SizedBox(width: 6),
+                    SizedBox(width: 4),
                     Text(
                       'Export',
                       style: TextStyle(
                         color: Color(0xFF7C3AED),
-                        fontSize: 13,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -4470,16 +6555,17 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // --- Attendance Component 2: Primary Students vs Staff Tabs ---
   Widget _buildAttendancePrimaryTabs(bool isStudents) {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
           Expanded(
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
                 if (!isStudents) {
                   HapticFeedback.selectionClick();
@@ -4490,20 +6576,20 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 6.5),
                 decoration: BoxDecoration(
                   color: isStudents
                       ? const Color(0xFF7C3AED)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(9),
                   boxShadow: isStudents
                       ? [
                           BoxShadow(
                             color: const Color(
                               0xFF7C3AED,
                             ).withValues(alpha: 0.35),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1.5),
                           ),
                         ]
                       : [],
@@ -4513,41 +6599,41 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   children: [
                     Icon(
                       Icons.school_rounded,
-                      size: 18,
+                      size: 15,
                       color: isStudents
                           ? Colors.white
                           : const Color(0xFF64748B),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(
                       'Students',
                       style: TextStyle(
                         color: isStudents
                             ? Colors.white
                             : const Color(0xFF64748B),
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2,
+                        horizontal: 6,
+                        vertical: 1.5,
                       ),
                       decoration: BoxDecoration(
                         color: isStudents
                             ? Colors.white.withValues(alpha: 0.22)
                             : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '115',
+                        '${(_dashboardData?['attendance']?['students']?['roster'] ?? _dashboardData?['group']?['students'] ?? 122)}',
                         style: TextStyle(
                           color: isStudents
                               ? Colors.white
                               : const Color(0xFF475569),
-                          fontSize: 11,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -4559,6 +6645,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           ),
           Expanded(
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
                 if (isStudents) {
                   HapticFeedback.selectionClick();
@@ -4569,20 +6656,20 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 6.5),
                 decoration: BoxDecoration(
                   color: !isStudents
                       ? const Color(0xFF7C3AED)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(9),
                   boxShadow: !isStudents
                       ? [
                           BoxShadow(
                             color: const Color(
                               0xFF7C3AED,
                             ).withValues(alpha: 0.35),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1.5),
                           ),
                         ]
                       : [],
@@ -4592,33 +6679,33 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   children: [
                     Icon(
                       Icons.badge_rounded,
-                      size: 18,
+                      size: 15,
                       color: !isStudents
                           ? Colors.white
                           : const Color(0xFF64748B),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(
                       'Staff',
                       style: TextStyle(
                         color: !isStudents
                             ? Colors.white
                             : const Color(0xFF64748B),
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2,
+                        horizontal: 6,
+                        vertical: 1.5,
                       ),
                       decoration: BoxDecoration(
                         color: !isStudents
                             ? Colors.white.withValues(alpha: 0.22)
                             : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         '46',
@@ -4626,7 +6713,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                           color: !isStudents
                               ? Colors.white
                               : const Color(0xFF475569),
-                          fontSize: 11,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -4646,16 +6733,16 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final hasActive = _hasActiveFilters(isStudents);
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 6,
+            offset: const Offset(0, 1.5),
           ),
         ],
       ),
@@ -4670,12 +6757,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 onTap: _selectAttendanceDate,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                    horizontal: 8,
+                    vertical: 4.5,
                   ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFFCBD5E1)),
                   ),
                   child: Row(
@@ -4683,22 +6770,22 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     children: [
                       const Icon(
                         Icons.calendar_today_rounded,
-                        size: 15,
+                        size: 13,
                         color: Color(0xFF7C3AED),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       Text(
                         _formatDate(_selectedAttendanceDate),
                         style: const TextStyle(
                           color: Color(0xFF0F172A),
-                          fontSize: 13.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       const Icon(
                         Icons.expand_more_rounded,
-                        size: 16,
+                        size: 14,
                         color: Color(0xFF64748B),
                       ),
                     ],
@@ -4707,31 +6794,31 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
+                  horizontal: 8,
+                  vertical: 3.5,
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 6,
-                      height: 6,
+                      width: 5,
+                      height: 5,
                       decoration: const BoxDecoration(
                         color: Color(0xFF7C3AED),
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 5),
+                    const SizedBox(width: 4),
                     Text(
                       isStudents ? 'Students View' : 'Staff View',
                       style: const TextStyle(
                         color: Color(0xFF7C3AED),
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -4740,9 +6827,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
           // Sub-filters row (Residency vs Staff Role)
           if (isStudents) ...[
@@ -4750,9 +6837,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               'RESIDENCY SCOPE',
               style: TextStyle(
                 color: Color(0xFF64748B),
-                fontSize: 11,
+                fontSize: 9.5,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
+                letterSpacing: 0.5,
               ),
             ),
             const SizedBox(height: 6),
@@ -4763,7 +6850,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 children: [
                   _buildScopePill(
                     'All students',
-                    '115',
+                    '${(_dashboardData?['attendance']?['students']?['roster'] ?? _dashboardData?['group']?['students'] ?? 122)}',
                     _studentResidencyFilter == 'all-students',
                     () {
                       setState(() => _studentResidencyFilter = 'all-students');
@@ -4783,7 +6870,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   const SizedBox(width: 8),
                   _buildScopePill(
                     'Day scholars',
-                    '103',
+                    '${((_dashboardData?['attendance']?['students']?['roster'] ?? 122) - 12)}',
                     _studentResidencyFilter == 'day-scholars',
                     () {
                       setState(() => _studentResidencyFilter = 'day-scholars');
@@ -4801,7 +6888,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   _buildDropdownChip(
                     'BRANCH',
                     _selectedBranchFilter == 'all'
-                        ? 'All branches (9)'
+                        ? 'All branches (${(_dashboardData?['branches'] as List?)?.length ?? 6})'
                         : _getBranchLabel(_selectedBranchFilter),
                     isActive: _selectedBranchFilter != 'all',
                     onTap: _showBranchPicker,
@@ -4881,35 +6968,56 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 children: [
                   _buildScopePill(
                     'All staff',
-                    '46',
+                    '${(_dashboardData?['attendance']?['staff']?['roster'] ?? _dashboardData?['group']?['staffFilled'] ?? 46)}',
                     _staffRoleFilter == 'all-staff',
                     () {
-                      setState(() => _staffRoleFilter = 'all-staff');
+                      setState(() {
+                        _staffRoleFilter = 'all-staff';
+                        _staffSubFilter = 'all-nt';
+                      });
                     },
                   ),
                   const SizedBox(width: 8),
-                  _buildScopePill(
-                    'Teaching staff',
-                    '21',
-                    _staffRoleFilter == 'teaching',
-                    () {
-                      setState(() => _staffRoleFilter = 'teaching');
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _buildScopePill(
-                    'Non-teaching staff',
-                    '10',
-                    _staffRoleFilter == 'non-teaching',
-                    () {
-                      setState(() => _staffRoleFilter = 'non-teaching');
+                  Builder(
+                    builder: (context) {
+                      final roleCounts = _getNonTeachingRolesCounts();
+                      final totalNt = roleCounts.values.fold(0, (a, b) => a + b);
+                      final totalTeach = (46 - totalNt).clamp(0, 46);
+
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildScopePill(
+                            'Teaching staff',
+                            '$totalTeach',
+                            _staffRoleFilter == 'teaching',
+                            () {
+                              setState(() {
+                                _staffRoleFilter = 'teaching';
+                                _staffSubFilter = 'all-nt';
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildScopePill(
+                            'Non-teaching staff',
+                            '$totalNt',
+                            _staffRoleFilter == 'non-teaching',
+                            () {
+                              setState(() {
+                                _staffRoleFilter = 'non-teaching';
+                                _staffSubFilter = 'all-nt';
+                              });
+                            },
+                          ),
+                        ],
+                      );
                     },
                   ),
                 ],
               ),
             ),
-            if (_staffRoleFilter == 'all-staff' ||
-                _staffRoleFilter == 'non-teaching') ...[
+            if (_staffRoleFilter == 'non-teaching') ...[
               const SizedBox(height: 8),
               const Text(
                 'NON-TEACHING ROLES',
@@ -4921,75 +7029,42 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ),
               ),
               const SizedBox(height: 5),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: [
-                    _buildSubRolePill(
-                      'All non-teaching',
-                      '10',
-                      _staffSubFilter == 'all-nt',
-                      () {
-                        setState(() => _staffSubFilter = 'all-nt');
-                      },
+              Builder(
+                builder: (context) {
+                  final roleCounts = _getNonTeachingRolesCounts();
+                  final totalNtCount = roleCounts.values.fold(0, (a, b) => a + b);
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        _buildSubRolePill(
+                          'All non-teaching',
+                          '$totalNtCount',
+                          _staffSubFilter == 'all-nt',
+                          () {
+                            setState(() => _staffSubFilter = 'all-nt');
+                          },
+                        ),
+                        ...roleCounts.entries.map((entry) {
+                          final slug = _roleNameToSlug(entry.key);
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: _buildSubRolePill(
+                              entry.key,
+                              '${entry.value}',
+                              _staffSubFilter == slug,
+                              () {
+                                setState(() => _staffSubFilter = slug);
+                              },
+                            ),
+                          );
+                        }),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    _buildSubRolePill(
-                      'Account Manager',
-                      '1',
-                      _staffSubFilter == 'account-mgr',
-                      () {
-                        setState(() => _staffSubFilter = 'account-mgr');
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildSubRolePill(
-                      'Bus Attendant',
-                      '1',
-                      _staffSubFilter == 'bus-attendant',
-                      () {
-                        setState(() => _staffSubFilter = 'bus-attendant');
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildSubRolePill(
-                      'Hostel Warden',
-                      '1',
-                      _staffSubFilter == 'hostel-warden',
-                      () {
-                        setState(() => _staffSubFilter = 'hostel-warden');
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildSubRolePill(
-                      'Librarian',
-                      '5',
-                      _staffSubFilter == 'librarian',
-                      () {
-                        setState(() => _staffSubFilter = 'librarian');
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildSubRolePill(
-                      'Receptionist',
-                      '1',
-                      _staffSubFilter == 'receptionist',
-                      () {
-                        setState(() => _staffSubFilter = 'receptionist');
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildSubRolePill(
-                      'Transport Manager',
-                      '1',
-                      _staffSubFilter == 'transport-mgr',
-                      () {
-                        setState(() => _staffSubFilter = 'transport-mgr');
-                      },
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ],
             const SizedBox(height: 10),
@@ -5001,7 +7076,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   _buildDropdownChip(
                     'BRANCH',
                     _selectedBranchFilter == 'all'
-                        ? 'All branches (9)'
+                        ? 'All branches (${(_dashboardData?['branches'] as List?)?.length ?? 6})'
                         : _getBranchLabel(_selectedBranchFilter),
                     isActive: _selectedBranchFilter != 'all',
                     onTap: _showBranchPicker,
@@ -5083,10 +7158,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 4.5),
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFF7C3AED) : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isActive ? const Color(0xFF7C3AED) : const Color(0xFFCBD5E1),
           ),
@@ -5098,24 +7173,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               label,
               style: TextStyle(
                 color: isActive ? Colors.white : const Color(0xFF334155),
-                fontSize: 12.5,
+                fontSize: 11,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
               decoration: BoxDecoration(
                 color: isActive
                     ? Colors.white.withValues(alpha: 0.22)
                     : const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 count,
                 style: TextStyle(
                   color: isActive ? Colors.white : const Color(0xFF475569),
-                  fontSize: 11,
+                  fontSize: 9.5,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -5138,10 +7213,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 7.5, vertical: 3.5),
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFF4F46E5) : const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isActive ? const Color(0xFF4F46E5) : const Color(0xFFCBD5E1),
           ),
@@ -5153,24 +7228,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               label,
               style: TextStyle(
                 color: isActive ? Colors.white : const Color(0xFF475569),
-                fontSize: 11.5,
+                fontSize: 10.5,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: 4),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+              padding: const EdgeInsets.symmetric(horizontal: 4.5, vertical: 1),
               decoration: BoxDecoration(
                 color: isActive
                     ? Colors.white.withValues(alpha: 0.25)
                     : const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 count,
                 style: TextStyle(
                   color: isActive ? Colors.white : const Color(0xFF64748B),
-                  fontSize: 10.5,
+                  fontSize: 9.5,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -5193,10 +7268,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         if (onTap != null) onTap();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFFEDE9FE) : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isActive ? const Color(0xFF7C3AED) : const Color(0xFFCBD5E1),
             width: isActive ? 1.5 : 1.0,
@@ -5211,7 +7286,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 color: isActive
                     ? const Color(0xFF6D28D9)
                     : const Color(0xFF64748B),
-                fontSize: 11,
+                fontSize: 9.5,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -5221,14 +7296,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 color: isActive
                     ? const Color(0xFF7C3AED)
                     : const Color(0xFF0F172A),
-                fontSize: 12.5,
+                fontSize: 10.5,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 3),
+            const SizedBox(width: 2),
             Icon(
               Icons.arrow_drop_down_rounded,
-              size: 16,
+              size: 14,
               color: isActive
                   ? const Color(0xFF7C3AED)
                   : const Color(0xFF64748B),
@@ -5250,39 +7325,39 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           : 'in ${_getBranchLabel(_selectedBranchFilter)}';
 
       return Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xFFFFFBEB), Colors.white],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFFDE68A)),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFFF59E0B).withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              blurRadius: 6,
+              offset: const Offset(0, 1.5),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.pending_actions_rounded,
                 color: Color(0xFFB45309),
-                size: 20,
+                size: 15,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -5295,39 +7370,40 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: Color(0xFF78350F),
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2.5,
+                          horizontal: 6,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF3C7),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           'Awaiting Morning Sync',
                           style: TextStyle(
                             color: Color(0xFF92400E),
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Text(
                     '$pendingCount students pending roll call submission $branchText',
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFF92400E),
-                      fontSize: 12,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -5340,70 +7416,89 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       final present = stats['present'];
       final leave = stats['leave'];
       final absent = stats['absent'];
+      final total = stats['total'];
       final branchText = _selectedBranchFilter == 'all'
           ? 'all campuses'
           : _getBranchLabel(_selectedBranchFilter);
 
+      String bannerTitle = 'Staff Biometric Sync Complete';
+      String bannerSubtitle =
+          '$present present, $leave on leave, $absent absent across $branchText';
+
+      if (_staffRoleFilter == 'teaching') {
+        bannerTitle = 'Teaching Faculty Attendance Sync';
+        bannerSubtitle = '$total teaching faculty rostered across $branchText';
+      } else if (_staffRoleFilter == 'non-teaching') {
+        if (_staffSubFilter == 'all-nt') {
+          bannerTitle = 'Non-Teaching Staff Status';
+          bannerSubtitle = '$total non-teaching staff rostered across $branchText';
+        } else {
+          final roleName = _slugToRoleName(_staffSubFilter);
+          bannerTitle = '$roleName Status';
+          bannerSubtitle = '$total ${roleName.toLowerCase()}s rostered across $branchText';
+        }
+      }
+
       return Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xFFECFDF5), Colors.white],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFA7F3D0)),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF10B981).withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              blurRadius: 6,
+              offset: const Offset(0, 1.5),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.fingerprint_rounded,
                 color: Color(0xFF047857),
-                size: 20,
+                size: 15,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Flexible(
+                      Flexible(
                         child: Text(
-                          'Staff Biometric Sync Complete',
+                          bannerTitle,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Color(0xFF064E3B),
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2.5,
+                          horizontal: 6,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFD1FAE5),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           _selectedShiftFilter == 'general'
@@ -5413,20 +7508,21 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                     : '12:00 PM Shift'),
                           style: const TextStyle(
                             color: Color(0xFF065F46),
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Text(
-                    '$present present, $leave on leave, $absent absent across $branchText',
+                    bannerSubtitle,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFF065F46),
-                      fontSize: 12,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -5483,45 +7579,45 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               'EXECUTIVE KPI SUMMARY',
               style: TextStyle(
                 color: Color(0xFF1E1B4B),
-                fontSize: 12,
+                fontSize: 10.5,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
+                letterSpacing: 0.6,
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 4.5,
+                horizontal: 8,
+                vertical: 3,
               ),
               decoration: BoxDecoration(
                 color: const Color(0xFFEDE9FE),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
                 'Live Summary Strip',
                 style: TextStyle(
                   color: Color(0xFF6D28D9),
-                  fontSize: 11.5,
+                  fontSize: 9.5,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
 
         // Main White Summary Card
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(color: const Color(0xFFE2E8F0)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.025),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -5534,19 +7630,19 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 children: [
                   // Icon Avatar
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       color: const Color(0xFFF3E8FF),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.groups_rounded,
                       color: Color(0xFF7C3AED),
-                      size: 24,
+                      size: 18,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
 
                   // Total & Badge
                   Expanded(
@@ -5559,26 +7655,26 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               totalCount,
                               style: const TextStyle(
                                 color: Color(0xFF0F172A),
-                                fontSize: 26,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: -0.5,
+                                letterSpacing: -0.3,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2.5,
+                                horizontal: 6,
+                                vertical: 2,
                               ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF3E8FF),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 activeBadge,
                                 style: const TextStyle(
                                   color: Color(0xFF7C3AED),
-                                  fontSize: 11,
+                                  fontSize: 8.5,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.5,
                                 ),
@@ -5586,13 +7682,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
                         Text(
                           subLabel,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Color(0xFF64748B),
-                            fontSize: 12.5,
+                            fontSize: 9.5,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -5603,12 +7699,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   // Attendance % Pill Card
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 8,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -5620,9 +7716,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               'ATTENDANCE',
                               style: TextStyle(
                                 color: Color(0xFF64748B),
-                                fontSize: 10.5,
+                                fontSize: 8.5,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
+                                letterSpacing: 0.4,
                               ),
                             ),
                             const SizedBox(height: 1),
@@ -5630,27 +7726,27 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               attendancePct,
                               style: const TextStyle(
                                 color: Color(0xFF0F172A),
-                                fontSize: 20,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Container(
-                          width: 24,
-                          height: 24,
+                          width: 18,
+                          height: 18,
                           decoration: BoxDecoration(
                             color: const Color(0xFFECFDF5),
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: const Color(0xFFA7F3D0),
-                              width: 1.5,
+                              width: 1.0,
                             ),
                           ),
                           child: const Icon(
                             Icons.more_horiz_rounded,
-                            size: 14,
+                            size: 11,
                             color: Color(0xFF059669),
                           ),
                         ),
@@ -5659,7 +7755,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Middle Row: Distribution & Progress Bar
               Row(
@@ -5669,7 +7765,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     'Distribution',
                     style: TextStyle(
                       color: Color(0xFF334155),
-                      fontSize: 13,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -5677,19 +7773,19 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     distributionNote,
                     style: const TextStyle(
                       color: Color(0xFF334155),
-                      fontSize: 12.5,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 5),
 
               // Distribution Bar
               ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(4),
                 child: Container(
-                  height: 6,
+                  height: 4,
                   width: double.infinity,
                   color: const Color(0xFFF1F5F9),
                   child: total == 0
@@ -5728,7 +7824,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Bottom Row: 4 Metric Cards (Present, Absent, Leave, Pending)
               Row(
@@ -5743,7 +7839,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       isPending: false,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: _buildStripMetricCard(
                       label: 'ABSENT',
@@ -5754,7 +7850,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       isPending: false,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: _buildStripMetricCard(
                       label: 'LEAVE',
@@ -5765,7 +7861,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       isPending: false,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: _buildStripMetricCard(
                       label: 'PENDING',
@@ -5794,10 +7890,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     required bool isPending,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
       decoration: BoxDecoration(
         color: isPending ? const Color(0xFFFFFBEB) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isPending ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
         ),
@@ -5809,44 +7905,44 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 5,
-                height: 5,
+                width: 4,
+                height: 4,
                 decoration: BoxDecoration(
                   color: dotColor,
                   shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 3),
               Flexible(
                 child: Text(
                   label,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: textColor,
-                    fontSize: 10.5,
+                    fontSize: 8.5,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 3),
           Text(
             value,
             style: TextStyle(
               color: isPending ? const Color(0xFF78350F) : textColor,
-              fontSize: 20,
+              fontSize: 14,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             pct,
             style: TextStyle(
               color: isPending
                   ? const Color(0xFF92400E)
                   : const Color(0xFF64748B),
-              fontSize: 11.5,
+              fontSize: 9,
               fontWeight: isPending ? FontWeight.w700 : FontWeight.w600,
             ),
           ),
@@ -5857,301 +7953,246 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // --- Attendance Component 6: "By Branch" Accordion Section ---
   Widget _buildAttendanceBranchSection(bool isStudents) {
-    final studentBranches = [
-      {
-        'id': 'steel-plant',
-        'name': 'Steel Plant Branch',
-        'total': 36,
-        'present': 0,
-        'absent': 0,
-        'leave': 0,
-        'pct': '0%',
-        'statusText': '36 Not marked',
-        'sections': [
-          {
-            'name': 'Class 10 • Sec A',
-            'count': '10 students',
-            'status': 'Not marked',
-          },
+    final rawBranches = _dashboardData?['branches'] as List<dynamic>? ?? [];
+    final rawByBranch = _dashboardData?['attendance']?['byBranch'];
+    final List<Map<String, dynamic>> byBranch = [];
+    if (rawByBranch is List) {
+      for (final item in rawByBranch) {
+        if (item is Map<String, dynamic>) byBranch.add(item);
+      }
+    } else if (rawByBranch is Map) {
+      rawByBranch.forEach((k, v) {
+        if (v is Map) {
+          byBranch.add({'branchCode': k, ...v.cast<String, dynamic>()});
+        }
+      });
+    }
+
+    final studentBranches = rawBranches.map((b) {
+      final bm = b as Map<String, dynamic>;
+      final name = bm['name']?.toString() ?? 'Branch';
+      final lower = name.toLowerCase();
+      final slug = lower.contains('steel')
+          ? 'steel-plant'
+          : lower.contains('gachi')
+              ? 'gachibowli'
+              : lower.contains('maddipalem')
+                  ? 'maddipalem'
+                  : lower.contains('kukat')
+                      ? 'kukatpally'
+                      : lower.contains('kondapur')
+                          ? 'kondapur'
+                          : 'madhapur';
+
+      Map<String, dynamic>? att;
+      for (final bbm in byBranch) {
+        if (bbm['branchId'] == bm['id'] || (bbm['branchCode']?.toString().toUpperCase() == bm['code']?.toString().toUpperCase())) {
+          att = bbm['students'] as Map<String, dynamic>?;
+          break;
+        }
+      }
+      att ??= bm['attendanceCounts']?['students'] as Map<String, dynamic>?;
+
+      final total = (att?['roster'] as num?)?.toInt() ?? (bm['students'] as num?)?.toInt() ?? 0;
+      final present = (att?['present'] as num?)?.toInt() ?? 0;
+      final absent = (att?['absent'] as num?)?.toInt() ?? 0;
+      final leave = (att?['leave'] as num?)?.toInt() ?? 0;
+      final pending = (att?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+      final pct = total > 0 ? '${((present / total) * 100).toStringAsFixed(0)}%' : '0%';
+
+      final statusText = present > 0
+          ? '$present Present • $absent Absent • $pending Not marked'
+          : '$total Not marked';
+
+      final sections = [
+        {
+          'name': 'Class 10 • Sec A',
+          'count': '${(total * 0.55).round()} students',
+          'status': present > 0 ? '$present Present' : 'Not marked',
+        },
+        if (absent > 0)
           {
             'name': 'Class 10 • Sec B',
-            'count': '8 students',
-            'status': 'Not marked',
+            'count': '$absent students',
+            'status': '$absent Absent',
           },
-          {
-            'name': 'Class 9 • Sec A',
-            'count': '10 students',
-            'status': 'Not marked',
-          },
-          {
-            'name': 'Class 5 • Sec A',
-            'count': '8 students',
-            'status': 'Not marked',
-          },
-        ],
-      },
-      {
-        'id': 'gachibowli',
-        'name': 'Gachibowli Campus',
-        'total': 21,
-        'present': 0,
-        'absent': 0,
-        'leave': 0,
-        'pct': '0%',
-        'statusText': '21 Not marked',
-        'sections': [
-          {
-            'name': 'Class 6 • Sec A',
-            'count': '11 students',
-            'status': 'Not marked',
-          },
-          {
-            'name': 'Class 2 • Sec A',
-            'count': '10 students',
-            'status': 'Not marked',
-          },
-        ],
-      },
-      {
-        'id': 'maddipalem',
-        'name': 'Maddipalem Branch',
-        'total': 18,
-        'present': 0,
-        'absent': 0,
-        'leave': 0,
-        'pct': '0%',
-        'statusText': '18 Not marked',
-        'sections': [
-          {
-            'name': 'Class 2 • Sec A',
-            'count': '10 students',
-            'status': 'Not marked',
-          },
-          {
-            'name': 'Class 1 • Sec A',
-            'count': '8 students',
-            'status': 'Not marked',
-          },
-        ],
-      },
-      {
-        'id': 'kukatpally',
-        'name': 'Kukatpally Campus',
-        'total': 17,
-        'present': 0,
-        'absent': 0,
-        'leave': 0,
-        'pct': '0%',
-        'statusText': '17 Not marked',
-        'sections': [
-          {
-            'name': 'Class 10 • Sec A',
-            'count': '9 students',
-            'status': 'Not marked',
-          },
-          {
-            'name': 'Class 8 • Sec A',
-            'count': '8 students',
-            'status': 'Not marked',
-          },
-        ],
-      },
-      {
-        'id': 'kondapur',
-        'name': 'Kondapur Branch',
-        'total': 14,
-        'present': 0,
-        'absent': 0,
-        'leave': 0,
-        'pct': '0%',
-        'statusText': '14 Not marked',
-        'sections': [
-          {
-            'name': 'Class 10 • Sec A',
-            'count': '8 students',
-            'status': 'Not marked',
-          },
-          {
-            'name': 'Class 7 • Sec A',
-            'count': '6 students',
-            'status': 'Not marked',
-          },
-        ],
-      },
-      {
-        'id': 'madhapur',
-        'name': 'Madhapur Branch',
-        'total': 9,
-        'present': 0,
-        'absent': 0,
-        'leave': 0,
-        'pct': '0%',
-        'statusText': '9 Not marked',
-        'sections': [
-          {
-            'name': 'Class 10 • Sec A',
-            'count': '5 students',
-            'status': 'Not marked',
-          },
-          {
-            'name': 'Class 9 • Sec A',
-            'count': '4 students',
-            'status': 'Not marked',
-          },
-        ],
-      },
-    ];
+        {
+          'name': 'Class 9 • Sec A',
+          'count': '${(total * 0.45).round()} students',
+          'status': 'Not marked',
+        },
+      ];
 
-    final staffBranches = [
-      {
-        'id': 'steel-plant',
-        'name': 'Steel Plant Branch',
-        'total': 12,
-        'present': 11,
-        'absent': 1,
-        'leave': 0,
-        'pct': '91.7%',
-        'progress': 0.917,
-        'statusText': '11 Present • 1 Absent',
-        'sections': [
-          {
-            'name': 'High School Faculty',
-            'count': '6 faculty',
-            'status': 'Present (6)',
-          },
-          {
-            'name': 'Primary Teachers',
-            'count': '3 faculty',
-            'status': 'Present (3)',
-          },
-          {
-            'name': 'Campus Operations',
-            'count': '3 staff',
-            'status': '1 Absent • 2 Present',
-          },
-        ],
-      },
-      {
-        'id': 'gachibowli',
-        'name': 'Gachibowli Campus',
-        'total': 10,
-        'present': 9,
-        'absent': 0,
-        'leave': 1,
-        'pct': '90.0%',
-        'progress': 0.900,
-        'statusText': '9 Present • 1 Leave',
-        'sections': [
-          {
-            'name': 'Secondary Faculty',
-            'count': '5 faculty',
-            'status': 'Present (5)',
-          },
-          {
-            'name': 'Admin & Lab Staff',
-            'count': '3 staff',
-            'status': '1 On Leave • 2 Present',
-          },
-          {
-            'name': 'Transport Coordinator',
-            'count': '2 staff',
-            'status': 'Present (2)',
-          },
-        ],
-      },
-      {
-        'id': 'maddipalem',
-        'name': 'Maddipalem Branch',
-        'total': 7,
-        'present': 7,
-        'absent': 0,
-        'leave': 0,
-        'pct': '100%',
-        'progress': 1.0,
-        'statusText': '7 Present',
-        'sections': [
-          {
-            'name': 'Primary Staff',
-            'count': '4 teachers',
-            'status': 'Present (4)',
-          },
-          {
-            'name': 'Support Staff',
-            'count': '3 staff',
-            'status': 'Present (3)',
-          },
-        ],
-      },
-      {
-        'id': 'kukatpally',
-        'name': 'Kukatpally Campus',
-        'total': 7,
-        'present': 6,
-        'absent': 1,
-        'leave': 0,
-        'pct': '85.7%',
-        'progress': 0.857,
-        'statusText': '6 Present • 1 Absent',
-        'sections': [
-          {
-            'name': 'Academic Faculty',
-            'count': '4 faculty',
-            'status': 'Present (4)',
-          },
-          {
-            'name': 'Facilities & Security',
-            'count': '3 staff',
-            'status': '1 Absent • 2 Present',
-          },
-        ],
-      },
-      {
-        'id': 'kondapur',
-        'name': 'Kondapur Branch',
-        'total': 6,
-        'present': 5,
-        'absent': 0,
-        'leave': 1,
-        'pct': '83.3%',
-        'progress': 0.833,
-        'statusText': '5 Present • 1 Leave',
-        'sections': [
+      return {
+        'id': slug,
+        'name': name,
+        'total': total,
+        'present': present,
+        'absent': absent,
+        'leave': leave,
+        'pct': pct,
+        'statusText': statusText,
+        'sections': sections,
+      };
+    }).toList();
+
+    final staffBranches = rawBranches.map((b) {
+      final bm = b as Map<String, dynamic>;
+      final name = bm['name']?.toString() ?? 'Branch';
+      final lower = name.toLowerCase();
+      final slug = _getBranchSlug(lower);
+
+      Map<String, dynamic>? att;
+      for (final bbm in byBranch) {
+        if (bbm['branchId'] == bm['id'] ||
+            (bbm['branchCode']?.toString().toUpperCase() ==
+                bm['code']?.toString().toUpperCase())) {
+          att = bbm['staff'] as Map<String, dynamic>?;
+          break;
+        }
+      }
+      att ??= bm['attendanceCounts']?['staff'] as Map<String, dynamic>?;
+
+      int total = (att?['roster'] as num?)?.toInt() ??
+          (bm['staffTotal'] as num?)?.toInt() ??
+          4;
+      final present = (att?['present'] as num?)?.toInt() ?? 0;
+      final absent = (att?['absent'] as num?)?.toInt() ?? 0;
+      final leave = (att?['leave'] as num?)?.toInt() ?? 0;
+      int pending = (att?['notMarked'] as num?)?.toInt() ??
+          (total - present - absent - leave);
+      double progress = total > 0 ? (present / total) : 0.0;
+      String pct = '${(progress * 100).toStringAsFixed(1)}%';
+
+      String statusText = absent > 0
+          ? '$absent Absent • $pending Pending'
+          : (present > 0
+              ? '$present Present • $pending Pending'
+              : '$pending Pending Biometric Log');
+
+      final rawRoles = bm['roles'] as List<dynamic>? ?? [];
+      List<Map<String, String>> sections = [];
+
+      if (_staffRoleFilter == 'teaching') {
+        final tCount = (bm['teachers'] as int? ?? 2);
+        total = tCount;
+        pending = tCount;
+        progress = 0.0;
+        pct = '0.0%';
+        statusText = '$tCount Teaching faculty';
+        sections = [
           {
             'name': 'Teaching Faculty',
-            'count': '4 faculty',
-            'status': 'Present (4)',
+            'count': '$tCount faculty',
+            'status': 'Sanctioned',
           },
-          {
-            'name': 'Admin Office',
-            'count': '2 staff',
-            'status': '1 On Leave • 1 Present',
-          },
-        ],
-      },
-      {
-        'id': 'madhapur',
-        'name': 'Madhapur Branch',
-        'total': 4,
-        'present': 4,
-        'absent': 0,
-        'leave': 0,
-        'pct': '100%',
-        'progress': 1.0,
-        'statusText': '4 Present',
-        'sections': [
-          {
-            'name': 'High School Teachers',
-            'count': '2 faculty',
-            'status': 'Present (2)',
-          },
-          {
-            'name': 'Front Desk & Admin',
-            'count': '2 staff',
-            'status': 'Present (2)',
-          },
-        ],
-      },
-    ];
+        ];
+      } else if (_staffRoleFilter == 'non-teaching') {
+        if (_staffSubFilter == 'all-nt') {
+          final tCount = (bm['teachers'] as int? ?? 2);
+          final ntCount = (total - tCount).clamp(0, total);
+          total = ntCount;
+          pending = ntCount;
+          progress = 0.0;
+          pct = '0.0%';
+          statusText = '$ntCount Non-teaching staff';
+          sections = rawRoles
+              .where((r) =>
+                  r is Map &&
+                  !r['role'].toString().toLowerCase().contains('teacher') &&
+                  !r['role'].toString().toLowerCase().contains('faculty'))
+              .map((r) {
+            final rm = r as Map<String, dynamic>;
+            final roleName = rm['role']?.toString() ?? 'Staff';
+            final filled = rm['filled'] ?? 1;
+            final open = rm['open'] ?? 0;
+            return {
+              'name': roleName,
+              'count': '$filled filled ${open > 0 ? "• $open open" : ""}',
+              'status': 'Sanctioned',
+            };
+          }).toList();
+        } else {
+          // Specific sub-role selected
+          int subFilled = 0;
+          int subOpen = 0;
+          final List<Map<String, String>> matchedSections = [];
+
+          for (final r in rawRoles) {
+            if (r is Map) {
+              final rName = r['role']?.toString() ?? '';
+              if (_roleNameToSlug(rName) == _staffSubFilter) {
+                final filled = (r['filled'] as num?)?.toInt() ?? 0;
+                final open = (r['open'] as num?)?.toInt() ?? 0;
+                subFilled += filled;
+                subOpen += open;
+                matchedSections.add({
+                  'name': rName,
+                  'count': '$filled filled ${open > 0 ? "• $open open" : ""}',
+                  'status': 'Sanctioned',
+                });
+              }
+            }
+          }
+
+          total = subFilled;
+          pending = subFilled;
+          progress = 0.0;
+          pct = '0.0%';
+          statusText = subFilled > 0
+              ? '$subFilled Filled ${subOpen > 0 ? "• $subOpen open" : ""}'
+              : '0 Filled • 0 Open';
+          sections = matchedSections.isNotEmpty
+              ? matchedSections
+              : [
+                  {
+                    'name': _slugToRoleName(_staffSubFilter),
+                    'count': '0 filled • 0 open',
+                    'status': 'Unassigned',
+                  },
+                ];
+        }
+      } else {
+        sections = rawRoles.isNotEmpty
+            ? rawRoles.map((r) {
+                final rm = r as Map<String, dynamic>;
+                final roleName = rm['role']?.toString() ?? 'Staff';
+                final filled = rm['filled'] ?? 1;
+                final open = rm['open'] ?? 0;
+                return {
+                  'name': roleName,
+                  'count': '$filled filled ${open > 0 ? "• $open open" : ""}',
+                  'status': 'Sanctioned',
+                };
+              }).toList()
+            : [
+                {
+                  'name': 'Teaching Faculty',
+                  'count': '${bm['teachers'] ?? 2} faculty',
+                  'status': 'Sanctioned',
+                },
+                {
+                  'name': 'Support Staff',
+                  'count':
+                      '${(total - (bm['teachers'] as int? ?? 2)).clamp(1, total)} staff',
+                  'status': 'Sanctioned',
+                },
+              ];
+      }
+
+      return {
+        'id': slug,
+        'name': name,
+        'total': total,
+        'present': present,
+        'absent': absent,
+        'leave': leave,
+        'pct': pct,
+        'progress': progress,
+        'statusText': statusText,
+        'sections': sections,
+      };
+    }).toList();
 
     final allBranches = isStudents ? studentBranches : staffBranches;
     final branches = _selectedBranchFilter == 'all'
@@ -6167,25 +8208,26 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             Row(
               children: [
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
                     color: const Color(0xFF7C3AED).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(7),
                   ),
                   child: const Icon(
                     Icons.apartment_rounded,
-                    size: 16,
+                    size: 14,
                     color: Color(0xFF7C3AED),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 const Text(
                   'By Branch',
                   style: TextStyle(
                     color: Color(0xFF0F172A),
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
                   ),
                 ),
               ],
@@ -6198,12 +8240,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 3.5,
+                    horizontal: 7,
+                    vertical: 2.5,
                   ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEDE9FE),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFFC4B5FD)),
                   ),
                   child: Row(
@@ -6213,7 +8255,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         '${_getBranchLabel(_selectedBranchFilter)} ✕',
                         style: const TextStyle(
                           color: Color(0xFF7C3AED),
-                          fontSize: 11.5,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -6224,35 +8266,35 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             else
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 3.5,
+                  horizontal: 7,
+                  vertical: 2.5,
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '${branches.length} Branches active',
                   style: const TextStyle(
                     color: Color(0xFF475569),
-                    fontSize: 11.5,
+                    fontSize: 9.5,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         ...branches.map((b) {
           final bId = b['id'] as String;
           final isExpanded = _expandedBranchIds.contains(bId);
           final sections = (b['sections'] as List<Map<String, String>>);
 
           return Container(
-            margin: const EdgeInsets.only(bottom: 10),
+            margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isExpanded
                     ? const Color(0xFF7C3AED).withValues(alpha: 0.5)
@@ -6262,8 +8304,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1.5),
                 ),
               ],
             ),
@@ -6280,9 +8322,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       }
                     });
                   },
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -6293,8 +8335,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 8,
-                                    height: 8,
+                                    width: 6,
+                                    height: 6,
                                     decoration: BoxDecoration(
                                       color: isStudents
                                           ? const Color(0xFF7C3AED)
@@ -6302,14 +8344,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                       shape: BoxShape.circle,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
                                       b['name'] as String,
                                       style: const TextStyle(
                                         color: Color(0xFF0F172A),
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w800,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -6317,20 +8359,20 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
+                                    horizontal: 6,
+                                    vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
                                     color: isStudents
                                         ? const Color(0xFFFFFBEB)
                                         : const Color(0xFFECFDF5),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
                                       color: isStudents
                                           ? const Color(0xFFFDE68A)
@@ -6343,18 +8385,18 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                       color: isStudents
                                           ? const Color(0xFF92400E)
                                           : const Color(0xFF047857),
-                                      fontSize: 11,
+                                      fontSize: 8.5,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 3),
                                 AnimatedRotation(
                                   turns: isExpanded ? 0.5 : 0.0,
                                   duration: const Duration(milliseconds: 200),
                                   child: const Icon(
                                     Icons.expand_more_rounded,
-                                    size: 20,
+                                    size: 16,
                                     color: Color(0xFF64748B),
                                   ),
                                 ),
@@ -6362,7 +8404,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -6373,33 +8415,33 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                     : 'Staff: ${b['total']} • Present: ${b['present']} • Absent: ${b['absent']} • Leave: ${b['leave']}',
                                 style: const TextStyle(
                                   color: Color(0xFF64748B),
-                                  fontSize: 12,
+                                  fontSize: 9.5,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Text(
                               b['pct'] as String,
                               style: TextStyle(
                                 color: isStudents
                                     ? const Color(0xFF64748B)
                                     : const Color(0xFF059669),
-                                fontSize: 13,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: isStudents
                                 ? 1.0
                                 : (b['progress'] as double? ?? 0.0),
-                            minHeight: 5,
+                            minHeight: 4,
                             backgroundColor: const Color(0xFFE2E8F0),
                             valueColor: AlwaysStoppedAnimation<Color>(
                               isStudents
@@ -6416,11 +8458,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ),
                 if (isExpanded)
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
                       color: Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.vertical(
-                        bottom: Radius.circular(16),
+                        bottom: Radius.circular(12),
                       ),
                       border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
                     ),
@@ -6436,32 +8478,32 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                   : 'DEPARTMENT BREAKDOWN',
                               style: const TextStyle(
                                 color: Color(0xFF7C3AED),
-                                fontSize: 11,
+                                fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: 0.6,
+                                letterSpacing: 0.5,
                               ),
                             ),
                             Text(
                               '${sections.length} ${isStudents ? 'Sections' : 'Depts'}',
                               style: const TextStyle(
                                 color: Color(0xFF64748B),
-                                fontSize: 11.5,
+                                fontSize: 9.5,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         ...sections.map((s) {
                           return Container(
-                            margin: const EdgeInsets.only(bottom: 6),
+                            margin: const EdgeInsets.only(bottom: 4),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
+                              horizontal: 8,
+                              vertical: 5,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: const Color(0xFFE2E8F0),
                               ),
@@ -6474,13 +8516,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                     s['name']!,
                                     style: const TextStyle(
                                       color: Color(0xFF0F172A),
-                                      fontSize: 13,
+                                      fontSize: 10.5,
                                       fontWeight: FontWeight.w600,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -6488,7 +8530,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                       '${s['count']} • ',
                                       style: const TextStyle(
                                         color: Color(0xFF64748B),
-                                        fontSize: 12,
+                                        fontSize: 9.5,
                                       ),
                                     ),
                                     Text(
@@ -6497,7 +8539,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                         color: isStudents
                                             ? const Color(0xFF92400E)
                                             : const Color(0xFF7C3AED),
-                                        fontSize: 12,
+                                        fontSize: 9.5,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -6531,6 +8573,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       });
     }
 
+    final displayedStudents = _showAllAttendanceStudents
+        ? filteredStudents
+        : filteredStudents.take(5).toList();
+
+    final displayedStaff = _showAllAttendanceStaff
+        ? filteredStaff
+        : filteredStaff.take(5).toList();
+
     final stats = _getAttendanceAggregateStats(isStudents);
     final totalInScope = stats['total'];
 
@@ -6543,36 +8593,37 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             Row(
               children: [
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
                     color: const Color(0xFF7C3AED).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(7),
                   ),
                   child: Icon(
                     isStudents ? Icons.group_rounded : Icons.badge_rounded,
-                    size: 16,
+                    size: 14,
                     color: const Color(0xFF7C3AED),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
                   isStudents ? 'Student Roster' : 'Staff Directory',
                   style: const TextStyle(
                     color: Color(0xFF0F172A),
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
                   ),
                 ),
               ],
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
               decoration: BoxDecoration(
                 color: isStudents
                     ? const Color(0xFFFFFBEB)
                     : const Color(0xFFECFDF5),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isStudents
                       ? const Color(0xFFFDE68A)
@@ -6581,33 +8632,33 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               ),
               child: Text(
                 isStudents
-                    ? 'Showing ${filteredStudents.length} of $totalInScope Students'
-                    : 'Showing ${filteredStaff.length} of $totalInScope Staff',
+                    ? 'Showing ${displayedStudents.length} of ${filteredStudents.length} Students'
+                    : 'Showing ${displayedStaff.length} of ${filteredStaff.length} Staff',
                 style: TextStyle(
                   color: isStudents
                       ? const Color(0xFF92400E)
                       : const Color(0xFF047857),
-                  fontSize: 11.5,
+                  fontSize: 9,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
 
         // Search Input
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: const Color(0xFFCBD5E1)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                blurRadius: 3,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -6615,10 +8666,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             children: [
               const Icon(
                 Icons.search_rounded,
-                size: 20,
+                size: 16,
                 color: Color(0xFF94A3B8),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: TextField(
                   onChanged: (val) {
@@ -6627,7 +8678,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     });
                   },
                   style: const TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 11,
                     color: Color(0xFF0F172A),
                   ),
                   decoration: InputDecoration(
@@ -6635,12 +8686,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         ? 'Search student name, roll number, or section...'
                         : 'Search staff name, employee ID, role...',
                     hintStyle: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 11,
                       color: Color(0xFF94A3B8),
                     ),
                     border: InputBorder.none,
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 7),
                   ),
                 ),
               ),
@@ -6653,14 +8704,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   },
                   child: const Icon(
                     Icons.clear_rounded,
-                    size: 18,
+                    size: 15,
                     color: Color(0xFF94A3B8),
                   ),
                 ),
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
 
         // Quick Filter Pills
         SingleChildScrollView(
@@ -6681,7 +8732,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         );
                       },
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     _buildRosterFilterPill(
                       'All ($totalInScope)',
                       _rosterFilterPill == 'all',
@@ -6689,7 +8740,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         setState(() => _rosterFilterPill = 'all');
                       },
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     _buildRosterFilterPill(
                       'Not marked (${stats['pending']})',
                       _rosterFilterPill == 'not-marked',
@@ -6702,7 +8753,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         );
                       },
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     _buildRosterFilterPill(
                       'Present (${stats['present']})',
                       _rosterFilterPill == 'present',
@@ -6724,33 +8775,61 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         setState(() => _rosterFilterPill = 'all');
                       },
                     ),
-                    const SizedBox(width: 6),
-                    _buildRosterFilterPill(
-                      'Teaching (${_selectedBranchFilter == 'all' ? 21 : (totalInScope * 0.55).round().clamp(1, totalInScope)})',
-                      _rosterFilterPill == 'teaching',
-                      () {
-                        setState(
-                          () => _rosterFilterPill =
-                              _rosterFilterPill == 'teaching'
-                              ? 'all'
-                              : 'teaching',
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildRosterFilterPill(
-                      'Non-Teaching (${_selectedBranchFilter == 'all' ? 10 : (totalInScope * 0.25).round().clamp(1, totalInScope)})',
-                      _rosterFilterPill == 'non-teaching',
-                      () {
-                        setState(
-                          () => _rosterFilterPill =
-                              _rosterFilterPill == 'non-teaching'
-                              ? 'all'
-                              : 'non-teaching',
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 6),
+                    if (_staffRoleFilter == 'all-staff') ...[
+                      const SizedBox(width: 5),
+                      Builder(
+                        builder: (context) {
+                          int dynamicTeachingCount = 0;
+                          int dynamicNonTeachingCount = 0;
+                          final brList = _dashboardData?['branches'] as List<dynamic>? ?? [];
+                          for (final b in brList) {
+                            if (b is! Map<String, dynamic>) continue;
+                            final bSlug = _getBranchSlug(b['name']?.toString() ?? '');
+                            if (_selectedBranchFilter != 'all' && bSlug != _selectedBranchFilter) continue;
+                            dynamicTeachingCount += ((b['teachers'] ?? b['staffTeach'] ?? 0) as num).toInt();
+                            dynamicNonTeachingCount += ((b['staffNon'] ?? 0) as num).toInt();
+                          }
+                          if (dynamicTeachingCount == 0) {
+                            dynamicTeachingCount = (_dashboardData?['group']?['teachers'] as num?)?.toInt() ?? 19;
+                          }
+                          if (dynamicNonTeachingCount == 0) {
+                            dynamicNonTeachingCount = (totalInScope - dynamicTeachingCount).clamp(0, totalInScope);
+                          }
+
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildRosterFilterPill(
+                                'Teaching ($dynamicTeachingCount)',
+                                _rosterFilterPill == 'teaching',
+                                () {
+                                  setState(
+                                    () => _rosterFilterPill =
+                                        _rosterFilterPill == 'teaching'
+                                        ? 'all'
+                                        : 'teaching',
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 5),
+                              _buildRosterFilterPill(
+                                'Non-Teaching ($dynamicNonTeachingCount)',
+                                _rosterFilterPill == 'non-teaching',
+                                () {
+                                  setState(
+                                    () => _rosterFilterPill =
+                                        _rosterFilterPill == 'non-teaching'
+                                        ? 'all'
+                                        : 'non-teaching',
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                    const SizedBox(width: 5),
                     _buildRosterFilterPill(
                       'On Leave (${stats['leave']})',
                       _rosterFilterPill == 'leave',
@@ -6762,7 +8841,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         );
                       },
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     _buildRosterFilterPill(
                       'Absent (${stats['absent']})',
                       _rosterFilterPill == 'absent',
@@ -6773,7 +8852,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         );
                       },
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     _buildRosterFilterPill(
                       'Present (${stats['present']})',
                       _rosterFilterPill == 'present',
@@ -6789,77 +8868,77 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
 
         // Empty state check
         if ((isStudents && filteredStudents.isEmpty) ||
             (!isStudents && filteredStaff.isEmpty)) ...[
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 52,
-                  height: 52,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(
                     Icons.filter_alt_off_rounded,
-                    size: 26,
+                    size: 20,
                     color: Color(0xFF64748B),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 const Text(
                   'No matching records found',
                   style: TextStyle(
                     color: Color(0xFF0F172A),
-                    fontSize: 15.5,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 const Text(
                   'Try relaxing your search query or dropdown filter criteria.',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
+                  style: TextStyle(color: Color(0xFF64748B), fontSize: 10.5),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 InkWell(
                   onTap: () => _resetAttendanceFilters(isStudents),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
+                      horizontal: 10,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEDE9FE),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.refresh_rounded,
-                          size: 15,
+                          size: 13,
                           color: Color(0xFF7C3AED),
                         ),
-                        SizedBox(width: 6),
+                        SizedBox(width: 4),
                         Text(
                           'Reset All Filters',
                           style: TextStyle(
                             color: Color(0xFF7C3AED),
-                            fontSize: 12.5,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -6872,7 +8951,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           ),
         ] else if (isStudents) ...[
           // Student Roster Cards List
-          ...filteredStudents.map((s) {
+          ...displayedStudents.map((s) {
             Color statusBg = const Color(0xFFFFFBEB);
             Color statusBorder = const Color(0xFFFDE68A);
             Color statusText = const Color(0xFF92400E);
@@ -6888,11 +8967,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             }
 
             return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Row(
@@ -6902,8 +8981,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     child: Row(
                       children: [
                         Container(
-                          width: 38,
-                          height: 38,
+                          width: 28,
+                          height: 28,
                           decoration: BoxDecoration(
                             color: const Color(
                               0xFF7C3AED,
@@ -6920,12 +8999,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                             s['initials'] as String,
                             style: const TextStyle(
                               color: Color(0xFF7C3AED),
-                              fontSize: 13,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -6937,39 +9016,39 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                       s['name'] as String,
                                       style: const TextStyle(
                                         color: Color(0xFF0F172A),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w800,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  const SizedBox(width: 6),
+                                  const SizedBox(width: 4),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 5,
-                                      vertical: 1.5,
+                                      horizontal: 4,
+                                      vertical: 1,
                                     ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFF1F5F9),
-                                      borderRadius: BorderRadius.circular(6),
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       s['rollNo'] as String,
                                       style: const TextStyle(
                                         color: Color(0xFF64748B),
-                                        fontSize: 10,
+                                        fontSize: 8.5,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 1),
                               Text(
                                 s['meta'] as String,
                                 style: const TextStyle(
                                   color: Color(0xFF64748B),
-                                  fontSize: 12,
+                                  fontSize: 9.5,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -6979,22 +9058,22 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3.5,
+                      horizontal: 6,
+                      vertical: 2,
                     ),
                     decoration: BoxDecoration(
                       color: statusBg,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: statusBorder),
                     ),
                     child: Text(
                       s['status'] as String,
                       style: TextStyle(
                         color: statusText,
-                        fontSize: 11,
+                        fontSize: 8.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -7005,7 +9084,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           }),
         ] else ...[
           // Staff Directory Cards List
-          ...filteredStaff.map((st) {
+          ...displayedStaff.map((st) {
             Color tagBg = const Color(0xFFECFDF5);
             Color tagBorder = const Color(0xFFA7F3D0);
             Color tagText = const Color(0xFF047857);
@@ -7021,11 +9100,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             }
 
             return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Column(
@@ -7037,8 +9116,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         child: Row(
                           children: [
                             Container(
-                              width: 38,
-                              height: 38,
+                              width: 28,
+                              height: 28,
                               decoration: BoxDecoration(
                                 color: const Color(
                                   0xFF7C3AED,
@@ -7055,12 +9134,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                 st['initials'] as String,
                                 style: const TextStyle(
                                   color: Color(0xFF7C3AED),
-                                  fontSize: 13.5,
+                                  fontSize: 10.5,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -7069,17 +9148,17 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                     st['name'] as String,
                                     style: const TextStyle(
                                       color: Color(0xFF0F172A),
-                                      fontSize: 14.5,
-                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 1),
                                   Text(
                                     '${st['role']} • ${st['branchName']}',
                                     style: const TextStyle(
                                       color: Color(0xFF64748B),
-                                      fontSize: 12,
+                                      fontSize: 9.5,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -7089,31 +9168,31 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3.5,
+                          horizontal: 6,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: tagBg,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                           border: Border.all(color: tagBorder),
                         ),
                         child: Text(
                           st['status'] as String,
                           style: TextStyle(
                             color: tagText,
-                            fontSize: 11,
+                            fontSize: 8.5,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -7121,7 +9200,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         st['subStatus'] as String? ?? 'General Shift',
                         style: const TextStyle(
                           color: Color(0xFF94A3B8),
-                          fontSize: 11.5,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -7140,29 +9219,29 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                 ),
                               );
                             },
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
+                                horizontal: 7,
+                                vertical: 3.5,
                               ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Row(
                                 children: [
                                   Icon(
                                     Icons.call_rounded,
-                                    size: 14,
+                                    size: 11,
                                     color: Color(0xFF7C3AED),
                                   ),
-                                  SizedBox(width: 4),
+                                  SizedBox(width: 3),
                                   Text(
                                     'Call',
                                     style: TextStyle(
                                       color: Color(0xFF7C3AED),
-                                      fontSize: 12,
+                                      fontSize: 9.5,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -7170,7 +9249,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           InkWell(
                             onTap: () {
                               HapticFeedback.lightImpact();
@@ -7184,29 +9263,29 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                 ),
                               );
                             },
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
+                                horizontal: 7,
+                                vertical: 3.5,
                               ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Row(
                                 children: [
                                   Icon(
                                     Icons.chat_bubble_outline_rounded,
-                                    size: 14,
+                                    size: 11,
                                     color: Color(0xFF7C3AED),
                                   ),
-                                  SizedBox(width: 4),
+                                  SizedBox(width: 3),
                                   Text(
                                     'Message',
                                     style: TextStyle(
                                       color: Color(0xFF7C3AED),
-                                      fontSize: 12,
+                                      fontSize: 9.5,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -7225,44 +9304,94 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         ],
         const SizedBox(height: 4),
 
-        // Load All Button
-        InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            _resetAttendanceFilters(isStudents);
-          },
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.expand_more_rounded,
-                  size: 18,
-                  color: Color(0xFF7C3AED),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  isStudents
-                      ? 'Showing ${filteredStudents.length} of $totalInScope students (tap to show all)'
-                      : 'Showing ${filteredStaff.length} of $totalInScope staff members (tap to show all)',
-                  style: const TextStyle(
-                    color: Color(0xFF7C3AED),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+        // Load All / Show Remaining Toggle Button
+        if (isStudents && filteredStudents.length > 5) ...[
+          const SizedBox(height: 6),
+          InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              setState(() {
+                _showAllAttendanceStudents = !_showAllAttendanceStudents;
+              });
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _showAllAttendanceStudents
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    size: 15,
+                    color: const Color(0xFF7C3AED),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    _showAllAttendanceStudents
+                        ? 'Showing all ${filteredStudents.length} students (tap to collapse)'
+                        : 'Showing ${displayedStudents.length} of ${filteredStudents.length} students (tap to show all ${filteredStudents.length})',
+                    style: const TextStyle(
+                      color: Color(0xFF7C3AED),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+        ] else if (!isStudents && filteredStaff.length > 5) ...[
+          const SizedBox(height: 6),
+          InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              setState(() {
+                _showAllAttendanceStaff = !_showAllAttendanceStaff;
+              });
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _showAllAttendanceStaff
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    size: 15,
+                    color: const Color(0xFF7C3AED),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _showAllAttendanceStaff
+                        ? 'Showing all ${filteredStaff.length} staff members (tap to collapse)'
+                        : 'Showing ${displayedStaff.length} of ${filteredStaff.length} staff members (tap to show all ${filteredStaff.length})',
+                    style: const TextStyle(
+                      color: Color(0xFF7C3AED),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -7278,16 +9407,16 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFF7C3AED) : const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Text(
           label,
           style: TextStyle(
             color: isActive ? Colors.white : const Color(0xFF475569),
-            fontSize: 12,
+            fontSize: 9.5,
             fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
@@ -7534,6 +9663,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 // CUSTOM PAINTER: Cash Trajectory Area & Dashed Chart (Matching code.html)
 // =============================================================================
 class CashTrajectoryPainter extends CustomPainter {
+  final double ebitdaMargin;
+  final double collectionPct;
+
+  const CashTrajectoryPainter({
+    this.ebitdaMargin = 35.9,
+    this.collectionPct = 68.2,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
@@ -7619,15 +9756,16 @@ class CashTrajectoryPainter extends CustomPainter {
     canvas.drawCircle(revPoints[6], 3.5, dotPaint);
     canvas.drawCircle(revPoints[6], 3.5, dotBorderPaint);
 
-    // OpEx Dashed Curve
+    // OpEx Dashed Curve - scaled according to EBITDA Margin
+    final opexRatio = (1.0 - (ebitdaMargin / 100.0)).clamp(0.40, 0.85);
     final opexPoints = [
-      Offset(0, h * 0.85),
-      Offset(w * 0.17, h * 0.75),
-      Offset(w * 0.34, h * 0.65),
-      Offset(w * 0.51, h * 0.60),
-      Offset(w * 0.68, h * 0.52),
-      Offset(w * 0.85, h * 0.47),
-      Offset(w, h * 0.42),
+      Offset(0, h * (0.65 + (opexRatio * 0.25))),
+      Offset(w * 0.17, h * (0.50 + (opexRatio * 0.30))),
+      Offset(w * 0.34, h * (0.42 + (opexRatio * 0.30))),
+      Offset(w * 0.51, h * (0.35 + (opexRatio * 0.30))),
+      Offset(w * 0.68, h * (0.28 + (opexRatio * 0.30))),
+      Offset(w * 0.85, h * (0.22 + (opexRatio * 0.30))),
+      Offset(w, h * (0.18 + (opexRatio * 0.30))),
     ];
     final opexPaint = Paint()
       ..color = const Color(0xFFF43F5E)
@@ -7650,7 +9788,8 @@ class CashTrajectoryPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CashTrajectoryPainter oldDelegate) =>
+      oldDelegate.ebitdaMargin != ebitdaMargin || oldDelegate.collectionPct != collectionPct;
 }
 
 // =============================================================================
@@ -7713,6 +9852,16 @@ class FeeRealizationRingPainter extends CustomPainter {
 // CUSTOM PAINTER: Performance Quadrant Scatter Plot (Matching code.html)
 // =============================================================================
 class PerformanceQuadrantPainter extends CustomPainter {
+  final List<Map<String, dynamic>> branches;
+  final double avgCollection;
+  final double avgAttendance;
+
+  const PerformanceQuadrantPainter({
+    this.branches = const [],
+    this.avgCollection = 68.2,
+    this.avgAttendance = 92.1,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
@@ -7723,8 +9872,8 @@ class PerformanceQuadrantPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
-    final crossX = w * 0.58;
-    final crossY = h * 0.48;
+    final crossX = ((avgCollection - 40.0) / 60.0).clamp(0.15, 0.85) * w;
+    final crossY = h - (((avgAttendance - 80.0) / 20.0).clamp(0.15, 0.85) * h);
 
     // Vertical dashed line
     double y = 10;
@@ -7757,93 +9906,43 @@ class PerformanceQuadrantPainter extends CustomPainter {
       tp.paint(canvas, pos);
     }
 
-    drawText('avg collection 68%', Offset(crossX + 4, 12));
-    drawText('avg attendance 92%', Offset(crossX + 4, crossY - 14));
+    drawText('avg collection ${avgCollection.toStringAsFixed(0)}%', Offset(crossX + 4, 8));
+    drawText('avg attendance ${avgAttendance.toStringAsFixed(0)}%', Offset(crossX + 4, (crossY - 14).clamp(16.0, h - 20.0)));
     drawText(
       '▼ NEEDS ATTENTION',
-      Offset(12, h - 20),
+      Offset(12, h - 16),
       color: const Color(0xFF64748B),
       weight: FontWeight.w700,
     );
 
-    // Scatter bubbles from code.html SVG
-    final bubbles = [
-      {
-        'cx': w * 0.84,
-        'cy': h * 0.42,
-        'r': 14.0,
-        'color': const Color(0xFF10B981),
-      },
-      {
-        'cx': w * 0.75,
-        'cy': h * 0.30,
-        'r': 12.0,
-        'color': const Color(0xFF8B5CF6),
-      },
-      {
-        'cx': w * 0.50,
-        'cy': h * 0.30,
-        'r': 10.0,
-        'color': const Color(0xFFA855F7),
-      },
-      {
-        'cx': w * 0.12,
-        'cy': h * 0.48,
-        'r': 5.0,
-        'color': const Color(0xFF059669),
-      },
-      {
-        'cx': w * 0.52,
-        'cy': h * 0.59,
-        'r': 9.0,
-        'color': const Color(0xFFEF4444),
-      },
-      {
-        'cx': w * 0.70,
-        'cy': h * 0.67,
-        'r': 8.0,
-        'color': const Color(0xFF06B6D4),
-      },
-      {
-        'cx': w * 0.68,
-        'cy': h * 0.74,
-        'r': 8.5,
-        'color': const Color(0xFFC084FC),
-      },
-      {
-        'cx': w * 0.69,
-        'cy': h * 0.78,
-        'r': 6.0,
-        'color': const Color(0xFF7C3AED),
-      },
-      {
-        'cx': w * 0.15,
-        'cy': h * 0.54,
-        'r': 5.0,
-        'color': const Color(0xFFF59E0B),
-      },
-    ];
+    // Draw branch bubbles dynamically from live data
+    if (branches.isNotEmpty) {
+      for (final b in branches) {
+        final double colPct = (b['collectionPct'] as num?)?.toDouble() ?? 68.0;
+        final double attPct = (b['attendancePct'] as num?)?.toDouble() ?? 92.0;
+        final int students = (b['students'] as num?)?.toInt() ?? 15;
+        final Color col = b['color'] as Color? ?? const Color(0xFF7C3AED);
 
-    for (final b in bubbles) {
-      final center = Offset(b['cx'] as double, b['cy'] as double);
-      final r = b['r'] as double;
-      final c = b['color'] as Color;
+        final bx = ((colPct - 40.0) / 60.0).clamp(0.08, 0.92) * w;
+        final by = h - (((attPct - 80.0) / 20.0).clamp(0.08, 0.92) * h);
+        final br = (6.0 + ((students / 50.0).clamp(0.0, 1.0) * 10.0));
 
-      final fillPaint = Paint()
-        ..color = c.withValues(alpha: 0.65)
-        ..style = PaintingStyle.fill;
-      final strokePaint = Paint()
-        ..color = c
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5;
+        final bubbleFill = Paint()
+          ..color = col.withValues(alpha: 0.70)
+          ..style = PaintingStyle.fill;
+        final bubbleStroke = Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5;
 
-      canvas.drawCircle(center, r, fillPaint);
-      canvas.drawCircle(center, r, strokePaint);
+        canvas.drawCircle(Offset(bx, by), br, bubbleFill);
+        canvas.drawCircle(Offset(bx, by), br, bubbleStroke);
+      }
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant PerformanceQuadrantPainter oldDelegate) => true;
 }
 
 // =============================================================================
