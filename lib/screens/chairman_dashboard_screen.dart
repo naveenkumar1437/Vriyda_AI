@@ -6492,60 +6492,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ],
               ),
             ),
-            InkWell(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isStudents
-                          ? 'Exporting Student Attendance Report...'
-                          : 'Exporting Staff Attendance Report...',
-                    ),
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 4.5,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.ios_share_rounded,
-                      size: 13,
-                      color: Color(0xFF7C3AED),
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Export',
-                      style: TextStyle(
-                        color: Color(0xFF7C3AED),
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ],
