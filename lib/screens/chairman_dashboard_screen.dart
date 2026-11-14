@@ -479,7 +479,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
     final token = await SessionManager.getToken();
 
-    if (token != null && token != 'demo-chairman-token') {
+    if (token != null && token.isNotEmpty) {
       try {
         final res = await http.get(
           Uri.parse(ApiConfig.ownerDashboard),
@@ -491,6 +491,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           if (mounted) {
             setState(() {
               _dashboardData = body is Map<String, dynamic> ? body : null;
+              if (_dashboardData != null) {
+                _branchTreeData = BranchService.parseFromDashboard(
+                  _dashboardData!,
+                  orgName: _dashboardData?['orgName'] ?? widget.user.organizationName,
+                );
+              }
               _isLoading = false;
             });
           }
@@ -509,6 +515,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 if (mounted) {
                   setState(() {
                     _dashboardData = body is Map<String, dynamic> ? body : null;
+                    if (_dashboardData != null) {
+                      _branchTreeData = BranchService.parseFromDashboard(
+                        _dashboardData!,
+                        orgName: _dashboardData?['orgName'] ?? widget.user.organizationName,
+                      );
+                    }
                     _isLoading = false;
                   });
                 }
@@ -542,7 +554,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     } catch (_) {
       if (mounted) {
         setState(() {
-          _branchTreeData = BranchGroupNode.defaultTree();
+          _branchTreeData = BranchGroupNode.empty(
+            orgName: _dashboardData?['orgName'] ?? widget.user.organizationName,
+          );
           _isBranchTreeLoading = false;
         });
       }
@@ -3274,9 +3288,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       ),
       items: options.map((opt) {
         final isSel = opt == _branchSelectedFilter;
-        final matchingBranch = opt == 'All branches'
+        final matchingBranch = (opt == 'All branches' || treeData.branches.isEmpty)
             ? null
-            : treeData.branches.firstWhere((b) => b.name == opt, orElse: () => treeData.branches.first);
+            : treeData.branches.where((b) => b.name == opt).firstOrNull;
         return PopupMenuItem<String>(
           value: opt,
           height: 42,
@@ -3335,7 +3349,19 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // --- Sub-Views (Branch Tree, Student 360, Finance, Ops) ---
   Widget _buildBranchTreeView([List<dynamic>? branches]) {
-    final treeData = _branchTreeData ?? BranchGroupNode.defaultTree();
+    final treeData = _branchTreeData ??
+        (branches != null && branches.isNotEmpty
+            ? BranchService.parseFromDashboard(
+                {
+                  'orgName': _dashboardData?['orgName'] ?? widget.user.organizationName,
+                  'group': _dashboardData?['group'],
+                  'branches': branches,
+                },
+                orgName: _dashboardData?['orgName'] ?? widget.user.organizationName,
+              )
+            : BranchGroupNode.empty(
+                orgName: _dashboardData?['orgName'] ?? widget.user.organizationName,
+              ));
     final query = _branchSearchQuery.toLowerCase();
     final filteredBranches = treeData.branches.where((b) {
       final matchesQuery =
@@ -3904,7 +3930,70 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
                       // Child Branch Rows
                       if (_isOrgTreeExpanded) ...[
-                        if (filteredBranches.isEmpty)
+                        if (treeData.branches.isEmpty)
+                          Container(
+                            width: 420,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 24,
+                              horizontal: 16,
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.account_tree_outlined,
+                                    size: 32,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'No branches returned from API',
+                                    style: TextStyle(
+                                      color: Color(0xFF0F172A),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'Only branches provided by the API will be displayed here.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  GestureDetector(
+                                    onTap: () {
+                                      _fetchDashboard();
+                                      _fetchBranchTree();
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEDE9FE),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Text(
+                                        'Reload API',
+                                        style: TextStyle(
+                                          color: Color(0xFF7C3AED),
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 11.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else if (filteredBranches.isEmpty)
                           Container(
                             width: 420,
                             padding: const EdgeInsets.symmetric(vertical: 20),

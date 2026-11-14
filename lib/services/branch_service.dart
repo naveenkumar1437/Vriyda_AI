@@ -30,82 +30,122 @@ class BranchItem {
     required this.code,
     required this.name,
     required this.subtitle,
-    this.city = 'Hyderabad',
-    this.region = 'South Region',
+    this.city = '',
+    this.region = '',
     required this.students,
     required this.capacity,
     required this.capacityPct,
     required this.collectionPct,
     this.revenue = 0,
     this.outstanding = 0,
-    this.attendancePct = 92.0,
-    this.examIndex = 80.0,
-    this.teachers = 10,
+    this.attendancePct = 0.0,
+    this.examIndex = 0.0,
+    this.teachers = 0,
     this.status = 'good',
     Color? dotColor,
-  }) : dotColor = dotColor ?? _resolveColor(status, code);
+  }) : dotColor = dotColor ?? _resolveColor(status, collectionPct);
 
-  static Color _resolveColor(String status, String code) {
-    if (code == 'STEE' || code == 'KOND' || code == 'KBHP') {
+  static Color _resolveColor(String status, [double collectionPct = 0]) {
+    final s = status.toLowerCase();
+    if (s == 'good' || s == 'active' || s == 'excellent') {
       return const Color(0xFF10B981); // Emerald Green
-    } else if (code == 'MADD') {
-      return const Color(0xFFEF4444); // Red
-    } else if (code == 'LBNA') {
+    } else if (s == 'warning' || s == 'attention' || s == 'at_risk') {
       return const Color(0xFFF59E0B); // Amber / Orange
+    } else if (s == 'danger' || s == 'critical' || s == 'inactive') {
+      return const Color(0xFFEF4444); // Red
     } else {
+      if (collectionPct >= 75) return const Color(0xFF10B981);
+      if (collectionPct >= 50) return const Color(0xFFF59E0B);
+      if (collectionPct > 0) return const Color(0xFFEF4444);
       return const Color(0xFF8B5CF6); // Purple
     }
   }
 
   factory BranchItem.fromJson(Map<String, dynamic> json) {
-    final code = json['code']?.toString() ?? 'BR';
-    final name = json['name']?.toString() ?? 'Branch';
-    final students = (json['students'] as num?)?.toInt() ?? 0;
-    final capacity = (json['capacity'] as num?)?.toInt() ?? (students > 0 ? (students * 1.2).round() : 100);
+    final code =
+        json['code']?.toString() ?? json['branchCode']?.toString() ?? '';
+    final name =
+        json['name']?.toString() ?? json['branchName']?.toString() ?? 'Branch';
+    final students =
+        (json['students'] as num?)?.toInt() ??
+        (json['totalStudents'] as num?)?.toInt() ??
+        (json['studentCount'] as num?)?.toInt() ??
+        0;
+    final capacity =
+        (json['capacity'] as num?)?.toInt() ??
+        (json['totalCapacity'] as num?)?.toInt() ??
+        students;
     final capacityPct = json['capacityPct'] != null
         ? (json['capacityPct'] as num).toDouble()
         : (capacity > 0 ? (students / capacity * 100) : 0.0);
-    final collectionPct = (json['collectionPct'] as num?)?.toDouble() ?? 0.0;
+    final collectionPct =
+        (json['collectionPct'] as num?)?.toDouble() ??
+        (json['feeCollectionPct'] as num?)?.toDouble() ??
+        0.0;
     final status = json['status']?.toString() ?? 'good';
 
     return BranchItem(
-      id: json['id']?.toString() ?? code,
+      id:
+          json['id']?.toString() ??
+          json['_id']?.toString() ??
+          json['branchId']?.toString() ??
+          (code.isNotEmpty ? code : name),
       code: code,
       name: name,
-      subtitle: '$code · $name',
-      city: json['city']?.toString() ?? (code == 'STEE' || code == 'MADD' ? 'Visakhapatnam' : 'Hyderabad'),
-      region: json['region']?.toString() ?? 'South Region',
+      subtitle:
+          json['subtitle']?.toString() ??
+          (code.isNotEmpty ? '$code · $name' : name),
+      city:
+          json['city']?.toString() ??
+          json['location']?.toString() ??
+          json['address']?.toString() ??
+          '',
+      region: json['region']?.toString() ?? '',
       students: students,
       capacity: capacity,
       capacityPct: double.parse(capacityPct.toStringAsFixed(1)),
       collectionPct: double.parse(collectionPct.toStringAsFixed(1)),
-      revenue: (json['revenue'] as num?)?.toDouble() ?? 0.0,
-      outstanding: (json['outstanding'] as num?)?.toDouble() ?? 0.0,
-      attendancePct: (json['attendancePct'] as num?)?.toDouble() ?? 92.0,
-      examIndex: (json['examIndex'] as num?)?.toDouble() ?? 80.0,
-      teachers: (json['teachers'] as num?)?.toInt() ?? 10,
+      revenue:
+          (json['revenue'] as num?)?.toDouble() ??
+          (json['totalRevenue'] as num?)?.toDouble() ??
+          0.0,
+      outstanding:
+          (json['outstanding'] as num?)?.toDouble() ??
+          (json['dueFees'] as num?)?.toDouble() ??
+          0.0,
+      attendancePct:
+          (json['attendancePct'] as num?)?.toDouble() ??
+          (json['avgAttendance'] as num?)?.toDouble() ??
+          0.0,
+      examIndex: (json['examIndex'] as num?)?.toDouble() ?? 0.0,
+      teachers:
+          (json['teachers'] as num?)?.toInt() ??
+          (json['totalTeachers'] as num?)?.toInt() ??
+          (json['facultyCount'] as num?)?.toInt() ??
+          0,
       status: status,
+      dotColor: _resolveColor(status, collectionPct),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'code': code,
-        'name': name,
-        'subtitle': subtitle,
-        'city': city,
-        'region': region,
-        'students': students,
-        'capacity': capacity,
-        'capacityPct': capacityPct,
-        'collectionPct': collectionPct,
-        'revenue': revenue,
-        'outstanding': outstanding,
-        'attendancePct': attendancePct,
-        'examIndex': examIndex,
-        'teachers': teachers,
-        'status': status,
-      };
+    'id': id,
+    'code': code,
+    'name': name,
+    'subtitle': subtitle,
+    'city': city,
+    'region': region,
+    'students': students,
+    'capacity': capacity,
+    'capacityPct': capacityPct,
+    'collectionPct': collectionPct,
+    'revenue': revenue,
+    'outstanding': outstanding,
+    'attendancePct': attendancePct,
+    'examIndex': examIndex,
+    'teachers': teachers,
+    'status': status,
+  };
 }
 
 /// Root School / Group Node containing the aggregated roll-ups
@@ -130,221 +170,77 @@ class BranchGroupNode {
     required this.branches,
   });
 
-  /// Default exact fallback data matching the Figma / Stitch UI screenshot
-  static BranchGroupNode defaultTree() {
+  /// Empty node with 0 branches when API returns no branches or has not loaded yet
+  static BranchGroupNode empty({String? orgName}) {
+    final title = (orgName != null && orgName.trim().isNotEmpty)
+        ? orgName.trim()
+        : 'Organization';
     return BranchGroupNode(
-      name: 'Sai Ravindra School',
-      initial: 'S',
-      totalBranches: 9,
-      totalRegions: 1,
-      students: 124,
-      capacityPct: 81.0,
-      collectionPct: 67.8,
-      branches: [
-        BranchItem(
-          id: '1',
-          code: 'STEE',
-          name: 'Steel Plant Branch',
-          subtitle: 'STEE · Steel Plant Branch',
-          city: 'Visakhapatnam',
-          students: 42,
-          capacity: 49,
-          capacityPct: 85.7,
-          collectionPct: 83.3,
-          revenue: 6200000,
-          outstanding: 1100000,
-          attendancePct: 93.1,
-          examIndex: 84.0,
-          teachers: 28,
-          status: 'good',
-          dotColor: const Color(0xFF10B981),
-        ),
-        BranchItem(
-          id: '2',
-          code: 'GACH',
-          name: 'Gachibowli Campus',
-          subtitle: 'GACH · Gachibowli Campus',
-          city: 'Hyderabad',
-          students: 21,
-          capacity: 23,
-          capacityPct: 91.3,
-          collectionPct: 51.6,
-          revenue: 3400000,
-          outstanding: 1600000,
-          attendancePct: 91.5,
-          examIndex: 82.0,
-          teachers: 18,
-          status: 'warning',
-          dotColor: const Color(0xFF8B5CF6),
-        ),
-        BranchItem(
-          id: '3',
-          code: 'KOND',
-          name: 'Kondapur Branch',
-          subtitle: 'KOND · Kondapur Branch',
-          city: 'Hyderabad',
-          students: 14,
-          capacity: 18,
-          capacityPct: 77.8,
-          collectionPct: 74.3,
-          revenue: 2100000,
-          outstanding: 540000,
-          attendancePct: 94.2,
-          examIndex: 79.5,
-          teachers: 12,
-          status: 'good',
-          dotColor: const Color(0xFF10B981),
-        ),
-        BranchItem(
-          id: '4',
-          code: 'KUKA',
-          name: 'Kukatpally Campus',
-          subtitle: 'KUKA · Kukatpally Campus',
-          city: 'Hyderabad',
-          students: 17,
-          capacity: 22,
-          capacityPct: 77.3,
-          collectionPct: 72.9,
-          revenue: 2600000,
-          outstanding: 700000,
-          attendancePct: 92.0,
-          examIndex: 81.0,
-          teachers: 14,
-          status: 'good',
-          dotColor: const Color(0xFF8B5CF6),
-        ),
-        BranchItem(
-          id: '5',
-          code: 'MADD',
-          name: 'Maddipalem',
-          subtitle: 'MADD · Maddipalem',
-          city: 'Visakhapatnam',
-          students: 18,
-          capacity: 22,
-          capacityPct: 81.8,
-          collectionPct: 54.7,
-          revenue: 2500000,
-          outstanding: 1100000,
-          attendancePct: 89.4,
-          examIndex: 76.5,
-          teachers: 15,
-          status: 'warning',
-          dotColor: const Color(0xFFEF4444),
-        ),
-        BranchItem(
-          id: '6',
-          code: 'MADH',
-          name: 'Madhapur Branch',
-          subtitle: 'MADH · Madhapur Branch',
-          city: 'Hyderabad',
-          students: 9,
-          capacity: 13,
-          capacityPct: 69.2,
-          collectionPct: 72.5,
-          revenue: 1500000,
-          outstanding: 410000,
-          attendancePct: 90.8,
-          examIndex: 80.2,
-          teachers: 9,
-          status: 'good',
-          dotColor: const Color(0xFF8B5CF6),
-        ),
-        BranchItem(
-          id: '7',
-          code: 'KBHP',
-          name: 'KBHP',
-          subtitle: 'KBHP · KBHP',
-          city: 'Hyderabad',
-          students: 1,
-          capacity: 2,
-          capacityPct: 50.0,
-          collectionPct: 0.0,
-          revenue: 150000,
-          outstanding: 150000,
-          attendancePct: 85.0,
-          examIndex: 70.0,
-          teachers: 3,
-          status: 'neutral',
-          dotColor: const Color(0xFF10B981),
-        ),
-        BranchItem(
-          id: '8',
-          code: 'LBNA',
-          name: 'LB Nagar',
-          subtitle: 'LBNA · LB Nagar',
-          city: 'Hyderabad',
-          students: 2,
-          capacity: 4,
-          capacityPct: 50.0,
-          collectionPct: 0.0,
-          revenue: 300000,
-          outstanding: 300000,
-          attendancePct: 88.0,
-          examIndex: 72.0,
-          teachers: 4,
-          status: 'warning',
-          dotColor: const Color(0xFFF59E0B),
-        ),
-        BranchItem(
-          id: '9',
-          code: 'BANJ',
-          name: 'Banjara Hills',
-          subtitle: 'BANJ · Banjara Hills',
-          city: 'Hyderabad',
-          students: 0,
-          capacity: 0,
-          capacityPct: 0.0,
-          collectionPct: 0.0,
-          revenue: 0,
-          outstanding: 0,
-          attendancePct: 0.0,
-          examIndex: 0.0,
-          teachers: 2,
-          status: 'neutral',
-          dotColor: const Color(0xFF8B5CF6),
-        ),
-      ],
+      name: title,
+      initial: title.isNotEmpty ? title.substring(0, 1).toUpperCase() : 'O',
+      totalBranches: 0,
+      totalRegions: 0,
+      students: 0,
+      capacityPct: 0.0,
+      collectionPct: 0.0,
+      branches: const [],
     );
   }
+
+  /// Alias for backward compatibility that returns an empty tree (no hardcoded data)
+  static BranchGroupNode defaultTree({String? orgName}) =>
+      empty(orgName: orgName);
 }
 
-/// Service to fetch and manage dynamic Branch Tree data
+/// Service to fetch and manage dynamic Branch Tree data directly from APIs
 class BranchService {
-  /// Fetches branch hierarchy data dynamically from the API, falling back to cached/default data.
+  /// Fetches branch hierarchy data dynamically from the API.
+  /// Strictly returns only what comes from the API — no hardcoded fallback branches.
   static Future<BranchGroupNode> fetchBranchTree({String? orgName}) async {
     final token = await SessionManager.getToken();
-    final defaultData = BranchGroupNode.defaultTree();
 
-    if (token == null || token.isEmpty || token == 'demo-chairman-token') {
-      return defaultData;
+    if (token == null || token.isEmpty) {
+      return BranchGroupNode.empty(orgName: orgName);
     }
 
     try {
-      // 1. Try ownerBranchTree or ownerBranchHierarchy endpoint first
+      // 1. Try ownerBranchTree first
       http.Response? res;
       try {
         res = await http.get(
           Uri.parse(ApiConfig.ownerBranchTree),
           headers: ApiConfig.authHeaders(token),
         );
-      } catch (_) {
-        // Fallback to ownerDashboard
-      }
+      } catch (_) {}
 
+      // 2. Fallback to ownerDashboard
       if (res == null || res.statusCode != 200) {
-        res = await http.get(
-          Uri.parse(ApiConfig.ownerDashboard),
-          headers: ApiConfig.authHeaders(token),
-        );
+        try {
+          res = await http.get(
+            Uri.parse(ApiConfig.ownerDashboard),
+            headers: ApiConfig.authHeaders(token),
+          );
+        } catch (_) {}
       }
 
-      if (res.statusCode == 200) {
-        final body = jsonDecode(res.body);
+      // 3. Fallback to ownerBranchHierarchy
+      if (res == null || res.statusCode != 200) {
+        try {
+          res = await http.get(
+            Uri.parse(ApiConfig.ownerBranchHierarchy),
+            headers: ApiConfig.authHeaders(token),
+          );
+        } catch (_) {}
+      }
+
+      if (res != null && res.statusCode == 200) {
+        final dynamic body = jsonDecode(res.body);
         if (body is Map<String, dynamic>) {
-          return _parseFromDashboard(body, orgName: orgName);
+          return parseFromDashboard(body, orgName: orgName);
+        } else if (body is List) {
+          return parseFromDashboard({'branches': body}, orgName: orgName);
         }
-      } else if (res.statusCode == 401) {
-        // Try refresh token once
+      } else if (res != null && res.statusCode == 401) {
         final refreshed = await AuthService.refreshToken();
         if (refreshed) {
           final newToken = await SessionManager.getToken();
@@ -354,101 +250,90 @@ class BranchService {
               headers: ApiConfig.authHeaders(newToken),
             );
             if (retryRes.statusCode == 200) {
-              final body = jsonDecode(retryRes.body);
+              final dynamic body = jsonDecode(retryRes.body);
               if (body is Map<String, dynamic>) {
-                return _parseFromDashboard(body, orgName: orgName);
+                return parseFromDashboard(body, orgName: orgName);
+              } else if (body is List) {
+                return parseFromDashboard({'branches': body}, orgName: orgName);
               }
             }
           }
         }
       }
     } catch (_) {
-      // Network failure or parsing exception; safely return defaultData
+      // Network or parsing failure; return empty node (no hardcoded branches)
     }
 
-    return defaultData;
+    return BranchGroupNode.empty(orgName: orgName);
   }
 
-  static BranchGroupNode _parseFromDashboard(Map<String, dynamic> body, {String? orgName}) {
-    final rawOrgName = body['orgName']?.toString() ?? orgName ?? 'Sai Ravindra School';
-    final group = body['group'] as Map<String, dynamic>? ?? {};
-    final rawBranches = body['branches'] as List<dynamic>? ?? [];
+  /// Parses exclusively the branches returned by the API response.
+  /// Does NOT add, merge, or synthesize any mock/hardcoded branch items.
+  static BranchGroupNode parseFromDashboard(
+    Map<String, dynamic> body, {
+    String? orgName,
+  }) {
+    final data = body['data'] is Map<String, dynamic>
+        ? body['data'] as Map<String, dynamic>
+        : body;
 
-    final defaultTree = BranchGroupNode.defaultTree();
-    final Map<String, BranchItem> defaultMap = {
-      for (var b in defaultTree.branches) b.code.toUpperCase(): b,
-    };
-    final Map<String, BranchItem> defaultNameMap = {
-      for (var b in defaultTree.branches) b.name.toLowerCase(): b,
-    };
+    final rawOrgName = data['orgName']?.toString() ?? orgName ?? 'Organization';
+    final group = data['group'] as Map<String, dynamic>? ?? {};
 
-    final List<BranchItem> merged = [];
-    final Set<String> processedCodes = {};
+    // Extract branches array from API payload
+    List<dynamic> rawBranches = [];
+    if (data['branches'] is List) {
+      rawBranches = data['branches'] as List<dynamic>;
+    } else if (body['branches'] is List) {
+      rawBranches = body['branches'] as List<dynamic>;
+    } else if (data['data'] is List) {
+      rawBranches = data['data'] as List<dynamic>;
+    } else if (body['data'] is List) {
+      rawBranches = body['data'] as List<dynamic>;
+    }
 
+    final List<BranchItem> apiBranches = [];
     for (var item in rawBranches) {
       if (item is Map<String, dynamic>) {
-        final code = (item['code']?.toString() ?? '').toUpperCase();
-        final name = item['name']?.toString() ?? '';
-        final defaultMatch = defaultMap[code] ?? defaultNameMap[name.toLowerCase()];
-
-        final students = (item['students'] as num?)?.toInt() ?? defaultMatch?.students ?? 0;
-        final capacity = (item['capacity'] as num?)?.toInt() ?? defaultMatch?.capacity ?? (students > 0 ? (students * 1.2).round() : 50);
-        final rawCapPct = (item['capacityPct'] as num?)?.toDouble() ??
-            (capacity > 0 ? (students / capacity * 100) : defaultMatch?.capacityPct ?? 0.0);
-        final rawColPct = (item['collectionPct'] as num?)?.toDouble() ?? defaultMatch?.collectionPct ?? 0.0;
-
-        merged.add(BranchItem(
-          id: item['id']?.toString() ?? defaultMatch?.id ?? code,
-          code: code.isNotEmpty ? code : (defaultMatch?.code ?? 'BR'),
-          name: name.isNotEmpty ? name : (defaultMatch?.name ?? 'Branch'),
-          subtitle: defaultMatch?.subtitle ?? '$code · $name',
-          city: item['city']?.toString() ?? defaultMatch?.city ?? 'Hyderabad',
-          region: item['region']?.toString() ?? defaultMatch?.region ?? 'South Region',
-          students: students,
-          capacity: capacity,
-          capacityPct: double.parse(rawCapPct.toStringAsFixed(1)),
-          collectionPct: double.parse(rawColPct.toStringAsFixed(1)),
-          revenue: (item['revenue'] as num?)?.toDouble() ?? defaultMatch?.revenue ?? 0.0,
-          outstanding: (item['outstanding'] as num?)?.toDouble() ?? defaultMatch?.outstanding ?? 0.0,
-          attendancePct: (item['attendancePct'] as num?)?.toDouble() ?? defaultMatch?.attendancePct ?? 92.0,
-          examIndex: (item['examIndex'] as num?)?.toDouble() ?? defaultMatch?.examIndex ?? 80.0,
-          teachers: (item['teachers'] as num?)?.toInt() ?? defaultMatch?.teachers ?? 10,
-          status: item['status']?.toString() ?? defaultMatch?.status ?? 'good',
-          dotColor: defaultMatch?.dotColor,
-        ));
-        if (code.isNotEmpty) processedCodes.add(code);
+        apiBranches.add(BranchItem.fromJson(item));
       }
     }
 
-    // Include remaining default branches so the full 9 branches from the design are available
-    for (var def in defaultTree.branches) {
-      if (!processedCodes.contains(def.code.toUpperCase()) &&
-          !merged.any((m) => m.name.toLowerCase() == def.name.toLowerCase())) {
-        merged.add(def);
-      }
-    }
+    final int totalStudents =
+        (group['students'] as num?)?.toInt() ??
+        apiBranches.fold<int>(0, (sum, b) => sum + b.students);
+    final double capacityPct =
+        (group['capacityUtil'] as num?)?.toDouble() ??
+        (apiBranches.isNotEmpty
+            ? apiBranches.fold<double>(0, (sum, b) => sum + b.capacityPct) /
+                  apiBranches.length
+            : 0.0);
+    final double collectionPct =
+        (group['collectionPct'] as num?)?.toDouble() ??
+        (apiBranches.isNotEmpty
+            ? apiBranches.fold<double>(0, (sum, b) => sum + b.collectionPct) /
+                  apiBranches.length
+            : 0.0);
 
-    final int totalStudents = (group['students'] as num?)?.toInt() ??
-        merged.fold<int>(0, (sum, b) => sum + b.students);
-    final double capacityPct = (group['capacityUtil'] as num?)?.toDouble() ??
-        (merged.isNotEmpty
-            ? merged.fold<double>(0, (sum, b) => sum + b.capacityPct) / merged.length
-            : 81.0);
-    final double collectionPct = (group['collectionPct'] as num?)?.toDouble() ??
-        (merged.isNotEmpty
-            ? merged.fold<double>(0, (sum, b) => sum + b.collectionPct) / merged.length
-            : 67.8);
+    final Set<String> regions = apiBranches
+        .map((b) => b.region.trim())
+        .where((r) => r.isNotEmpty && r != '—' && r != '-')
+        .toSet();
+    final int totalRegions = regions.isNotEmpty
+        ? regions.length
+        : (apiBranches.isNotEmpty ? 1 : 0);
 
     return BranchGroupNode(
       name: rawOrgName,
-      initial: rawOrgName.isNotEmpty ? rawOrgName.substring(0, 1).toUpperCase() : 'S',
-      totalBranches: merged.length,
-      totalRegions: 1,
+      initial: rawOrgName.isNotEmpty
+          ? rawOrgName.substring(0, 1).toUpperCase()
+          : 'O',
+      totalBranches: apiBranches.length,
+      totalRegions: totalRegions,
       students: totalStudents,
       capacityPct: double.parse(capacityPct.toStringAsFixed(1)),
       collectionPct: double.parse(collectionPct.toStringAsFixed(1)),
-      branches: merged,
+      branches: apiBranches,
     );
   }
 }
-
