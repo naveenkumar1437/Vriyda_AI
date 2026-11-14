@@ -52,6 +52,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   bool _isOrgTreeExpanded = true;
   String _branchPeriod = 'YTD';
   String _branchSelectedFilter = 'All branches';
+  final GlobalKey _branchDropdownKey = GlobalKey();
 
   @override
   void initState() {
@@ -61,6 +62,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       if (mounted) {
         setState(() {
           _branchSearchQuery = _branchSearchController.text.trim();
+          if (_branchSearchQuery.isNotEmpty) {
+            _isOrgTreeExpanded = true;
+          }
         });
       }
     });
@@ -2872,6 +2876,99 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     );
   }
 
+  void _openBranchDropdown(BuildContext context, BranchGroupNode treeData) {
+    HapticFeedback.selectionClick();
+    final renderBox = _branchDropdownKey.currentContext?.findRenderObject() as RenderBox?;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+
+    RelativeRect position = const RelativeRect.fromLTRB(100, 160, 100, 0);
+    if (renderBox != null && overlay != null) {
+      final buttonTopLeft = renderBox.localToGlobal(Offset.zero, ancestor: overlay);
+      final buttonBottomRight = renderBox.localToGlobal(renderBox.size.bottomRight(Offset.zero), ancestor: overlay);
+      position = RelativeRect.fromLTRB(
+        buttonTopLeft.dx,
+        buttonBottomRight.dy + 4,
+        overlay.size.width - buttonBottomRight.dx,
+        overlay.size.height - buttonBottomRight.dy,
+      );
+    }
+
+    final options = [
+      'All branches',
+      ...treeData.branches.map((b) => b.name),
+    ];
+
+    showMenu<String>(
+      context: context,
+      position: position,
+      elevation: 6,
+      color: Colors.white,
+      surfaceTintColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      items: options.map((opt) {
+        final isSel = opt == _branchSelectedFilter;
+        final matchingBranch = opt == 'All branches'
+            ? null
+            : treeData.branches.firstWhere((b) => b.name == opt, orElse: () => treeData.branches.first);
+        return PopupMenuItem<String>(
+          value: opt,
+          height: 42,
+          child: Row(
+            children: [
+              if (opt == 'All branches')
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF7C3AED),
+                    shape: BoxShape.circle,
+                  ),
+                )
+              else
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: matchingBranch?.dotColor ?? const Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  opt,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
+                    color: isSel ? const Color(0xFF7C3AED) : const Color(0xFF0F172A),
+                  ),
+                ),
+              ),
+              if (isSel)
+                const Icon(
+                  Icons.check_rounded,
+                  size: 16,
+                  color: Color(0xFF7C3AED),
+                ),
+            ],
+          ),
+        );
+      }).toList(),
+    ).then((val) {
+      if (val != null && mounted) {
+        HapticFeedback.selectionClick();
+        setState(() {
+          _branchSelectedFilter = val;
+          _isOrgTreeExpanded = true;
+        });
+      }
+    });
+  }
+
   // --- Sub-Views (Branch Tree, Student 360, Finance, Ops) ---
   Widget _buildBranchTreeView([List<dynamic>? branches]) {
     final treeData = _branchTreeData ?? BranchGroupNode.defaultTree();
@@ -2971,38 +3068,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
             // Dropdown for branches
             Flexible(
-              child: PopupMenuButton<String>(
-                color: Colors.white,
-                elevation: 4,
-                initialValue: _branchSelectedFilter,
-                onSelected: (val) {
-                  HapticFeedback.selectionClick();
-                  setState(() => _branchSelectedFilter = val);
-                },
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                itemBuilder: (ctx) {
-                  final options = [
-                    'All branches',
-                    ...treeData.branches.map((b) => b.name),
-                  ];
-                  return options.map((opt) {
-                    final isSel = opt == _branchSelectedFilter;
-                    return PopupMenuItem(
-                      value: opt,
-                      child: Text(
-                        opt,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                          color: isSel ? const Color(0xFF7C3AED) : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    );
-                  }).toList();
-                },
+              child: GestureDetector(
+                key: _branchDropdownKey,
+                onTap: () => _openBranchDropdown(context, treeData),
+                behavior: HitTestBehavior.opaque,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -3030,7 +3099,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       ),
                       const SizedBox(width: 2),
                       const Icon(
-                        Icons.keyboard_arrow_down,
+                        Icons.keyboard_arrow_down_rounded,
                         size: 15,
                         color: Color(0xFF64748B),
                       ),
@@ -3155,7 +3224,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               ),
               const SizedBox(height: 2),
               Text(
-                '${treeData.totalBranches} branches across ${treeData.totalRegions} region',
+                _branchSelectedFilter == 'All branches'
+                    ? '${treeData.totalBranches} branches across ${treeData.totalRegions} region'
+                    : '${filteredBranches.length} of ${treeData.totalBranches} branches (Filtered by $_branchSelectedFilter)',
                 style: const TextStyle(
                   color: Color(0xFF94A3B8),
                   fontSize: 11.5,
