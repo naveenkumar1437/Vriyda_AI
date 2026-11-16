@@ -10,6 +10,7 @@ import '../services/auth_service.dart';
 import '../services/branch_service.dart';
 import 'people_ops_view.dart';
 import 'student_lookup_view.dart';
+import '../widgets/notifications_overlay.dart';
 import '../services/session_manager.dart';
 import '../widgets/radial_arc_menu.dart';
 import 'academics/academics_view.dart';
@@ -2400,6 +2401,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final group = _dashboardData?['group'] as Map<String, dynamic>?;
     final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
     final alerts = _dashboardData?['alerts'] as List<dynamic>? ?? [];
+    final approvals = _dashboardData?['approvals'] as List<dynamic>? ?? [];
 
     final systemOverlayStyle = SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -2433,7 +2435,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 100),
                   children: [
                     // 1. App Header
-                    _buildHeader(orgName),
+                    _buildHeader(orgName, alerts, approvals, branches),
 
                     const SizedBox(height: 12),
 
@@ -2481,7 +2483,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   // --- Header Component ---
-  Widget _buildHeader(String orgName) {
+  Widget _buildHeader(
+    String orgName,
+    List<dynamic> alerts,
+    List<dynamic> approvals,
+    List<dynamic> branches,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2590,11 +2597,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   _fetchDashboard,
                 ),
                 const SizedBox(width: 6),
-                _buildHeaderIconBtn(
-                  Icons.notifications_outlined,
-                  const Color(0xFFF43F5E),
-                  () {},
-                ),
+                _buildNotificationBell(alerts, approvals, branches),
                 const SizedBox(width: 6),
                 _buildUserAvatar(),
               ],
@@ -2602,6 +2605,165 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildNotificationBell(
+    List<dynamic> alerts,
+    List<dynamic> approvals,
+    List<dynamic> branches,
+  ) {
+    final alertCount = alerts.isNotEmpty ? alerts.length : 4;
+    final approvalCount = approvals.isNotEmpty ? approvals.length : 10;
+    final totalCount = alertCount + approvalCount;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        _openNotificationsSheet(alerts, approvals, branches);
+      },
+      child: Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.all(4),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.notifications_outlined,
+                color: Color(0xFFF43F5E),
+                size: 16,
+              ),
+            ),
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                child: Text(
+                  '$totalCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w900,
+                    height: 1.0,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openNotificationsSheet(
+    List<dynamic> alerts,
+    List<dynamic> approvals,
+    List<dynamic> branches,
+  ) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) {
+        return NotificationsDropdownSheet(
+          alerts: alerts,
+          approvals: approvals,
+          branches: branches,
+          onClose: () => Navigator.of(ctx).pop(),
+          onAlertTap: (al) =>
+              Navigator.of(ctx).pop({'action': 'alert', 'data': al}),
+          onApprovalTap: (ap) =>
+              Navigator.of(ctx).pop({'action': 'approval', 'data': ap}),
+        );
+      },
+    );
+
+    if (!mounted || result == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (result['action'] == 'alert') {
+        final al = result['data'] as Map<String, dynamic>;
+        final branchName = al['branch']?.toString() ?? 'Gachibowli Campus';
+        Map<String, dynamic>? matchedBranch;
+        for (final b in branches) {
+          if (b is Map && b['name']?.toString() == branchName) {
+            matchedBranch = Map<String, dynamic>.from(b);
+            break;
+          }
+        }
+        _openBranchDetailsDialog(
+          branchName,
+          matchedBranch,
+        );
+      } else if (result['action'] == 'approval') {
+        final ap = result['data'] as Map<String, dynamic>;
+        _openApprovalDialog(ap);
+      }
+    });
+  }
+
+  void _openBranchDetailsDialog(
+    String branchName,
+    Map<String, dynamic>? branchData,
+  ) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) {
+        return BranchNotificationDetailsDialog(
+          branchName: branchName,
+          branchData: branchData,
+          onClose: () => Navigator.of(ctx).pop(),
+        );
+      },
+    );
+  }
+
+  void _openApprovalDialog(Map<String, dynamic> ap) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) {
+        return ApprovalDecisionDialog(
+          approvalItem: ap,
+          onClose: () => Navigator.of(ctx).pop(),
+          onDecision: (decision, note) {
+            final id = ap['id']?.toString() ?? '';
+            setState(() {
+              if (decision == 'approved') {
+                _approvedItemIds.add(id);
+              } else {
+                _approvedItemIds.remove(id);
+              }
+            });
+            _fetchDashboard();
+          },
+        );
+      },
     );
   }
 
@@ -7284,6 +7446,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
 
+  String _formatDateShort(DateTime d) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[d.month - 1]} ${d.day}, ${d.year}';
+  }
+
   Future<void> _selectAttendanceDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -8397,6 +8577,58 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   ),
                 ),
               ],
+            ),
+            GestureDetector(
+              onTap: _selectAttendanceDate,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4.5,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF10B981),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      _formatDateShort(_selectedAttendanceDate),
+                      style: const TextStyle(
+                        color: Color(0xFF334155),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 3),
+                    if (_isAttendanceLoading)
+                      const SizedBox(
+                        width: 10,
+                        height: 10,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.8,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
+                        ),
+                      )
+                    else
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 12,
+                        color: Color(0xFF7C3AED),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
