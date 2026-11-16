@@ -83,8 +83,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   bool _showAllAttendanceStaff = false;
 
   // Interactive state for Users Directory
-  String _usersRoleFilter = 'all'; // 'all' | 'students' | 'teaching' | 'non-teaching' | 'admins' | 'principals' | 'parents'
-  String _usersBranchFilter = 'all'; // 'all' or branch slug ('steel-plant', 'gachibowli', etc.)
+  String _usersRoleFilter =
+      'all'; // 'all' | 'students' | 'teaching' | 'non-teaching' | 'admins' | 'principals' | 'parents'
+  String _usersBranchFilter =
+      'all'; // 'all' or branch slug ('steel-plant', 'gachibowli', etc.)
   String _usersSearchQuery = '';
   final TextEditingController _usersSearchController = TextEditingController();
   bool _showAllUsers = false;
@@ -93,2123 +95,2122 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   static List<Map<String, dynamic>> _getAllStudentRecords() {
     if (_cachedAllStudentsList != null) return _cachedAllStudentsList!;
     _cachedAllStudentsList = [
-    {
-      'initials': 'AS',
-      'name': 'Aarav S.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'GB-10-01',
-      'meta': 'Class 10 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'AV',
-      'name': 'Aadhya V.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'GB-9-02',
-      'meta': 'Class 9 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'VP',
-      'name': 'Vihaan P.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-8-03',
-      'meta': 'Class 8 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'AR',
-      'name': 'Ananya R.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-7-04',
-      'meta': 'Class 7 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'RR',
-      'name': 'Reyansh R.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-6-05',
-      'meta': 'Class 6 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'DN',
-      'name': 'Diya N.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-5-06',
-      'meta': 'Class 5 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'AK',
-      'name': 'Advik K.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-4-07',
-      'meta': 'Class 4 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'IS',
-      'name': 'Isha S.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-3-08',
-      'meta': 'Class 3 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'KG',
-      'name': 'Kabir G.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-2-09',
-      'meta': 'Class 2 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'MJ',
-      'name': 'Meera J.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 1',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-1-10',
-      'meta': 'Class 1 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'DB',
-      'name': 'Dhruv B.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-10-11',
-      'meta': 'Class 10 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'RP',
-      'name': 'Riya P.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-9-12',
-      'meta': 'Class 9 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'AN',
-      'name': 'Atharv N.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-8-13',
-      'meta': 'Class 8 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'SC',
-      'name': 'Saanvi C.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-7-14',
-      'meta': 'Class 7 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'IM',
-      'name': 'Ishaan M.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-6-15',
-      'meta': 'Class 6 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'PP',
-      'name': 'Pooja P.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-5-16',
-      'meta': 'Class 5 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'SS',
-      'name': 'Sai S.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-4-17',
-      'meta': 'Class 4 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'TV',
-      'name': 'Tanvi V.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-3-18',
-      'meta': 'Class 3 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'AP',
-      'name': 'Arjun P.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-2-19',
-      'meta': 'Class 2 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'KR',
-      'name': 'Kavya R.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 1',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-1-20',
-      'meta': 'Class 1 • Sec B • Gachibowli',
-    },
-    {
-      'initials': 'AR',
-      'name': 'Aditya R.',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'GB-10-21',
-      'meta': 'Class 10 • Sec A • Gachibowli',
-    },
-    {
-      'initials': 'AN',
-      'name': 'Ananya N.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'KD-10-01',
-      'meta': 'Class 10 • Sec A • Kondapur',
-    },
-    {
-      'initials': 'RK',
-      'name': 'Reyansh K.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'KD-9-02',
-      'meta': 'Class 9 • Sec B • Kondapur',
-    },
-    {
-      'initials': 'DS',
-      'name': 'Diya S.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-8-03',
-      'meta': 'Class 8 • Sec A • Kondapur',
-    },
-    {
-      'initials': 'AG',
-      'name': 'Advik G.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-7-04',
-      'meta': 'Class 7 • Sec B • Kondapur',
-    },
-    {
-      'initials': 'IJ',
-      'name': 'Isha J.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-6-05',
-      'meta': 'Class 6 • Sec A • Kondapur',
-    },
-    {
-      'initials': 'KB',
-      'name': 'Kabir B.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-5-06',
-      'meta': 'Class 5 • Sec B • Kondapur',
-    },
-    {
-      'initials': 'MP',
-      'name': 'Meera P.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-4-07',
-      'meta': 'Class 4 • Sec A • Kondapur',
-    },
-    {
-      'initials': 'DN',
-      'name': 'Dhruv N.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-3-08',
-      'meta': 'Class 3 • Sec B • Kondapur',
-    },
-    {
-      'initials': 'RC',
-      'name': 'Riya C.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-2-09',
-      'meta': 'Class 2 • Sec A • Kondapur',
-    },
-    {
-      'initials': 'AM',
-      'name': 'Atharv M.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 1',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-1-10',
-      'meta': 'Class 1 • Sec B • Kondapur',
-    },
-    {
-      'initials': 'SP',
-      'name': 'Saanvi P.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-10-11',
-      'meta': 'Class 10 • Sec A • Kondapur',
-    },
-    {
-      'initials': 'IS',
-      'name': 'Ishaan S.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-9-12',
-      'meta': 'Class 9 • Sec B • Kondapur',
-    },
-    {
-      'initials': 'PV',
-      'name': 'Pooja V.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-8-13',
-      'meta': 'Class 8 • Sec A • Kondapur',
-    },
-    {
-      'initials': 'SP',
-      'name': 'Sai P.',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KD-7-14',
-      'meta': 'Class 7 • Sec B • Kondapur',
-    },
-    {
-      'initials': 'AB',
-      'name': 'Advik B.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'KP-10-01',
-      'meta': 'Class 10 • Sec A • Kukatpally',
-    },
-    {
-      'initials': 'IP',
-      'name': 'Isha P.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'KP-9-02',
-      'meta': 'Class 9 • Sec B • Kukatpally',
-    },
-    {
-      'initials': 'KN',
-      'name': 'Kabir N.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-8-03',
-      'meta': 'Class 8 • Sec A • Kukatpally',
-    },
-    {
-      'initials': 'MC',
-      'name': 'Meera C.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-7-04',
-      'meta': 'Class 7 • Sec B • Kukatpally',
-    },
-    {
-      'initials': 'DM',
-      'name': 'Dhruv M.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-6-05',
-      'meta': 'Class 6 • Sec A • Kukatpally',
-    },
-    {
-      'initials': 'RP',
-      'name': 'Riya P.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-5-06',
-      'meta': 'Class 5 • Sec B • Kukatpally',
-    },
-    {
-      'initials': 'AS',
-      'name': 'Atharv S.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-4-07',
-      'meta': 'Class 4 • Sec A • Kukatpally',
-    },
-    {
-      'initials': 'SV',
-      'name': 'Saanvi V.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-3-08',
-      'meta': 'Class 3 • Sec B • Kukatpally',
-    },
-    {
-      'initials': 'IP',
-      'name': 'Ishaan P.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-2-09',
-      'meta': 'Class 2 • Sec A • Kukatpally',
-    },
-    {
-      'initials': 'PR',
-      'name': 'Pooja R.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 1',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-1-10',
-      'meta': 'Class 1 • Sec B • Kukatpally',
-    },
-    {
-      'initials': 'SR',
-      'name': 'Sai R.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-10-11',
-      'meta': 'Class 10 • Sec A • Kukatpally',
-    },
-    {
-      'initials': 'TN',
-      'name': 'Tanvi N.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-9-12',
-      'meta': 'Class 9 • Sec B • Kukatpally',
-    },
-    {
-      'initials': 'AK',
-      'name': 'Arjun K.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-8-13',
-      'meta': 'Class 8 • Sec A • Kukatpally',
-    },
-    {
-      'initials': 'KS',
-      'name': 'Kavya S.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-7-14',
-      'meta': 'Class 7 • Sec B • Kukatpally',
-    },
-    {
-      'initials': 'AG',
-      'name': 'Aditya G.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-6-15',
-      'meta': 'Class 6 • Sec A • Kukatpally',
-    },
-    {
-      'initials': 'NJ',
-      'name': 'Neha J.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-5-16',
-      'meta': 'Class 5 • Sec B • Kukatpally',
-    },
-    {
-      'initials': 'RB',
-      'name': 'Rohan B.',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'KP-4-17',
-      'meta': 'Class 4 • Sec A • Kukatpally',
-    },
-    {
-      'initials': 'MP',
-      'name': 'Meera P.',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'MD-10-01',
-      'meta': 'Class 10 • Sec A • Maddipalem',
-    },
-    {
-      'initials': 'DS',
-      'name': 'Dhruv S.',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-9-02',
-      'meta': 'Class 9 • Sec B • Maddipalem',
-    },
-    {
-      'initials': 'RV',
-      'name': 'Riya V.',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-8-03',
-      'meta': 'Class 8 • Sec A • Maddipalem',
-    },
-    {
-      'initials': 'AP',
-      'name': 'Atharv P.',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-7-04',
-      'meta': 'Class 7 • Sec B • Maddipalem',
-    },
-    {
-      'initials': 'SR',
-      'name': 'Saanvi R.',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-6-05',
-      'meta': 'Class 6 • Sec A • Maddipalem',
-    },
-    {
-      'initials': 'IR',
-      'name': 'Ishaan R.',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-5-06',
-      'meta': 'Class 5 • Sec B • Maddipalem',
-    },
-    {
-      'initials': 'PN',
-      'name': 'Pooja N.',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-4-07',
-      'meta': 'Class 4 • Sec A • Maddipalem',
-    },
-    {
-      'initials': 'SK',
-      'name': 'Sai K.',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-3-08',
-      'meta': 'Class 3 • Sec B • Maddipalem',
-    },
-    {
-      'initials': 'TS',
-      'name': 'Tanvi S.',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MD-2-09',
-      'meta': 'Class 2 • Sec A • Maddipalem',
-    },
-    {
-      'initials': 'AR',
-      'name': 'Atharv R.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'MP-10-01',
-      'meta': 'Class 10 • Sec A • Madhapur',
-    },
-    {
-      'initials': 'SN',
-      'name': 'Saanvi N.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'hostel-residents',
-      'status': 'Not marked',
-      'rollNo': 'MP-9-02',
-      'meta': 'Class 9 • Sec B • Madhapur',
-    },
-    {
-      'initials': 'IK',
-      'name': 'Ishaan K.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-8-03',
-      'meta': 'Class 8 • Sec A • Madhapur',
-    },
-    {
-      'initials': 'PS',
-      'name': 'Pooja S.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-7-04',
-      'meta': 'Class 7 • Sec B • Madhapur',
-    },
-    {
-      'initials': 'SG',
-      'name': 'Sai G.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-6-05',
-      'meta': 'Class 6 • Sec A • Madhapur',
-    },
-    {
-      'initials': 'TJ',
-      'name': 'Tanvi J.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-5-06',
-      'meta': 'Class 5 • Sec B • Madhapur',
-    },
-    {
-      'initials': 'AB',
-      'name': 'Arjun B.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-4-07',
-      'meta': 'Class 4 • Sec A • Madhapur',
-    },
-    {
-      'initials': 'KP',
-      'name': 'Kavya P.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-3-08',
-      'meta': 'Class 3 • Sec B • Madhapur',
-    },
-    {
-      'initials': 'AN',
-      'name': 'Aditya N.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-2-09',
-      'meta': 'Class 2 • Sec A • Madhapur',
-    },
-    {
-      'initials': 'NC',
-      'name': 'Neha C.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 1',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-1-10',
-      'meta': 'Class 1 • Sec B • Madhapur',
-    },
-    {
-      'initials': 'RM',
-      'name': 'Rohan M.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-10-11',
-      'meta': 'Class 10 • Sec A • Madhapur',
-    },
-    {
-      'initials': 'AP',
-      'name': 'Anika P.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-9-12',
-      'meta': 'Class 9 • Sec B • Madhapur',
-    },
-    {
-      'initials': 'KS',
-      'name': 'Krishna S.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-8-13',
-      'meta': 'Class 8 • Sec A • Madhapur',
-    },
-    {
-      'initials': 'SV',
-      'name': 'Sneha V.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-7-14',
-      'meta': 'Class 7 • Sec B • Madhapur',
-    },
-    {
-      'initials': 'RP',
-      'name': 'Rahul P.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-6-15',
-      'meta': 'Class 6 • Sec A • Madhapur',
-    },
-    {
-      'initials': 'PR',
-      'name': 'Priya R.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-5-16',
-      'meta': 'Class 5 • Sec B • Madhapur',
-    },
-    {
-      'initials': 'MR',
-      'name': 'Manish R.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-4-17',
-      'meta': 'Class 4 • Sec A • Madhapur',
-    },
-    {
-      'initials': 'DN',
-      'name': 'Divya N.',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'MP-3-18',
-      'meta': 'Class 3 • Sec B • Madhapur',
-    },
-    {
-      'initials': 'PJ',
-      'name': 'Pooja J.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'hostel-residents',
-      'status': 'Present',
-      'rollNo': 'SP-10-01',
-      'meta': 'Class 10 • Sec A • Steel',
-    },
-    {
-      'initials': 'SB',
-      'name': 'Sai B.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'hostel-residents',
-      'status': 'Present',
-      'rollNo': 'SP-9-02',
-      'meta': 'Class 9 • Sec B • Steel',
-    },
-    {
-      'initials': 'TP',
-      'name': 'Tanvi P.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'hostel-residents',
-      'status': 'Present',
-      'rollNo': 'SP-8-03',
-      'meta': 'Class 8 • Sec A • Steel',
-    },
-    {
-      'initials': 'AN',
-      'name': 'Arjun N.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-7-04',
-      'meta': 'Class 7 • Sec B • Steel',
-    },
-    {
-      'initials': 'KC',
-      'name': 'Kavya C.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-6-05',
-      'meta': 'Class 6 • Sec A • Steel',
-    },
-    {
-      'initials': 'AM',
-      'name': 'Aditya M.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-5-06',
-      'meta': 'Class 5 • Sec B • Steel',
-    },
-    {
-      'initials': 'NP',
-      'name': 'Neha P.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-4-07',
-      'meta': 'Class 4 • Sec A • Steel',
-    },
-    {
-      'initials': 'RS',
-      'name': 'Rohan S.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-3-08',
-      'meta': 'Class 3 • Sec B • Steel',
-    },
-    {
-      'initials': 'AV',
-      'name': 'Anika V.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-2-09',
-      'meta': 'Class 2 • Sec A • Steel',
-    },
-    {
-      'initials': 'KP',
-      'name': 'Krishna P.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 1',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-1-10',
-      'meta': 'Class 1 • Sec B • Steel',
-    },
-    {
-      'initials': 'SR',
-      'name': 'Sneha R.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-10-11',
-      'meta': 'Class 10 • Sec A • Steel',
-    },
-    {
-      'initials': 'RR',
-      'name': 'Rahul R.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-9-12',
-      'meta': 'Class 9 • Sec B • Steel',
-    },
-    {
-      'initials': 'PN',
-      'name': 'Priya N.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-8-13',
-      'meta': 'Class 8 • Sec A • Steel',
-    },
-    {
-      'initials': 'MK',
-      'name': 'Manish K.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-7-14',
-      'meta': 'Class 7 • Sec B • Steel',
-    },
-    {
-      'initials': 'DS',
-      'name': 'Divya S.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-6-15',
-      'meta': 'Class 6 • Sec A • Steel',
-    },
-    {
-      'initials': 'VG',
-      'name': 'Varun G.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-5-16',
-      'meta': 'Class 5 • Sec B • Steel',
-    },
-    {
-      'initials': 'SJ',
-      'name': 'Swati J.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-4-17',
-      'meta': 'Class 4 • Sec A • Steel',
-    },
-    {
-      'initials': 'NB',
-      'name': 'Nikhil B.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-3-18',
-      'meta': 'Class 3 • Sec B • Steel',
-    },
-    {
-      'initials': 'SP',
-      'name': 'Shreya P.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-2-19',
-      'meta': 'Class 2 • Sec A • Steel',
-    },
-    {
-      'initials': 'KN',
-      'name': 'Kiran N.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 1',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-1-20',
-      'meta': 'Class 1 • Sec B • Steel',
-    },
-    {
-      'initials': 'MC',
-      'name': 'Megha C.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-10-21',
-      'meta': 'Class 10 • Sec A • Steel',
-    },
-    {
-      'initials': 'VM',
-      'name': 'Vikram M.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Present',
-      'rollNo': 'SP-9-22',
-      'meta': 'Class 9 • Sec B • Steel',
-    },
-    {
-      'initials': 'AP',
-      'name': 'Anjali P.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Absent',
-      'rollNo': 'SP-8-23',
-      'meta': 'Class 8 • Sec A • Steel',
-    },
-    {
-      'initials': 'SS',
-      'name': 'Siddharth S.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Absent',
-      'rollNo': 'SP-7-24',
-      'meta': 'Class 7 • Sec B • Steel',
-    },
-    {
-      'initials': 'PV',
-      'name': 'Preeti V.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Absent',
-      'rollNo': 'SP-6-25',
-      'meta': 'Class 6 • Sec A • Steel',
-    },
-    {
-      'initials': 'HP',
-      'name': 'Harsh P.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Absent',
-      'rollNo': 'SP-5-26',
-      'meta': 'Class 5 • Sec B • Steel',
-    },
-    {
-      'initials': 'DR',
-      'name': 'Deepika R.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Absent',
-      'rollNo': 'SP-4-27',
-      'meta': 'Class 4 • Sec A • Steel',
-    },
-    {
-      'initials': 'KR',
-      'name': 'Karthik R.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-3-28',
-      'meta': 'Class 3 • Sec B • Steel',
-    },
-    {
-      'initials': 'BN',
-      'name': 'Bhavana N.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-2-29',
-      'meta': 'Class 2 • Sec A • Steel',
-    },
-    {
-      'initials': 'PK',
-      'name': 'Pranav K.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 1',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-1-30',
-      'meta': 'Class 1 • Sec B • Steel',
-    },
-    {
-      'initials': 'HS',
-      'name': 'Harini S.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-10-31',
-      'meta': 'Class 10 • Sec A • Steel',
-    },
-    {
-      'initials': 'TG',
-      'name': 'Tarun G.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-9-32',
-      'meta': 'Class 9 • Sec B • Steel',
-    },
-    {
-      'initials': 'KJ',
-      'name': 'Keerthi J.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-8-33',
-      'meta': 'Class 8 • Sec A • Steel',
-    },
-    {
-      'initials': 'AB',
-      'name': 'Aarav B.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 7',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-7-34',
-      'meta': 'Class 7 • Sec B • Steel',
-    },
-    {
-      'initials': 'AP',
-      'name': 'Aadhya P.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 6',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-6-35',
-      'meta': 'Class 6 • Sec A • Steel',
-    },
-    {
-      'initials': 'VN',
-      'name': 'Vihaan N.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 5',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-5-36',
-      'meta': 'Class 5 • Sec B • Steel',
-    },
-    {
-      'initials': 'AC',
-      'name': 'Ananya C.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 4',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-4-37',
-      'meta': 'Class 4 • Sec A • Steel',
-    },
-    {
-      'initials': 'RM',
-      'name': 'Reyansh M.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 3',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-3-38',
-      'meta': 'Class 3 • Sec B • Steel',
-    },
-    {
-      'initials': 'DP',
-      'name': 'Diya P.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 2',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-2-39',
-      'meta': 'Class 2 • Sec A • Steel',
-    },
-    {
-      'initials': 'AS',
-      'name': 'Advik S.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 1',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-1-40',
-      'meta': 'Class 1 • Sec B • Steel',
-    },
-    {
-      'initials': 'IV',
-      'name': 'Isha V.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 10',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-10-41',
-      'meta': 'Class 10 • Sec A • Steel',
-    },
-    {
-      'initials': 'KP',
-      'name': 'Kabir P.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 9',
-      'section': 'Sec B',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-9-42',
-      'meta': 'Class 9 • Sec B • Steel',
-    },
-    {
-      'initials': 'MR',
-      'name': 'Meera R.',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'class': 'Class 8',
-      'section': 'Sec A',
-      'residency': 'day-scholars',
-      'status': 'Not marked',
-      'rollNo': 'SP-8-43',
-      'meta': 'Class 8 • Sec A • Steel',
-    },
+      {
+        'initials': 'AS',
+        'name': 'Aarav S.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'hostel-residents',
+        'status': 'Not marked',
+        'rollNo': 'GB-10-01',
+        'meta': 'Class 10 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'AV',
+        'name': 'Aadhya V.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'hostel-residents',
+        'status': 'Not marked',
+        'rollNo': 'GB-9-02',
+        'meta': 'Class 9 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'VP',
+        'name': 'Vihaan P.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-8-03',
+        'meta': 'Class 8 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'AR',
+        'name': 'Ananya R.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-7-04',
+        'meta': 'Class 7 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'RR',
+        'name': 'Reyansh R.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-6-05',
+        'meta': 'Class 6 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'DN',
+        'name': 'Diya N.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-5-06',
+        'meta': 'Class 5 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'AK',
+        'name': 'Advik K.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-4-07',
+        'meta': 'Class 4 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'IS',
+        'name': 'Isha S.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-3-08',
+        'meta': 'Class 3 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'KG',
+        'name': 'Kabir G.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-2-09',
+        'meta': 'Class 2 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'MJ',
+        'name': 'Meera J.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 1',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-1-10',
+        'meta': 'Class 1 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'DB',
+        'name': 'Dhruv B.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-10-11',
+        'meta': 'Class 10 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'RP',
+        'name': 'Riya P.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-9-12',
+        'meta': 'Class 9 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'AN',
+        'name': 'Atharv N.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-8-13',
+        'meta': 'Class 8 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'SC',
+        'name': 'Saanvi C.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-7-14',
+        'meta': 'Class 7 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'IM',
+        'name': 'Ishaan M.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-6-15',
+        'meta': 'Class 6 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'PP',
+        'name': 'Pooja P.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-5-16',
+        'meta': 'Class 5 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'SS',
+        'name': 'Sai S.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-4-17',
+        'meta': 'Class 4 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'TV',
+        'name': 'Tanvi V.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-3-18',
+        'meta': 'Class 3 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'AP',
+        'name': 'Arjun P.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-2-19',
+        'meta': 'Class 2 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'KR',
+        'name': 'Kavya R.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 1',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-1-20',
+        'meta': 'Class 1 • Sec B • Gachibowli',
+      },
+      {
+        'initials': 'AR',
+        'name': 'Aditya R.',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'GB-10-21',
+        'meta': 'Class 10 • Sec A • Gachibowli',
+      },
+      {
+        'initials': 'AN',
+        'name': 'Ananya N.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'hostel-residents',
+        'status': 'Not marked',
+        'rollNo': 'KD-10-01',
+        'meta': 'Class 10 • Sec A • Kondapur',
+      },
+      {
+        'initials': 'RK',
+        'name': 'Reyansh K.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'hostel-residents',
+        'status': 'Not marked',
+        'rollNo': 'KD-9-02',
+        'meta': 'Class 9 • Sec B • Kondapur',
+      },
+      {
+        'initials': 'DS',
+        'name': 'Diya S.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-8-03',
+        'meta': 'Class 8 • Sec A • Kondapur',
+      },
+      {
+        'initials': 'AG',
+        'name': 'Advik G.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-7-04',
+        'meta': 'Class 7 • Sec B • Kondapur',
+      },
+      {
+        'initials': 'IJ',
+        'name': 'Isha J.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-6-05',
+        'meta': 'Class 6 • Sec A • Kondapur',
+      },
+      {
+        'initials': 'KB',
+        'name': 'Kabir B.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-5-06',
+        'meta': 'Class 5 • Sec B • Kondapur',
+      },
+      {
+        'initials': 'MP',
+        'name': 'Meera P.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-4-07',
+        'meta': 'Class 4 • Sec A • Kondapur',
+      },
+      {
+        'initials': 'DN',
+        'name': 'Dhruv N.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-3-08',
+        'meta': 'Class 3 • Sec B • Kondapur',
+      },
+      {
+        'initials': 'RC',
+        'name': 'Riya C.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-2-09',
+        'meta': 'Class 2 • Sec A • Kondapur',
+      },
+      {
+        'initials': 'AM',
+        'name': 'Atharv M.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 1',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-1-10',
+        'meta': 'Class 1 • Sec B • Kondapur',
+      },
+      {
+        'initials': 'SP',
+        'name': 'Saanvi P.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-10-11',
+        'meta': 'Class 10 • Sec A • Kondapur',
+      },
+      {
+        'initials': 'IS',
+        'name': 'Ishaan S.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-9-12',
+        'meta': 'Class 9 • Sec B • Kondapur',
+      },
+      {
+        'initials': 'PV',
+        'name': 'Pooja V.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-8-13',
+        'meta': 'Class 8 • Sec A • Kondapur',
+      },
+      {
+        'initials': 'SP',
+        'name': 'Sai P.',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KD-7-14',
+        'meta': 'Class 7 • Sec B • Kondapur',
+      },
+      {
+        'initials': 'AB',
+        'name': 'Advik B.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'hostel-residents',
+        'status': 'Not marked',
+        'rollNo': 'KP-10-01',
+        'meta': 'Class 10 • Sec A • Kukatpally',
+      },
+      {
+        'initials': 'IP',
+        'name': 'Isha P.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'hostel-residents',
+        'status': 'Not marked',
+        'rollNo': 'KP-9-02',
+        'meta': 'Class 9 • Sec B • Kukatpally',
+      },
+      {
+        'initials': 'KN',
+        'name': 'Kabir N.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-8-03',
+        'meta': 'Class 8 • Sec A • Kukatpally',
+      },
+      {
+        'initials': 'MC',
+        'name': 'Meera C.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-7-04',
+        'meta': 'Class 7 • Sec B • Kukatpally',
+      },
+      {
+        'initials': 'DM',
+        'name': 'Dhruv M.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-6-05',
+        'meta': 'Class 6 • Sec A • Kukatpally',
+      },
+      {
+        'initials': 'RP',
+        'name': 'Riya P.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-5-06',
+        'meta': 'Class 5 • Sec B • Kukatpally',
+      },
+      {
+        'initials': 'AS',
+        'name': 'Atharv S.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-4-07',
+        'meta': 'Class 4 • Sec A • Kukatpally',
+      },
+      {
+        'initials': 'SV',
+        'name': 'Saanvi V.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-3-08',
+        'meta': 'Class 3 • Sec B • Kukatpally',
+      },
+      {
+        'initials': 'IP',
+        'name': 'Ishaan P.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-2-09',
+        'meta': 'Class 2 • Sec A • Kukatpally',
+      },
+      {
+        'initials': 'PR',
+        'name': 'Pooja R.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 1',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-1-10',
+        'meta': 'Class 1 • Sec B • Kukatpally',
+      },
+      {
+        'initials': 'SR',
+        'name': 'Sai R.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-10-11',
+        'meta': 'Class 10 • Sec A • Kukatpally',
+      },
+      {
+        'initials': 'TN',
+        'name': 'Tanvi N.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-9-12',
+        'meta': 'Class 9 • Sec B • Kukatpally',
+      },
+      {
+        'initials': 'AK',
+        'name': 'Arjun K.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-8-13',
+        'meta': 'Class 8 • Sec A • Kukatpally',
+      },
+      {
+        'initials': 'KS',
+        'name': 'Kavya S.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-7-14',
+        'meta': 'Class 7 • Sec B • Kukatpally',
+      },
+      {
+        'initials': 'AG',
+        'name': 'Aditya G.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-6-15',
+        'meta': 'Class 6 • Sec A • Kukatpally',
+      },
+      {
+        'initials': 'NJ',
+        'name': 'Neha J.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-5-16',
+        'meta': 'Class 5 • Sec B • Kukatpally',
+      },
+      {
+        'initials': 'RB',
+        'name': 'Rohan B.',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'KP-4-17',
+        'meta': 'Class 4 • Sec A • Kukatpally',
+      },
+      {
+        'initials': 'MP',
+        'name': 'Meera P.',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'hostel-residents',
+        'status': 'Not marked',
+        'rollNo': 'MD-10-01',
+        'meta': 'Class 10 • Sec A • Maddipalem',
+      },
+      {
+        'initials': 'DS',
+        'name': 'Dhruv S.',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MD-9-02',
+        'meta': 'Class 9 • Sec B • Maddipalem',
+      },
+      {
+        'initials': 'RV',
+        'name': 'Riya V.',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MD-8-03',
+        'meta': 'Class 8 • Sec A • Maddipalem',
+      },
+      {
+        'initials': 'AP',
+        'name': 'Atharv P.',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MD-7-04',
+        'meta': 'Class 7 • Sec B • Maddipalem',
+      },
+      {
+        'initials': 'SR',
+        'name': 'Saanvi R.',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MD-6-05',
+        'meta': 'Class 6 • Sec A • Maddipalem',
+      },
+      {
+        'initials': 'IR',
+        'name': 'Ishaan R.',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MD-5-06',
+        'meta': 'Class 5 • Sec B • Maddipalem',
+      },
+      {
+        'initials': 'PN',
+        'name': 'Pooja N.',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MD-4-07',
+        'meta': 'Class 4 • Sec A • Maddipalem',
+      },
+      {
+        'initials': 'SK',
+        'name': 'Sai K.',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MD-3-08',
+        'meta': 'Class 3 • Sec B • Maddipalem',
+      },
+      {
+        'initials': 'TS',
+        'name': 'Tanvi S.',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MD-2-09',
+        'meta': 'Class 2 • Sec A • Maddipalem',
+      },
+      {
+        'initials': 'AR',
+        'name': 'Atharv R.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'hostel-residents',
+        'status': 'Not marked',
+        'rollNo': 'MP-10-01',
+        'meta': 'Class 10 • Sec A • Madhapur',
+      },
+      {
+        'initials': 'SN',
+        'name': 'Saanvi N.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'hostel-residents',
+        'status': 'Not marked',
+        'rollNo': 'MP-9-02',
+        'meta': 'Class 9 • Sec B • Madhapur',
+      },
+      {
+        'initials': 'IK',
+        'name': 'Ishaan K.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-8-03',
+        'meta': 'Class 8 • Sec A • Madhapur',
+      },
+      {
+        'initials': 'PS',
+        'name': 'Pooja S.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-7-04',
+        'meta': 'Class 7 • Sec B • Madhapur',
+      },
+      {
+        'initials': 'SG',
+        'name': 'Sai G.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-6-05',
+        'meta': 'Class 6 • Sec A • Madhapur',
+      },
+      {
+        'initials': 'TJ',
+        'name': 'Tanvi J.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-5-06',
+        'meta': 'Class 5 • Sec B • Madhapur',
+      },
+      {
+        'initials': 'AB',
+        'name': 'Arjun B.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-4-07',
+        'meta': 'Class 4 • Sec A • Madhapur',
+      },
+      {
+        'initials': 'KP',
+        'name': 'Kavya P.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-3-08',
+        'meta': 'Class 3 • Sec B • Madhapur',
+      },
+      {
+        'initials': 'AN',
+        'name': 'Aditya N.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-2-09',
+        'meta': 'Class 2 • Sec A • Madhapur',
+      },
+      {
+        'initials': 'NC',
+        'name': 'Neha C.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 1',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-1-10',
+        'meta': 'Class 1 • Sec B • Madhapur',
+      },
+      {
+        'initials': 'RM',
+        'name': 'Rohan M.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-10-11',
+        'meta': 'Class 10 • Sec A • Madhapur',
+      },
+      {
+        'initials': 'AP',
+        'name': 'Anika P.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-9-12',
+        'meta': 'Class 9 • Sec B • Madhapur',
+      },
+      {
+        'initials': 'KS',
+        'name': 'Krishna S.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-8-13',
+        'meta': 'Class 8 • Sec A • Madhapur',
+      },
+      {
+        'initials': 'SV',
+        'name': 'Sneha V.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-7-14',
+        'meta': 'Class 7 • Sec B • Madhapur',
+      },
+      {
+        'initials': 'RP',
+        'name': 'Rahul P.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-6-15',
+        'meta': 'Class 6 • Sec A • Madhapur',
+      },
+      {
+        'initials': 'PR',
+        'name': 'Priya R.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-5-16',
+        'meta': 'Class 5 • Sec B • Madhapur',
+      },
+      {
+        'initials': 'MR',
+        'name': 'Manish R.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-4-17',
+        'meta': 'Class 4 • Sec A • Madhapur',
+      },
+      {
+        'initials': 'DN',
+        'name': 'Divya N.',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'MP-3-18',
+        'meta': 'Class 3 • Sec B • Madhapur',
+      },
+      {
+        'initials': 'PJ',
+        'name': 'Pooja J.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'hostel-residents',
+        'status': 'Present',
+        'rollNo': 'SP-10-01',
+        'meta': 'Class 10 • Sec A • Steel',
+      },
+      {
+        'initials': 'SB',
+        'name': 'Sai B.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'hostel-residents',
+        'status': 'Present',
+        'rollNo': 'SP-9-02',
+        'meta': 'Class 9 • Sec B • Steel',
+      },
+      {
+        'initials': 'TP',
+        'name': 'Tanvi P.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'hostel-residents',
+        'status': 'Present',
+        'rollNo': 'SP-8-03',
+        'meta': 'Class 8 • Sec A • Steel',
+      },
+      {
+        'initials': 'AN',
+        'name': 'Arjun N.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-7-04',
+        'meta': 'Class 7 • Sec B • Steel',
+      },
+      {
+        'initials': 'KC',
+        'name': 'Kavya C.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-6-05',
+        'meta': 'Class 6 • Sec A • Steel',
+      },
+      {
+        'initials': 'AM',
+        'name': 'Aditya M.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-5-06',
+        'meta': 'Class 5 • Sec B • Steel',
+      },
+      {
+        'initials': 'NP',
+        'name': 'Neha P.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-4-07',
+        'meta': 'Class 4 • Sec A • Steel',
+      },
+      {
+        'initials': 'RS',
+        'name': 'Rohan S.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-3-08',
+        'meta': 'Class 3 • Sec B • Steel',
+      },
+      {
+        'initials': 'AV',
+        'name': 'Anika V.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-2-09',
+        'meta': 'Class 2 • Sec A • Steel',
+      },
+      {
+        'initials': 'KP',
+        'name': 'Krishna P.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 1',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-1-10',
+        'meta': 'Class 1 • Sec B • Steel',
+      },
+      {
+        'initials': 'SR',
+        'name': 'Sneha R.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-10-11',
+        'meta': 'Class 10 • Sec A • Steel',
+      },
+      {
+        'initials': 'RR',
+        'name': 'Rahul R.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-9-12',
+        'meta': 'Class 9 • Sec B • Steel',
+      },
+      {
+        'initials': 'PN',
+        'name': 'Priya N.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-8-13',
+        'meta': 'Class 8 • Sec A • Steel',
+      },
+      {
+        'initials': 'MK',
+        'name': 'Manish K.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-7-14',
+        'meta': 'Class 7 • Sec B • Steel',
+      },
+      {
+        'initials': 'DS',
+        'name': 'Divya S.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-6-15',
+        'meta': 'Class 6 • Sec A • Steel',
+      },
+      {
+        'initials': 'VG',
+        'name': 'Varun G.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-5-16',
+        'meta': 'Class 5 • Sec B • Steel',
+      },
+      {
+        'initials': 'SJ',
+        'name': 'Swati J.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-4-17',
+        'meta': 'Class 4 • Sec A • Steel',
+      },
+      {
+        'initials': 'NB',
+        'name': 'Nikhil B.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-3-18',
+        'meta': 'Class 3 • Sec B • Steel',
+      },
+      {
+        'initials': 'SP',
+        'name': 'Shreya P.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-2-19',
+        'meta': 'Class 2 • Sec A • Steel',
+      },
+      {
+        'initials': 'KN',
+        'name': 'Kiran N.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 1',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-1-20',
+        'meta': 'Class 1 • Sec B • Steel',
+      },
+      {
+        'initials': 'MC',
+        'name': 'Megha C.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-10-21',
+        'meta': 'Class 10 • Sec A • Steel',
+      },
+      {
+        'initials': 'VM',
+        'name': 'Vikram M.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Present',
+        'rollNo': 'SP-9-22',
+        'meta': 'Class 9 • Sec B • Steel',
+      },
+      {
+        'initials': 'AP',
+        'name': 'Anjali P.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Absent',
+        'rollNo': 'SP-8-23',
+        'meta': 'Class 8 • Sec A • Steel',
+      },
+      {
+        'initials': 'SS',
+        'name': 'Siddharth S.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Absent',
+        'rollNo': 'SP-7-24',
+        'meta': 'Class 7 • Sec B • Steel',
+      },
+      {
+        'initials': 'PV',
+        'name': 'Preeti V.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Absent',
+        'rollNo': 'SP-6-25',
+        'meta': 'Class 6 • Sec A • Steel',
+      },
+      {
+        'initials': 'HP',
+        'name': 'Harsh P.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Absent',
+        'rollNo': 'SP-5-26',
+        'meta': 'Class 5 • Sec B • Steel',
+      },
+      {
+        'initials': 'DR',
+        'name': 'Deepika R.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Absent',
+        'rollNo': 'SP-4-27',
+        'meta': 'Class 4 • Sec A • Steel',
+      },
+      {
+        'initials': 'KR',
+        'name': 'Karthik R.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-3-28',
+        'meta': 'Class 3 • Sec B • Steel',
+      },
+      {
+        'initials': 'BN',
+        'name': 'Bhavana N.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-2-29',
+        'meta': 'Class 2 • Sec A • Steel',
+      },
+      {
+        'initials': 'PK',
+        'name': 'Pranav K.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 1',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-1-30',
+        'meta': 'Class 1 • Sec B • Steel',
+      },
+      {
+        'initials': 'HS',
+        'name': 'Harini S.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-10-31',
+        'meta': 'Class 10 • Sec A • Steel',
+      },
+      {
+        'initials': 'TG',
+        'name': 'Tarun G.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-9-32',
+        'meta': 'Class 9 • Sec B • Steel',
+      },
+      {
+        'initials': 'KJ',
+        'name': 'Keerthi J.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-8-33',
+        'meta': 'Class 8 • Sec A • Steel',
+      },
+      {
+        'initials': 'AB',
+        'name': 'Aarav B.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 7',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-7-34',
+        'meta': 'Class 7 • Sec B • Steel',
+      },
+      {
+        'initials': 'AP',
+        'name': 'Aadhya P.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 6',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-6-35',
+        'meta': 'Class 6 • Sec A • Steel',
+      },
+      {
+        'initials': 'VN',
+        'name': 'Vihaan N.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 5',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-5-36',
+        'meta': 'Class 5 • Sec B • Steel',
+      },
+      {
+        'initials': 'AC',
+        'name': 'Ananya C.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 4',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-4-37',
+        'meta': 'Class 4 • Sec A • Steel',
+      },
+      {
+        'initials': 'RM',
+        'name': 'Reyansh M.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 3',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-3-38',
+        'meta': 'Class 3 • Sec B • Steel',
+      },
+      {
+        'initials': 'DP',
+        'name': 'Diya P.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 2',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-2-39',
+        'meta': 'Class 2 • Sec A • Steel',
+      },
+      {
+        'initials': 'AS',
+        'name': 'Advik S.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 1',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-1-40',
+        'meta': 'Class 1 • Sec B • Steel',
+      },
+      {
+        'initials': 'IV',
+        'name': 'Isha V.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 10',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-10-41',
+        'meta': 'Class 10 • Sec A • Steel',
+      },
+      {
+        'initials': 'KP',
+        'name': 'Kabir P.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 9',
+        'section': 'Sec B',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-9-42',
+        'meta': 'Class 9 • Sec B • Steel',
+      },
+      {
+        'initials': 'MR',
+        'name': 'Meera R.',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'class': 'Class 8',
+        'section': 'Sec A',
+        'residency': 'day-scholars',
+        'status': 'Not marked',
+        'rollNo': 'SP-8-43',
+        'meta': 'Class 8 • Sec A • Steel',
+      },
     ];
     return _cachedAllStudentsList!;
   }
-
 
   static List<Map<String, dynamic>>? _cachedAllStaffList;
   static List<Map<String, dynamic>> _getAllStaffRecords() {
     if (_cachedAllStaffList != null) return _cachedAllStaffList!;
     _cachedAllStaffList = [
-    {
-      'initials': 'MA',
-      'name': 'M. Ananya',
-      'role': 'TGT English • Gachibowli Campus',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'department': 'English',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:48 AM',
-      'phone': '+91 94401 56789',
-    },
-    {
-      'initials': 'RV',
-      'name': 'R. Verma',
-      'role': 'PGT Physics • Gachibowli Campus',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'department': 'Physics',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:35 AM',
-      'phone': '+91 98491 23456',
-    },
-    {
-      'initials': 'BP',
-      'name': 'B. Prabhakar',
-      'role': 'Administrative Officer • Gachibowli Campus',
-      'category': 'non-teaching',
-      'subRole': 'admin-officer',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:35 AM',
-      'phone': '+91 97011 55667',
-    },
-    {
-      'initials': 'MS',
-      'name': 'Mrs. Meenakshi S.',
-      'role': 'Principal • Gachibowli Campus',
-      'category': 'non-teaching',
-      'subRole': 'principal',
-      'branchId': 'gachibowli',
-      'branchName': 'Gachibowli Campus',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:10 AM',
-      'phone': '+91 98492 33445',
-    },
-    {
-      'initials': 'KS',
-      'name': 'K. Sneha',
-      'role': 'PRT Science • Kondapur Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'department': 'Science',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:30 AM',
-      'phone': '+91 97766 55443',
-    },
-    {
-      'initials': 'VN',
-      'name': 'V. Nair',
-      'role': 'TGT Social • Kondapur Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'department': 'Social Studies',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:40 AM',
-      'phone': '+91 98855 12345',
-    },
-    {
-      'initials': 'SS',
-      'name': 'S. Sharma',
-      'role': 'Administrative Officer • Kondapur Branch',
-      'category': 'non-teaching',
-      'subRole': 'admin-officer',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:25 AM',
-      'phone': '+91 97000 88214',
-    },
-    {
-      'initials': 'KS',
-      'name': 'Dr. K. Srinivas',
-      'role': 'Principal • Kondapur Branch',
-      'category': 'non-teaching',
-      'subRole': 'principal',
-      'branchId': 'kondapur',
-      'branchName': 'Kondapur Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:05 AM',
-      'phone': '+91 98480 11223',
-    },
-    {
-      'initials': 'PD',
-      'name': 'P. Deepika',
-      'role': 'TGT Telugu • Kukatpally Campus',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'department': 'Telugu',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:25 AM',
-      'phone': '+91 94411 22334',
-    },
-    {
-      'initials': 'AK',
-      'name': 'A. Karthik',
-      'role': 'TGT Hindi • Kukatpally Campus',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'department': 'Hindi',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:35 AM',
-      'phone': '+91 93910 33412',
-    },
-    {
-      'initials': 'NR',
-      'name': 'N. Rao',
-      'role': 'Administrative Officer • Kukatpally Campus',
-      'category': 'non-teaching',
-      'subRole': 'admin-officer',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:30 AM',
-      'phone': '+91 91210 44556',
-    },
-    {
-      'initials': 'RV',
-      'name': 'Mrs. Radhika V.',
-      'role': 'Principal • Kukatpally Campus',
-      'category': 'non-teaching',
-      'subRole': 'principal',
-      'branchId': 'kukatpally',
-      'branchName': 'Kukatpally Campus',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:00 AM',
-      'phone': '+91 98844 55667',
-    },
-    {
-      'initials': 'GS',
-      'name': 'G. Srinivas',
-      'role': 'TGT Maths • Maddipalem Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'department': 'Mathematics',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:30 AM',
-      'phone': '+91 98844 55667',
-    },
-    {
-      'initials': 'LB',
-      'name': 'L. Bhavani',
-      'role': 'PRT English • Maddipalem Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'department': 'English',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:45 AM',
-      'phone': '+91 99887 66554',
-    },
-    {
-      'initials': 'SV',
-      'name': 'S. Venkat',
-      'role': 'Administrative Officer • Maddipalem Branch',
-      'category': 'non-teaching',
-      'subRole': 'admin-officer',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:35 AM',
-      'phone': '+91 91212 99011',
-    },
-    {
-      'initials': 'TA',
-      'name': 'T. Anand',
-      'role': 'Administrative Officer • Maddipalem Branch',
-      'category': 'non-teaching',
-      'subRole': 'admin-officer',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:40 AM',
-      'phone': '+91 97011 22334',
-    },
-    {
-      'initials': 'VP',
-      'name': 'Dr. V. Prasad',
-      'role': 'Principal • Maddipalem Branch',
-      'category': 'non-teaching',
-      'subRole': 'principal',
-      'branchId': 'maddipalem',
-      'branchName': 'Maddipalem Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:15 AM',
-      'phone': '+91 98450 66778',
-    },
-    {
-      'initials': 'DS',
-      'name': 'D. Sandeep',
-      'role': 'TGT Computers • Madhapur Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'department': 'Computers',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:40 AM',
-      'phone': '+91 94401 22334',
-    },
-    {
-      'initials': 'BP',
-      'name': 'B. Priya',
-      'role': 'PRT Art • Madhapur Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'department': 'Arts & Crafts',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:50 AM',
-      'phone': '+91 98490 33445',
-    },
-    {
-      'initials': 'MV',
-      'name': 'M. V. Reddy',
-      'role': 'Administrative Officer • Madhapur Branch',
-      'category': 'non-teaching',
-      'subRole': 'admin-officer',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:30 AM',
-      'phone': '+91 91234 56780',
-    },
-    {
-      'initials': 'SD',
-      'name': 'Mrs. Sunita D.',
-      'role': 'Principal • Madhapur Branch',
-      'category': 'non-teaching',
-      'subRole': 'principal',
-      'branchId': 'madhapur',
-      'branchName': 'Madhapur Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:10 AM',
-      'phone': '+91 97766 11223',
-    },
-    {
-      'initials': 'KS',
-      'name': 'Dr. K. S. Rao',
-      'role': 'Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Physics',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:42 AM',
-      'phone': '+91 98490 12345',
-    },
-    {
-      'initials': 'MS',
-      'name': 'M. Suresh',
-      'role': 'Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Chemistry',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:35 AM',
-      'phone': '+91 94401 67890',
-    },
-    {
-      'initials': 'CL',
-      'name': 'Ch. Lakshmi',
-      'role': 'Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Biology',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:40 AM',
-      'phone': '+91 98492 45678',
-    },
-    {
-      'initials': 'BN',
-      'name': 'B. Naidu',
-      'role': 'Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'English',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:30 AM',
-      'phone': '+91 97011 34567',
-    },
-    {
-      'initials': 'SR',
-      'name': 'S. Ramana',
-      'role': 'Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Telugu',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:45 AM',
-      'phone': '+91 91210 56789',
-    },
-    {
-      'initials': 'KA',
-      'name': 'K. Appalaraju',
-      'role': 'Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Social',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:25 AM',
-      'phone': '+91 93910 67890',
-    },
-    {
-      'initials': 'PS',
-      'name': 'P. Satyavathi',
-      'role': 'Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Hindi',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:38 AM',
-      'phone': '+91 98852 78901',
-    },
-    {
-      'initials': 'DJ',
-      'name': 'D. Jagadeesh',
-      'role': 'Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Computers',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:50 AM',
-      'phone': '+91 98450 89012',
-    },
-    {
-      'initials': 'TU',
-      'name': 'T. Uma',
-      'role': 'Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Mathematics',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:32 AM',
-      'phone': '+91 97766 90123',
-    },
-    {
-      'initials': 'KV',
-      'name': 'K. V. Subbarao',
-      'role': 'Senior Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Academics',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:20 AM',
-      'phone': '+91 94411 01234',
-    },
-    {
-      'initials': 'VG',
-      'name': 'V. Govinda Rao',
-      'role': 'Maths Teacher • Steel Plant Branch',
-      'category': 'teaching',
-      'subRole': 'teaching',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Mathematics',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:28 AM',
-      'phone': '+91 99887 12345',
-    },
-    {
-      'initials': 'LV',
-      'name': 'L. Varalakshmi',
-      'role': 'Librarian • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'librarian',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Library',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:50 AM',
-      'phone': '+91 98855 66778',
-    },
-    {
-      'initials': 'BS',
-      'name': 'B. Simhachalam',
-      'role': 'Librarian • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'librarian',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Library',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:45 AM',
-      'phone': '+91 97000 77889',
-    },
-    {
-      'initials': 'GD',
-      'name': 'G. Dhanalakshmi',
-      'role': 'Librarian • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'librarian',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Library',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:40 AM',
-      'phone': '+91 91212 88990',
-    },
-    {
-      'initials': 'PR',
-      'name': 'P. Rambabu',
-      'role': 'Librarian • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'librarian',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Library',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:55 AM',
-      'phone': '+91 98491 99001',
-    },
-    {
-      'initials': 'MA',
-      'name': 'M. Apparao',
-      'role': 'Librarian • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'librarian',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Library',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:35 AM',
-      'phone': '+91 94401 00112',
-    },
-    {
-      'initials': 'KR',
-      'name': 'K. Ramesh',
-      'role': 'Administrative Officer • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'admin-officer',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:30 AM',
-      'phone': '+91 91210 44556',
-    },
-    {
-      'initials': 'PS',
-      'name': 'P. S. Murthy',
-      'role': 'Administrative Officer • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'admin-officer',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:40 AM',
-      'phone': '+91 97011 11223',
-    },
-    {
-      'initials': 'AV',
-      'name': 'Dr. A. V. Rao',
-      'role': 'Principal • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'principal',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:00 AM',
-      'phone': '+91 94401 22334',
-    },
-    {
-      'initials': 'KS',
-      'name': 'K. Swamy',
-      'role': 'Principal • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'principal',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:15 AM',
-      'phone': '+91 98492 22334',
-    },
-    {
-      'initials': 'VR',
-      'name': 'V. R. Sharma',
-      'role': 'Account Manager • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'account-mgr',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Accounts',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:45 AM',
-      'phone': '+91 98450 11223',
-    },
-    {
-      'initials': 'GA',
-      'name': 'G. Appa Rao',
-      'role': 'Bus Attendant • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'bus-attendant',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Transport',
-      'shift': 'morning',
-      'status': 'Absent',
-      'subStatus': '08:10 AM',
-      'phone': '+91 93910 11223',
-    },
-    {
-      'initials': 'DS',
-      'name': 'D. Somulu',
-      'role': 'Hostel Warden • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'hostel-warden',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Hostel',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '07:45 AM',
-      'phone': '+91 98852 11223',
-    },
-    {
-      'initials': 'KP',
-      'name': 'K. Padmavati',
-      'role': 'Receptionist • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'receptionist',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Administration',
-      'shift': 'general',
-      'status': 'Present',
-      'subStatus': '08:25 AM',
-      'phone': '+91 97766 22334',
-    },
-    {
-      'initials': 'RK',
-      'name': 'Rajesh Kumar',
-      'role': 'Transport Manager • Steel Plant Branch',
-      'category': 'non-teaching',
-      'subRole': 'transport-mgr',
-      'branchId': 'steel-plant',
-      'branchName': 'Steel Plant Branch',
-      'department': 'Transport',
-      'shift': 'morning',
-      'status': 'Present',
-      'subStatus': '08:15 AM',
-      'phone': '+91 98852 44321',
-    },
+      {
+        'initials': 'MA',
+        'name': 'M. Ananya',
+        'role': 'TGT English • Gachibowli Campus',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'department': 'English',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:48 AM',
+        'phone': '+91 94401 56789',
+      },
+      {
+        'initials': 'RV',
+        'name': 'R. Verma',
+        'role': 'PGT Physics • Gachibowli Campus',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'department': 'Physics',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:35 AM',
+        'phone': '+91 98491 23456',
+      },
+      {
+        'initials': 'BP',
+        'name': 'B. Prabhakar',
+        'role': 'Administrative Officer • Gachibowli Campus',
+        'category': 'non-teaching',
+        'subRole': 'admin-officer',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:35 AM',
+        'phone': '+91 97011 55667',
+      },
+      {
+        'initials': 'MS',
+        'name': 'Mrs. Meenakshi S.',
+        'role': 'Principal • Gachibowli Campus',
+        'category': 'non-teaching',
+        'subRole': 'principal',
+        'branchId': 'gachibowli',
+        'branchName': 'Gachibowli Campus',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:10 AM',
+        'phone': '+91 98492 33445',
+      },
+      {
+        'initials': 'KS',
+        'name': 'K. Sneha',
+        'role': 'PRT Science • Kondapur Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'department': 'Science',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:30 AM',
+        'phone': '+91 97766 55443',
+      },
+      {
+        'initials': 'VN',
+        'name': 'V. Nair',
+        'role': 'TGT Social • Kondapur Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'department': 'Social Studies',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:40 AM',
+        'phone': '+91 98855 12345',
+      },
+      {
+        'initials': 'SS',
+        'name': 'S. Sharma',
+        'role': 'Administrative Officer • Kondapur Branch',
+        'category': 'non-teaching',
+        'subRole': 'admin-officer',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:25 AM',
+        'phone': '+91 97000 88214',
+      },
+      {
+        'initials': 'KS',
+        'name': 'Dr. K. Srinivas',
+        'role': 'Principal • Kondapur Branch',
+        'category': 'non-teaching',
+        'subRole': 'principal',
+        'branchId': 'kondapur',
+        'branchName': 'Kondapur Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:05 AM',
+        'phone': '+91 98480 11223',
+      },
+      {
+        'initials': 'PD',
+        'name': 'P. Deepika',
+        'role': 'TGT Telugu • Kukatpally Campus',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'department': 'Telugu',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:25 AM',
+        'phone': '+91 94411 22334',
+      },
+      {
+        'initials': 'AK',
+        'name': 'A. Karthik',
+        'role': 'TGT Hindi • Kukatpally Campus',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'department': 'Hindi',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:35 AM',
+        'phone': '+91 93910 33412',
+      },
+      {
+        'initials': 'NR',
+        'name': 'N. Rao',
+        'role': 'Administrative Officer • Kukatpally Campus',
+        'category': 'non-teaching',
+        'subRole': 'admin-officer',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:30 AM',
+        'phone': '+91 91210 44556',
+      },
+      {
+        'initials': 'RV',
+        'name': 'Mrs. Radhika V.',
+        'role': 'Principal • Kukatpally Campus',
+        'category': 'non-teaching',
+        'subRole': 'principal',
+        'branchId': 'kukatpally',
+        'branchName': 'Kukatpally Campus',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:00 AM',
+        'phone': '+91 98844 55667',
+      },
+      {
+        'initials': 'GS',
+        'name': 'G. Srinivas',
+        'role': 'TGT Maths • Maddipalem Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'department': 'Mathematics',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:30 AM',
+        'phone': '+91 98844 55667',
+      },
+      {
+        'initials': 'LB',
+        'name': 'L. Bhavani',
+        'role': 'PRT English • Maddipalem Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'department': 'English',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:45 AM',
+        'phone': '+91 99887 66554',
+      },
+      {
+        'initials': 'SV',
+        'name': 'S. Venkat',
+        'role': 'Administrative Officer • Maddipalem Branch',
+        'category': 'non-teaching',
+        'subRole': 'admin-officer',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:35 AM',
+        'phone': '+91 91212 99011',
+      },
+      {
+        'initials': 'TA',
+        'name': 'T. Anand',
+        'role': 'Administrative Officer • Maddipalem Branch',
+        'category': 'non-teaching',
+        'subRole': 'admin-officer',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:40 AM',
+        'phone': '+91 97011 22334',
+      },
+      {
+        'initials': 'VP',
+        'name': 'Dr. V. Prasad',
+        'role': 'Principal • Maddipalem Branch',
+        'category': 'non-teaching',
+        'subRole': 'principal',
+        'branchId': 'maddipalem',
+        'branchName': 'Maddipalem Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:15 AM',
+        'phone': '+91 98450 66778',
+      },
+      {
+        'initials': 'DS',
+        'name': 'D. Sandeep',
+        'role': 'TGT Computers • Madhapur Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'department': 'Computers',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:40 AM',
+        'phone': '+91 94401 22334',
+      },
+      {
+        'initials': 'BP',
+        'name': 'B. Priya',
+        'role': 'PRT Art • Madhapur Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'department': 'Arts & Crafts',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:50 AM',
+        'phone': '+91 98490 33445',
+      },
+      {
+        'initials': 'MV',
+        'name': 'M. V. Reddy',
+        'role': 'Administrative Officer • Madhapur Branch',
+        'category': 'non-teaching',
+        'subRole': 'admin-officer',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:30 AM',
+        'phone': '+91 91234 56780',
+      },
+      {
+        'initials': 'SD',
+        'name': 'Mrs. Sunita D.',
+        'role': 'Principal • Madhapur Branch',
+        'category': 'non-teaching',
+        'subRole': 'principal',
+        'branchId': 'madhapur',
+        'branchName': 'Madhapur Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:10 AM',
+        'phone': '+91 97766 11223',
+      },
+      {
+        'initials': 'KS',
+        'name': 'Dr. K. S. Rao',
+        'role': 'Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Physics',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:42 AM',
+        'phone': '+91 98490 12345',
+      },
+      {
+        'initials': 'MS',
+        'name': 'M. Suresh',
+        'role': 'Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Chemistry',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:35 AM',
+        'phone': '+91 94401 67890',
+      },
+      {
+        'initials': 'CL',
+        'name': 'Ch. Lakshmi',
+        'role': 'Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Biology',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:40 AM',
+        'phone': '+91 98492 45678',
+      },
+      {
+        'initials': 'BN',
+        'name': 'B. Naidu',
+        'role': 'Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'English',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:30 AM',
+        'phone': '+91 97011 34567',
+      },
+      {
+        'initials': 'SR',
+        'name': 'S. Ramana',
+        'role': 'Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Telugu',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:45 AM',
+        'phone': '+91 91210 56789',
+      },
+      {
+        'initials': 'KA',
+        'name': 'K. Appalaraju',
+        'role': 'Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Social',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:25 AM',
+        'phone': '+91 93910 67890',
+      },
+      {
+        'initials': 'PS',
+        'name': 'P. Satyavathi',
+        'role': 'Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Hindi',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:38 AM',
+        'phone': '+91 98852 78901',
+      },
+      {
+        'initials': 'DJ',
+        'name': 'D. Jagadeesh',
+        'role': 'Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Computers',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:50 AM',
+        'phone': '+91 98450 89012',
+      },
+      {
+        'initials': 'TU',
+        'name': 'T. Uma',
+        'role': 'Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Mathematics',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:32 AM',
+        'phone': '+91 97766 90123',
+      },
+      {
+        'initials': 'KV',
+        'name': 'K. V. Subbarao',
+        'role': 'Senior Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Academics',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:20 AM',
+        'phone': '+91 94411 01234',
+      },
+      {
+        'initials': 'VG',
+        'name': 'V. Govinda Rao',
+        'role': 'Maths Teacher • Steel Plant Branch',
+        'category': 'teaching',
+        'subRole': 'teaching',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Mathematics',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:28 AM',
+        'phone': '+91 99887 12345',
+      },
+      {
+        'initials': 'LV',
+        'name': 'L. Varalakshmi',
+        'role': 'Librarian • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'librarian',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Library',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:50 AM',
+        'phone': '+91 98855 66778',
+      },
+      {
+        'initials': 'BS',
+        'name': 'B. Simhachalam',
+        'role': 'Librarian • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'librarian',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Library',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:45 AM',
+        'phone': '+91 97000 77889',
+      },
+      {
+        'initials': 'GD',
+        'name': 'G. Dhanalakshmi',
+        'role': 'Librarian • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'librarian',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Library',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:40 AM',
+        'phone': '+91 91212 88990',
+      },
+      {
+        'initials': 'PR',
+        'name': 'P. Rambabu',
+        'role': 'Librarian • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'librarian',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Library',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:55 AM',
+        'phone': '+91 98491 99001',
+      },
+      {
+        'initials': 'MA',
+        'name': 'M. Apparao',
+        'role': 'Librarian • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'librarian',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Library',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:35 AM',
+        'phone': '+91 94401 00112',
+      },
+      {
+        'initials': 'KR',
+        'name': 'K. Ramesh',
+        'role': 'Administrative Officer • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'admin-officer',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:30 AM',
+        'phone': '+91 91210 44556',
+      },
+      {
+        'initials': 'PS',
+        'name': 'P. S. Murthy',
+        'role': 'Administrative Officer • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'admin-officer',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:40 AM',
+        'phone': '+91 97011 11223',
+      },
+      {
+        'initials': 'AV',
+        'name': 'Dr. A. V. Rao',
+        'role': 'Principal • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'principal',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:00 AM',
+        'phone': '+91 94401 22334',
+      },
+      {
+        'initials': 'KS',
+        'name': 'K. Swamy',
+        'role': 'Principal • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'principal',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:15 AM',
+        'phone': '+91 98492 22334',
+      },
+      {
+        'initials': 'VR',
+        'name': 'V. R. Sharma',
+        'role': 'Account Manager • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'account-mgr',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Accounts',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:45 AM',
+        'phone': '+91 98450 11223',
+      },
+      {
+        'initials': 'GA',
+        'name': 'G. Appa Rao',
+        'role': 'Bus Attendant • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'bus-attendant',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Transport',
+        'shift': 'morning',
+        'status': 'Absent',
+        'subStatus': '08:10 AM',
+        'phone': '+91 93910 11223',
+      },
+      {
+        'initials': 'DS',
+        'name': 'D. Somulu',
+        'role': 'Hostel Warden • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'hostel-warden',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Hostel',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '07:45 AM',
+        'phone': '+91 98852 11223',
+      },
+      {
+        'initials': 'KP',
+        'name': 'K. Padmavati',
+        'role': 'Receptionist • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'receptionist',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Administration',
+        'shift': 'general',
+        'status': 'Present',
+        'subStatus': '08:25 AM',
+        'phone': '+91 97766 22334',
+      },
+      {
+        'initials': 'RK',
+        'name': 'Rajesh Kumar',
+        'role': 'Transport Manager • Steel Plant Branch',
+        'category': 'non-teaching',
+        'subRole': 'transport-mgr',
+        'branchId': 'steel-plant',
+        'branchName': 'Steel Plant Branch',
+        'department': 'Transport',
+        'shift': 'morning',
+        'status': 'Present',
+        'subStatus': '08:15 AM',
+        'phone': '+91 98852 44321',
+      },
     ];
     return _cachedAllStaffList!;
   }
@@ -2403,14 +2404,16 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
     final systemOverlayStyle = SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness:
-          _isArcMenuOpen ? Brightness.light : Brightness.dark,
-      statusBarBrightness:
-          _isArcMenuOpen ? Brightness.dark : Brightness.light,
-      systemNavigationBarColor:
-          _isArcMenuOpen ? const Color(0xFF0F172A) : const Color(0xFFF6F8FC),
-      systemNavigationBarIconBrightness:
-          _isArcMenuOpen ? Brightness.light : Brightness.dark,
+      statusBarIconBrightness: _isArcMenuOpen
+          ? Brightness.light
+          : Brightness.dark,
+      statusBarBrightness: _isArcMenuOpen ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: _isArcMenuOpen
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF6F8FC),
+      systemNavigationBarIconBrightness: _isArcMenuOpen
+          ? Brightness.light
+          : Brightness.dark,
     );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -2999,21 +3002,30 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   Widget _buildRotatingCircularKpiStage(Map<String, dynamic>? group) {
     // Dynamic values from backend
     final students = group?['students'] ?? 122;
-    final studentsDelta = group?['studentsDelta'] != null ? '+${group!['studentsDelta']}%' : '+11.9%';
+    final studentsDelta = group?['studentsDelta'] != null
+        ? '+${group!['studentsDelta']}%'
+        : '+11.9%';
 
     final rawRev = group?['revenueYTD'] ?? group?['revenue'];
     final ytdRevenue = rawRev is num
         ? '₹${(rawRev / 10000000).toStringAsFixed(1)} Cr'
         : (rawRev?.toString() ?? '₹1.4 Cr');
-    final revenueDelta = group?['revenueDelta'] != null ? '+${group!['revenueDelta']}%' : '+0%';
+    final revenueDelta = group?['revenueDelta'] != null
+        ? '+${group!['revenueDelta']}%'
+        : '+0%';
 
     final collectionPct = (group?['collectionPct'] as num?)?.toDouble() ?? 68.2;
 
-    final attStudents = _dashboardData?['attendance']?['students'] as Map<String, dynamic>?;
+    final attStudents =
+        _dashboardData?['attendance']?['students'] as Map<String, dynamic>?;
     final stuPres = (attStudents?['present'] as num?)?.toInt() ?? 22;
-    final stuRoster = (attStudents?['roster'] as num?)?.toInt() ?? (students is int ? students : 122);
+    final stuRoster =
+        (attStudents?['roster'] as num?)?.toInt() ??
+        (students is int ? students : 122);
     final studentAttendance = '$stuPres/$stuRoster';
-    final stuPct = (attStudents?['attendancePct'] as num?)?.toDouble() ?? (stuRoster > 0 ? (stuPres / stuRoster * 100) : 0.0);
+    final stuPct =
+        (attStudents?['attendancePct'] as num?)?.toDouble() ??
+        (stuRoster > 0 ? (stuPres / stuRoster * 100) : 0.0);
     final stuBadge = '${stuPct.toStringAsFixed(1)}%';
 
     final rawCash = group?['cashToday'] ?? group?['cashCollectedToday'];
@@ -3021,15 +3033,22 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         ? '₹${(rawCash / 100000).toStringAsFixed(1)} L'
         : (rawCash?.toString() ?? '₹0.2 L');
 
-    final newAdmissions = group?['newAdmissionsMTD'] ?? group?['newAdmissions'] ?? 25;
+    final newAdmissions =
+        group?['newAdmissionsMTD'] ?? group?['newAdmissions'] ?? 25;
     final staffFilled = group?['staffFilled'] ?? group?['staffCount'] ?? 46;
     final staffVacant = group?['staffVacant'] ?? 23;
-    final studentAttrition = (group?['attritionPct'] ?? group?['attrition'] as num?)?.toDouble() ?? 4.9;
-    final operatingMargin = (group?['ebitdaMargin'] as num?)?.toDouble() ?? 35.9;
+    final studentAttrition =
+        (group?['attritionPct'] ?? group?['attrition'] as num?)?.toDouble() ??
+        4.9;
+    final operatingMargin =
+        (group?['ebitdaMargin'] as num?)?.toDouble() ?? 35.9;
 
-    final attStaff = _dashboardData?['attendance']?['staff'] as Map<String, dynamic>?;
+    final attStaff =
+        _dashboardData?['attendance']?['staff'] as Map<String, dynamic>?;
     final staffPres = (attStaff?['present'] as num?)?.toInt() ?? 0;
-    final staffRoster = (attStaff?['roster'] as num?)?.toInt() ?? (staffFilled is int ? staffFilled : 46);
+    final staffRoster =
+        (attStaff?['roster'] as num?)?.toInt() ??
+        (staffFilled is int ? staffFilled : 46);
     final staffAttendance = '$staffPres/$staffRoster';
     final staffAbsent = (attStaff?['absent'] as num?)?.toInt() ?? 1;
 
@@ -3040,7 +3059,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
     final criticalAlerts = group?['alertsCritical'] ?? 4;
 
-    final categories = ['Core Performance', 'Cash & Staffing', 'Operations & Margins'];
+    final categories = [
+      'Core Performance',
+      'Cash & Staffing',
+      'Operations & Margins',
+    ];
     final categoryName = categories[_activeKpiSet];
 
     // 3 sets × 4 cards = 12 metrics matching exact web reference screen
@@ -3276,7 +3299,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 height: circleSize + 28,
                 child: PageView.builder(
                   controller: _kpiPageController,
-                  physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
+                  physics: const PageScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
                   onPageChanged: (idx) {
                     setState(() {
                       _activeKpiSet = idx;
@@ -3290,7 +3315,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       children: cards.map((c) {
                         return Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 2.0,
+                            ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -3307,12 +3334,16 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF7C3AED).withValues(alpha: 0.16),
+                                        color: const Color(
+                                          0xFF7C3AED,
+                                        ).withValues(alpha: 0.16),
                                         blurRadius: 10,
                                         offset: const Offset(0, 4),
                                       ),
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.04),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.04,
+                                        ),
                                         blurRadius: 4,
                                         offset: const Offset(0, 1),
                                       ),
@@ -3322,31 +3353,40 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       // Increased font size for inside numbers with auto-scaling for ratios
-                                      Builder(builder: (context) {
-                                        final valStr = c['value'] as String;
-                                        final dynamicNumFontSize = valStr.length > 5
-                                            ? (circleSize >= 64 ? 13.0 : 12.0)
-                                            : numFontSize;
-                                        return Text(
-                                          valStr,
-                                          style: TextStyle(
-                                            color: c['valColor'] as Color,
-                                            fontSize: dynamicNumFontSize,
-                                            fontWeight: FontWeight.w900,
-                                            letterSpacing: -0.4,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        );
-                                      }),
+                                      Builder(
+                                        builder: (context) {
+                                          final valStr = c['value'] as String;
+                                          final dynamicNumFontSize =
+                                              valStr.length > 5
+                                              ? (circleSize >= 64 ? 13.0 : 12.0)
+                                              : numFontSize;
+                                          return Text(
+                                            valStr,
+                                            style: TextStyle(
+                                              color: c['valColor'] as Color,
+                                              fontSize: dynamicNumFontSize,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: -0.4,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          );
+                                        },
+                                      ),
                                       const SizedBox(height: 2),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: c['badgeBg'] as Color,
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                           border: Border.all(
-                                            color: (c['badgeColor'] as Color).withValues(alpha: 0.2),
+                                            color: (c['badgeColor'] as Color)
+                                                .withValues(alpha: 0.2),
                                             width: 0.8,
                                           ),
                                         ),
@@ -3417,20 +3457,28 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // ===========================================================================
   Widget _buildFinancialPerformanceCard(Map<String, dynamic>? group) {
     final collection = _dashboardData?['collection'] as Map<String, dynamic>?;
-    final colPct = (collection?['collectionPct'] as num?)?.toDouble() ??
+    final colPct =
+        (collection?['collectionPct'] as num?)?.toDouble() ??
         (group?['collectionPct'] as num?)?.toDouble() ??
         68.2;
     final duePct = (collection?['duePct'] as num?)?.toDouble() ?? 18.4;
     final overduePct = (collection?['overduePct'] as num?)?.toDouble() ?? 13.3;
 
-    final rawCollected = collection?['collected'] ?? group?['collectedYTD'] ?? 9658180;
-    final colStr = rawCollected is num ? '₹${(rawCollected / 100000).toStringAsFixed(1)} L' : '₹96.6 L';
+    final rawCollected =
+        collection?['collected'] ?? group?['collectedYTD'] ?? 9658180;
+    final colStr = rawCollected is num
+        ? '₹${(rawCollected / 100000).toStringAsFixed(1)} L'
+        : '₹96.6 L';
 
     final rawDue = collection?['due'] ?? 2608167;
-    final dueStr = rawDue is num ? '₹${(rawDue / 100000).toStringAsFixed(1)} L' : '₹26.1 L';
+    final dueStr = rawDue is num
+        ? '₹${(rawDue / 100000).toStringAsFixed(1)} L'
+        : '₹26.1 L';
 
     final rawOverdue = collection?['overdue'] ?? 1888673;
-    final overdueStr = rawOverdue is num ? '₹${(rawOverdue / 100000).toStringAsFixed(1)} L' : '₹18.9 L';
+    final overdueStr = rawOverdue is num
+        ? '₹${(rawOverdue / 100000).toStringAsFixed(1)} L'
+        : '₹18.9 L';
 
     final aging = collection?['aging'] as Map<String, dynamic>?;
     final num a0 = (aging?['current'] as num?) ?? 2608167;
@@ -3440,10 +3488,18 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final num totalOut = a0 + a30 + a60 + a90;
     final totalOutStr = '₹${(totalOut / 100000).toStringAsFixed(1)} L Total';
 
-    final a0Pct = totalOut > 0 ? (a0 / totalOut * 100).toStringAsFixed(1) : '58.0';
-    final a30Pct = totalOut > 0 ? (a30 / totalOut * 100).toStringAsFixed(1) : '21.0';
-    final a60Pct = totalOut > 0 ? (a60 / totalOut * 100).toStringAsFixed(1) : '12.6';
-    final a90Pct = totalOut > 0 ? (a90 / totalOut * 100).toStringAsFixed(1) : '8.4';
+    final a0Pct = totalOut > 0
+        ? (a0 / totalOut * 100).toStringAsFixed(1)
+        : '58.0';
+    final a30Pct = totalOut > 0
+        ? (a30 / totalOut * 100).toStringAsFixed(1)
+        : '21.0';
+    final a60Pct = totalOut > 0
+        ? (a60 / totalOut * 100).toStringAsFixed(1)
+        : '12.6';
+    final a90Pct = totalOut > 0
+        ? (a90 / totalOut * 100).toStringAsFixed(1)
+        : '8.4';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -3535,7 +3591,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.circle, color: Color(0xFF10B981), size: 5),
+                        const Icon(
+                          Icons.circle,
+                          color: Color(0xFF10B981),
+                          size: 5,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'EBITDA ${(group?['ebitdaMargin'] ?? 35.9)}%',
@@ -3642,8 +3702,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   width: double.infinity,
                   child: CustomPaint(
                     painter: CashTrajectoryPainter(
-                      ebitdaMargin: (group?['ebitdaMargin'] as num?)?.toDouble() ?? 35.9,
-                      collectionPct: (group?['collectionPct'] as num?)?.toDouble() ?? 68.2,
+                      ebitdaMargin:
+                          (group?['ebitdaMargin'] as num?)?.toDouble() ?? 35.9,
+                      collectionPct:
+                          (group?['collectionPct'] as num?)?.toDouble() ?? 68.2,
                     ),
                   ),
                 ),
@@ -4014,7 +4076,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final sorted = List<Map<String, dynamic>>.from(
       branches.map((e) => e as Map<String, dynamic>),
     );
-    sorted.sort((a, b) => ((b['revenue'] as num?) ?? 0).compareTo((a['revenue'] as num?) ?? 0));
+    sorted.sort(
+      (a, b) =>
+          ((b['revenue'] as num?) ?? 0).compareTo((a['revenue'] as num?) ?? 0),
+    );
     final top3 = sorted.take(3).toList();
 
     return Container(
@@ -4085,7 +4150,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               final stu = b['students'] ?? 0;
               final teachers = b['teachers'] ?? b['staffTeach'] ?? 2;
               final rev = b['revenue'];
-              final revStr = rev is num ? '₹${(rev / 100000).toStringAsFixed(1)} L Rev' : '₹0.0 L Rev';
+              final revStr = rev is num
+                  ? '₹${(rev / 100000).toStringAsFixed(1)} L Rev'
+                  : '₹0.0 L Rev';
               final health = b['health'] ?? 75;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 6.0),
@@ -4200,11 +4267,16 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Covers Feature: Performance quadrant (branch benchmarking)
   // ===========================================================================
   Widget _buildPerformanceQuadrantCard(List<dynamic> branches) {
-    final branchList = (branches.isNotEmpty ? branches : (_dashboardData?['branches'] as List<dynamic>? ?? []));
+    final branchList = (branches.isNotEmpty
+        ? branches
+        : (_dashboardData?['branches'] as List<dynamic>? ?? []));
     final group = _dashboardData?['group'] as Map<String, dynamic>?;
-    final double avgCollection = (group?['collectionPct'] as num?)?.toDouble() ?? 68.2;
-    final double avgAttendance = (group?['attendance'] as num?)?.toDouble() ?? 92.1;
-    final List<Map<String, dynamic>> branchQuadrantData = branchList.asMap().entries.map((entry) {
+    final double avgCollection =
+        (group?['collectionPct'] as num?)?.toDouble() ?? 68.2;
+    final double avgAttendance =
+        (group?['attendance'] as num?)?.toDouble() ?? 92.1;
+    final List<Map<String, dynamic>>
+    branchQuadrantData = branchList.asMap().entries.map((entry) {
       final idx = entry.key;
       final b = entry.value as Map<String, dynamic>;
       final name = b['name']?.toString() ?? 'Branch';
@@ -4403,22 +4475,21 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Covers Feature: Branch comparison (health-weighted)
   // ===========================================================================
   Widget _buildBranchComparisonHealthCard(List<dynamic> branches) {
-    final branchList = (branches.isNotEmpty ? branches : (_dashboardData?['branches'] as List<dynamic>? ?? []));
+    final branchList = (branches.isNotEmpty
+        ? branches
+        : (_dashboardData?['branches'] as List<dynamic>? ?? []));
     final branchesData = branchList.asMap().entries.map((entry) {
       final idx = entry.key;
       final m = entry.value as Map<String, dynamic>;
       final name = m['name']?.toString() ?? 'Branch';
       final health = (m['health'] as num?)?.toInt() ?? 75;
       final rev = m['revenue'];
-      final revStr = rev is num ? '₹${(rev / 100000).toStringAsFixed(1)} L' : '₹0.0 L';
+      final revStr = rev is num
+          ? '₹${(rev / 100000).toStringAsFixed(1)} L'
+          : '₹0.0 L';
       final col = _getBranchColor(name, idx);
 
-      return {
-        'name': name,
-        'pct': health,
-        'rev': revStr,
-        'color': col,
-      };
+      return {'name': name, 'pct': health, 'rev': revStr, 'color': col};
     }).toList();
 
     branchesData.sort((a, b) => (b['pct'] as int).compareTo(a['pct'] as int));
@@ -4605,16 +4676,22 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // Card 1 Component: Critical alerts
   Widget _buildCriticalAlertsFeedCard(List<dynamic> alerts) {
-    final alertList = (alerts.isNotEmpty ? alerts : (_dashboardData?['alerts'] as List<dynamic>? ?? []));
+    final alertList = (alerts.isNotEmpty
+        ? alerts
+        : (_dashboardData?['alerts'] as List<dynamic>? ?? []));
     final alertItems = alertList.isNotEmpty
         ? alertList.take(6).map((al) {
             final m = al as Map<String, dynamic>;
-            final id = m['id']?.toString() ?? 'alt-${m['branch']}-${m['text'] ?? m['title']}';
+            final id =
+                m['id']?.toString() ??
+                'alt-${m['branch']}-${m['text'] ?? m['title']}';
             final type = (m['type']?.toString() ?? 'ALERT').toUpperCase();
             final time = m['time']?.toString() ?? 'today';
             final title = m['text']?.toString() ?? m['title']?.toString() ?? '';
             final branch = m['branch']?.toString() ?? '';
-            final level = (m['level'] ?? m['severity'])?.toString().toLowerCase();
+            final level = (m['level'] ?? m['severity'])
+                ?.toString()
+                .toLowerCase();
             final isRose = level == 'critical' || level == 'danger';
             return {
               'id': id,
@@ -4821,10 +4898,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             final id = m['id']?.toString() ?? 'apr-${m['type']}-${m['branch']}';
             final type = m['type']?.toString() ?? 'Approval';
             final text = m['text']?.toString() ?? '';
-            final title = m['title']?.toString() ?? (text.isNotEmpty ? '$type · $text' : type);
+            final title =
+                m['title']?.toString() ??
+                (text.isNotEmpty ? '$type · $text' : type);
             final branch = m['branch']?.toString() ?? '';
             final age = m['age']?.toString() ?? '';
-            final meta = m['meta']?.toString() ?? (age.isNotEmpty ? '$branch · $age waiting' : branch);
+            final meta =
+                m['meta']?.toString() ??
+                (age.isNotEmpty ? '$branch · $age waiting' : branch);
             final num? amt = m['amount'] as num?;
             String amtStr = '';
             if (amt != null && amt > 0) {
@@ -4832,12 +4913,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   ? '₹${(amt / 100000).toStringAsFixed(1)} L'
                   : '₹${amt.toInt()}';
             }
-            return {
-              'id': id,
-              'title': title,
-              'meta': meta,
-              'amount': amtStr,
-            };
+            return {'id': id, 'title': title, 'meta': meta, 'amount': amtStr};
           }).toList()
         : [
             {
@@ -5032,28 +5108,49 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         ? rawFunnel.asMap().entries.map((entry) {
             final idx = entry.key;
             final m = entry.value as Map<String, dynamic>;
-            final label = m['stage']?.toString() ?? m['label']?.toString() ?? '';
-            final count = (m['value'] as num?)?.toInt() ?? (m['count'] as num?)?.toInt() ?? 0;
-            final pct = (m['pct'] as num?)?.round() ?? ((count / maxVal) * 100).clamp(10, 100).round();
+            final label =
+                m['stage']?.toString() ?? m['label']?.toString() ?? '';
+            final count =
+                (m['value'] as num?)?.toInt() ??
+                (m['count'] as num?)?.toInt() ??
+                0;
+            final pct =
+                (m['pct'] as num?)?.round() ??
+                ((count / maxVal) * 100).clamp(10, 100).round();
             String sub = '';
             if (idx > 0 && prevCount > 0) {
               final stepConv = ((count / prevCount) * 100).round();
               sub = '↳ $stepConv% step conversion';
             }
             prevCount = count;
-            return {
-              'label': label,
-              'count': count,
-              'pct': pct,
-              'sub': sub,
-            };
+            return {'label': label, 'count': count, 'pct': pct, 'sub': sub};
           }).toList()
         : [
             {'label': 'Enquiries', 'count': 16, 'pct': 64, 'sub': ''},
-            {'label': 'Applications', 'count': 25, 'pct': 100, 'sub': '↳ 156% step conversion'},
-            {'label': 'Shortlisted', 'count': 9, 'pct': 36, 'sub': '↳ 36% step conversion'},
-            {'label': 'Admitted', 'count': 8, 'pct': 32, 'sub': '↳ 89% step conversion'},
-            {'label': 'Enrolled', 'count': 2, 'pct': 8, 'sub': '↳ 25% step conversion'},
+            {
+              'label': 'Applications',
+              'count': 25,
+              'pct': 100,
+              'sub': '↳ 156% step conversion',
+            },
+            {
+              'label': 'Shortlisted',
+              'count': 9,
+              'pct': 36,
+              'sub': '↳ 36% step conversion',
+            },
+            {
+              'label': 'Admitted',
+              'count': 8,
+              'pct': 32,
+              'sub': '↳ 89% step conversion',
+            },
+            {
+              'label': 'Enrolled',
+              'count': 2,
+              'pct': 8,
+              'sub': '↳ 25% step conversion',
+            },
           ];
 
     return Container(
@@ -5157,13 +5254,21 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   void _openBranchDropdown(BuildContext context, BranchGroupNode treeData) {
     HapticFeedback.selectionClick();
-    final renderBox = _branchDropdownKey.currentContext?.findRenderObject() as RenderBox?;
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+    final renderBox =
+        _branchDropdownKey.currentContext?.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
 
     RelativeRect position = const RelativeRect.fromLTRB(100, 160, 100, 0);
     if (renderBox != null && overlay != null) {
-      final buttonTopLeft = renderBox.localToGlobal(Offset.zero, ancestor: overlay);
-      final buttonBottomRight = renderBox.localToGlobal(renderBox.size.bottomRight(Offset.zero), ancestor: overlay);
+      final buttonTopLeft = renderBox.localToGlobal(
+        Offset.zero,
+        ancestor: overlay,
+      );
+      final buttonBottomRight = renderBox.localToGlobal(
+        renderBox.size.bottomRight(Offset.zero),
+        ancestor: overlay,
+      );
       position = RelativeRect.fromLTRB(
         buttonTopLeft.dx,
         buttonBottomRight.dy + 4,
@@ -5172,10 +5277,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       );
     }
 
-    final options = [
-      'All branches',
-      ...treeData.branches.map((b) => b.name),
-    ];
+    final options = ['All branches', ...treeData.branches.map((b) => b.name)];
 
     showMenu<String>(
       context: context,
@@ -5189,7 +5291,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       ),
       items: options.map((opt) {
         final isSel = opt == _branchSelectedFilter;
-        final matchingBranch = (opt == 'All branches' || treeData.branches.isEmpty)
+        final matchingBranch =
+            (opt == 'All branches' || treeData.branches.isEmpty)
             ? null
             : treeData.branches.where((b) => b.name == opt).firstOrNull;
         return PopupMenuItem<String>(
@@ -5223,7 +5326,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
-                    color: isSel ? const Color(0xFF7C3AED) : const Color(0xFF0F172A),
+                    color: isSel
+                        ? const Color(0xFF7C3AED)
+                        : const Color(0xFF0F172A),
                   ),
                 ),
               ),
@@ -5250,18 +5355,23 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // --- Sub-Views (Branch Tree, Student 360, Finance, Ops) ---
   Widget _buildBranchTreeView([List<dynamic>? branches]) {
-    final treeData = _branchTreeData ??
+    final treeData =
+        _branchTreeData ??
         (branches != null && branches.isNotEmpty
             ? BranchService.parseFromDashboard(
                 {
-                  'orgName': _dashboardData?['orgName'] ?? widget.user.organizationName,
+                  'orgName':
+                      _dashboardData?['orgName'] ??
+                      widget.user.organizationName,
                   'group': _dashboardData?['group'],
                   'branches': branches,
                 },
-                orgName: _dashboardData?['orgName'] ?? widget.user.organizationName,
+                orgName:
+                    _dashboardData?['orgName'] ?? widget.user.organizationName,
               )
             : BranchGroupNode.empty(
-                orgName: _dashboardData?['orgName'] ?? widget.user.organizationName,
+                orgName:
+                    _dashboardData?['orgName'] ?? widget.user.organizationName,
               ));
     final query = _branchSearchQuery.toLowerCase();
     final filteredBranches = treeData.branches.where((b) {
@@ -5420,10 +5530,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
@@ -7149,10 +7256,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildOperationsView(List<dynamic> branches) {
-    return PeopleOpsView(
-      branches: branches,
-      dashboardData: _dashboardData,
-    );
+    return PeopleOpsView(branches: branches, dashboardData: _dashboardData);
   }
 
   Widget _buildClassesView() {
@@ -7284,24 +7388,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
 
-  String _formatDateShort(DateTime d) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[d.month - 1]} ${d.day}, ${d.year}';
-  }
-
   Future<void> _selectAttendanceDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -7404,7 +7490,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             for (final entry in rawByBranch.entries) {
               final eName = entry.key.toLowerCase();
               final eSlug = _getBranchSlug(eName);
-              if (eSlug == bSlug || bName.contains(eName) || eName.contains(bName)) {
+              if (eSlug == bSlug ||
+                  bName.contains(eName) ||
+                  eName.contains(bName)) {
                 if (entry.value is Map<String, dynamic>) {
                   b['attendanceCounts'] = entry.value;
                 }
@@ -7431,7 +7519,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         final aCount = (stu['absent'] as num?)?.toInt() ?? 0;
         final lCount = (stu['leave'] as num?)?.toInt() ?? 0;
 
-        final branchStudents = allStudents.where((s) => s['branchId'] == branchSlug).toList();
+        final branchStudents = allStudents
+            .where((s) => s['branchId'] == branchSlug)
+            .toList();
         int idx = 0;
         for (int i = 0; i < aCount && idx < branchStudents.length; i++, idx++) {
           branchStudents[idx]['status'] = 'Absent';
@@ -7454,7 +7544,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         final aCount = (staff['absent'] as num?)?.toInt() ?? 0;
         final lCount = (staff['leave'] as num?)?.toInt() ?? 0;
 
-        final branchStaff = allStaff.where((st) => st['branchId'] == branchSlug).toList();
+        final branchStaff = allStaff
+            .where((st) => st['branchId'] == branchSlug)
+            .toList();
         int idx = 0;
         for (int i = 0; i < lCount && idx < branchStaff.length; i++, idx++) {
           branchStaff[idx]['status'] = 'On Leave';
@@ -7655,22 +7747,22 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         final id = lower.contains('steel')
             ? 'steel-plant'
             : lower.contains('gachi')
-                ? 'gachibowli'
-                : lower.contains('maddipalem')
-                    ? 'maddipalem'
-                    : lower.contains('kukat')
-                        ? 'kukatpally'
-                        : lower.contains('kondapur')
-                            ? 'kondapur'
-                            : 'madhapur';
-        options.add({
-          'id': id,
-          'label': '$name ($stu Roll / $stf Staff)',
-        });
+            ? 'gachibowli'
+            : lower.contains('maddipalem')
+            ? 'maddipalem'
+            : lower.contains('kukat')
+            ? 'kukatpally'
+            : lower.contains('kondapur')
+            ? 'kondapur'
+            : 'madhapur';
+        options.add({'id': id, 'label': '$name ($stu Roll / $stf Staff)'});
       }
     } else {
       options.addAll([
-        {'id': 'steel-plant', 'label': 'Steel Plant Branch (43 Roll / 25 Staff)'},
+        {
+          'id': 'steel-plant',
+          'label': 'Steel Plant Branch (43 Roll / 25 Staff)',
+        },
         {'id': 'gachibowli', 'label': 'Gachibowli Campus (21 Roll / 4 Staff)'},
         {'id': 'maddipalem', 'label': 'Maddipalem Branch (18 Roll / 5 Staff)'},
         {'id': 'kukatpally', 'label': 'Kukatpally Campus (17 Roll / 4 Staff)'},
@@ -7823,7 +7915,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     if (lower.contains('librar')) return 'librarian';
     if (lower.contains('account')) return 'account-mgr';
     if (lower.contains('bus')) return 'bus-attendant';
-    if (lower.contains('hostel') || lower.contains('warden')) return 'hostel-warden';
+    if (lower.contains('hostel') || lower.contains('warden'))
+      return 'hostel-warden';
     if (lower.contains('reception')) return 'receptionist';
     if (lower.contains('transport')) return 'transport-mgr';
     return lower.replaceAll(' ', '-');
@@ -7867,7 +7960,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         if (r is! Map<String, dynamic>) continue;
         final roleName = r['role']?.toString() ?? '';
         final filled = (r['filled'] as num?)?.toInt() ?? 0;
-        final isTeaching = roleName.toLowerCase().contains('teacher') ||
+        final isTeaching =
+            roleName.toLowerCase().contains('teacher') ||
             roleName.toLowerCase().contains('faculty');
         if (!isTeaching && filled > 0) {
           counts[roleName] = (counts[roleName] ?? 0) + filled;
@@ -7894,7 +7988,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       case 'bus-attendant':
         return subRole == 'bus-attendant' || role.contains('bus');
       case 'hostel-warden':
-        return subRole == 'hostel-warden' || role.contains('hostel') || role.contains('warden');
+        return subRole == 'hostel-warden' ||
+            role.contains('hostel') ||
+            role.contains('warden');
       case 'receptionist':
         return subRole == 'receptionist' || role.contains('reception');
       case 'transport-mgr':
@@ -7921,7 +8017,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     if (rawByBranch is List) {
       for (final item in rawByBranch) {
         if (item is Map<String, dynamic>) {
-          final bName = item['branchName']?.toString() ?? item['branchCode']?.toString() ?? '';
+          final bName =
+              item['branchName']?.toString() ??
+              item['branchCode']?.toString() ??
+              '';
           byBranch.add({
             'branchCode': bName,
             'branchName': bName,
@@ -7966,22 +8065,31 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         }
         if (total == 0) {
           final stuOverall = attData?['students'] as Map<String, dynamic>?;
-          total = (stuOverall?['roster'] as num?)?.toInt() ??
+          total =
+              (stuOverall?['roster'] as num?)?.toInt() ??
               (_dashboardData?['group']?['students'] as num?)?.toInt() ??
               122;
           present = (stuOverall?['present'] as num?)?.toInt() ?? 0;
           absent = (stuOverall?['absent'] as num?)?.toInt() ?? 0;
           leave = (stuOverall?['leave'] as num?)?.toInt() ?? 0;
-          pending = (stuOverall?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+          pending =
+              (stuOverall?['notMarked'] as num?)?.toInt() ??
+              (total - present - absent - leave);
         } else if (pending == 0 && (present + absent + leave) < total) {
           pending = total - present - absent - leave;
         }
       } else {
         Map<String, dynamic>? bAtt;
         for (final bm in byBranch) {
-          final bSlug = (bm['branchSlug'] ?? _getBranchSlug(bm['branchName']?.toString() ?? '')).toString().toLowerCase();
+          final bSlug =
+              (bm['branchSlug'] ??
+                      _getBranchSlug(bm['branchName']?.toString() ?? ''))
+                  .toString()
+                  .toLowerCase();
           final bName = (bm['branchName']?.toString() ?? '').toLowerCase();
-          final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
+          final target = _selectedBranchFilter
+              .replaceAll('-', ' ')
+              .toLowerCase();
           if (bSlug == _selectedBranchFilter || bName.contains(target)) {
             bAtt = bm['students'] as Map<String, dynamic>?;
             break;
@@ -7992,9 +8100,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             final bm = b as Map<String, dynamic>;
             final bName = (bm['name']?.toString() ?? '').toLowerCase();
             final bCode = (bm['code']?.toString() ?? '').toLowerCase();
-            final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
+            final target = _selectedBranchFilter
+                .replaceAll('-', ' ')
+                .toLowerCase();
             if (bName.contains(target) || bCode == _selectedBranchFilter) {
-              bAtt = bm['attendanceCounts']?['students'] as Map<String, dynamic>?;
+              bAtt =
+                  bm['attendanceCounts']?['students'] as Map<String, dynamic>?;
               break;
             }
           }
@@ -8004,12 +8115,15 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           present = (bAtt['present'] as num?)?.toInt() ?? 0;
           absent = (bAtt['absent'] as num?)?.toInt() ?? 0;
           leave = (bAtt['leave'] as num?)?.toInt() ?? 0;
-          pending = (bAtt['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+          pending =
+              (bAtt['notMarked'] as num?)?.toInt() ??
+              (total - present - absent - leave);
         }
       }
 
       if (_studentResidencyFilter == 'hostel-residents') {
-        final hostelCount = (_dashboardData?['hostel']?['occupied'] as num?)?.toInt() ?? 12;
+        final hostelCount =
+            (_dashboardData?['hostel']?['occupied'] as num?)?.toInt() ?? 12;
         if (_selectedBranchFilter == 'all') {
           total = hostelCount;
           present = 0;
@@ -8024,7 +8138,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           pending = total;
         }
       } else if (_studentResidencyFilter == 'day-scholars') {
-        final hostelCount = (_dashboardData?['hostel']?['occupied'] as num?)?.toInt() ?? 12;
+        final hostelCount =
+            (_dashboardData?['hostel']?['occupied'] as num?)?.toInt() ?? 12;
         if (_selectedBranchFilter == 'all') {
           total = (total - hostelCount).clamp(0, total);
           pending = (total - present - absent - leave).clamp(0, total);
@@ -8115,22 +8230,31 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         }
         if (total == 0) {
           final staffOverall = attData?['staff'] as Map<String, dynamic>?;
-          total = (staffOverall?['roster'] as num?)?.toInt() ??
+          total =
+              (staffOverall?['roster'] as num?)?.toInt() ??
               (_dashboardData?['group']?['staffFilled'] as num?)?.toInt() ??
               46;
           present = (staffOverall?['present'] as num?)?.toInt() ?? 0;
           absent = (staffOverall?['absent'] as num?)?.toInt() ?? 0;
           leave = (staffOverall?['leave'] as num?)?.toInt() ?? 0;
-          pending = (staffOverall?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+          pending =
+              (staffOverall?['notMarked'] as num?)?.toInt() ??
+              (total - present - absent - leave);
         } else if (pending == 0 && (present + absent + leave) < total) {
           pending = total - present - absent - leave;
         }
       } else {
         Map<String, dynamic>? bAtt;
         for (final bm in byBranch) {
-          final bSlug = (bm['branchSlug'] ?? _getBranchSlug(bm['branchName']?.toString() ?? '')).toString().toLowerCase();
+          final bSlug =
+              (bm['branchSlug'] ??
+                      _getBranchSlug(bm['branchName']?.toString() ?? ''))
+                  .toString()
+                  .toLowerCase();
           final bName = (bm['branchName']?.toString() ?? '').toLowerCase();
-          final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
+          final target = _selectedBranchFilter
+              .replaceAll('-', ' ')
+              .toLowerCase();
           if (bSlug == _selectedBranchFilter || bName.contains(target)) {
             bAtt = bm['staff'] as Map<String, dynamic>?;
             break;
@@ -8141,7 +8265,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             final bm = b as Map<String, dynamic>;
             final bName = (bm['name']?.toString() ?? '').toLowerCase();
             final bCode = (bm['code']?.toString() ?? '').toLowerCase();
-            final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
+            final target = _selectedBranchFilter
+                .replaceAll('-', ' ')
+                .toLowerCase();
             if (bName.contains(target) || bCode == _selectedBranchFilter) {
               bAtt = bm['attendanceCounts']?['staff'] as Map<String, dynamic>?;
               break;
@@ -8153,7 +8279,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           present = (bAtt['present'] as num?)?.toInt() ?? 0;
           absent = (bAtt['absent'] as num?)?.toInt() ?? 0;
           leave = (bAtt['leave'] as num?)?.toInt() ?? 0;
-          pending = (bAtt['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+          pending =
+              (bAtt['notMarked'] as num?)?.toInt() ??
+              (total - present - absent - leave);
         }
       }
 
@@ -8198,8 +8326,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             leave = 0;
             pending = total;
           } else {
-            final branchNt = roleCounts.values.fold(0, (sum, count) => sum + count);
-            total = branchNt > 0 ? branchNt : (total * 0.5).round().clamp(1, total);
+            final branchNt = roleCounts.values.fold(
+              0,
+              (sum, count) => sum + count,
+            );
+            total = branchNt > 0
+                ? branchNt
+                : (total * 0.5).round().clamp(1, total);
             present = 0;
             absent = 0;
             leave = 0;
@@ -8415,58 +8548,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   ),
                 ),
               ],
-            ),
-            GestureDetector(
-              onTap: _selectAttendanceDate,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4.5,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF10B981),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      _formatDateShort(_selectedAttendanceDate),
-                      style: const TextStyle(
-                        color: Color(0xFF334155),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 3),
-                    if (_isAttendanceLoading)
-                      const SizedBox(
-                        width: 10,
-                        height: 10,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.8,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
-                        ),
-                      )
-                    else
-                      const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 12,
-                        color: Color(0xFF7C3AED),
-                      ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -8749,7 +8830,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                           height: 10,
                           child: CircularProgressIndicator(
                             strokeWidth: 1.8,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF7C3AED),
+                            ),
                           ),
                         )
                       else
@@ -8951,7 +9034,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   Builder(
                     builder: (context) {
                       final roleCounts = _getNonTeachingRolesCounts();
-                      final totalNt = roleCounts.values.fold(0, (a, b) => a + b);
+                      final totalNt = roleCounts.values.fold(
+                        0,
+                        (a, b) => a + b,
+                      );
                       final totalTeach = (46 - totalNt).clamp(0, 46);
 
                       return Row(
@@ -9002,7 +9088,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               Builder(
                 builder: (context) {
                   final roleCounts = _getNonTeachingRolesCounts();
-                  final totalNtCount = roleCounts.values.fold(0, (a, b) => a + b);
+                  final totalNtCount = roleCounts.values.fold(
+                    0,
+                    (a, b) => a + b,
+                  );
 
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -9401,11 +9490,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       } else if (_staffRoleFilter == 'non-teaching') {
         if (_staffSubFilter == 'all-nt') {
           bannerTitle = 'Non-Teaching Staff Status';
-          bannerSubtitle = '$total non-teaching staff rostered across $branchText';
+          bannerSubtitle =
+              '$total non-teaching staff rostered across $branchText';
         } else {
           final roleName = _slugToRoleName(_staffSubFilter);
           bannerTitle = '$roleName Status';
-          bannerSubtitle = '$total ${roleName.toLowerCase()}s rostered across $branchText';
+          bannerSubtitle =
+              '$total ${roleName.toLowerCase()}s rostered across $branchText';
         }
       }
 
@@ -9555,10 +9646,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 3,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: const Color(0xFFEDE9FE),
                 borderRadius: BorderRadius.circular(12),
@@ -9945,18 +10033,22 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       final slug = lower.contains('steel')
           ? 'steel-plant'
           : lower.contains('gachi')
-              ? 'gachibowli'
-              : lower.contains('maddipalem')
-                  ? 'maddipalem'
-                  : lower.contains('kukat')
-                      ? 'kukatpally'
-                      : lower.contains('kondapur')
-                          ? 'kondapur'
-                          : 'madhapur';
+          ? 'gachibowli'
+          : lower.contains('maddipalem')
+          ? 'maddipalem'
+          : lower.contains('kukat')
+          ? 'kukatpally'
+          : lower.contains('kondapur')
+          ? 'kondapur'
+          : 'madhapur';
 
       Map<String, dynamic>? att;
       for (final bbm in byBranch) {
-        final bbmSlug = (bbm['branchSlug'] ?? _getBranchSlug(bbm['branchName']?.toString() ?? '')).toString().toLowerCase();
+        final bbmSlug =
+            (bbm['branchSlug'] ??
+                    _getBranchSlug(bbm['branchName']?.toString() ?? ''))
+                .toString()
+                .toLowerCase();
         final bbmName = (bbm['branchName']?.toString() ?? '').toLowerCase();
         if (bbm['branchId'] == bm['id'] ||
             bbmSlug == slug ||
@@ -9968,12 +10060,19 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       }
       att ??= bm['attendanceCounts']?['students'] as Map<String, dynamic>?;
 
-      final total = (att?['roster'] as num?)?.toInt() ?? (bm['students'] as num?)?.toInt() ?? 0;
+      final total =
+          (att?['roster'] as num?)?.toInt() ??
+          (bm['students'] as num?)?.toInt() ??
+          0;
       final present = (att?['present'] as num?)?.toInt() ?? 0;
       final absent = (att?['absent'] as num?)?.toInt() ?? 0;
       final leave = (att?['leave'] as num?)?.toInt() ?? 0;
-      final pending = (att?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
-      final pct = total > 0 ? '${((present / total) * 100).toStringAsFixed(0)}%' : '0%';
+      final pending =
+          (att?['notMarked'] as num?)?.toInt() ??
+          (total - present - absent - leave);
+      final pct = total > 0
+          ? '${((present / total) * 100).toStringAsFixed(0)}%'
+          : '0%';
 
       final statusText = present > 0
           ? '$present Present • $absent Absent • $pending Not marked'
@@ -10019,7 +10118,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
       Map<String, dynamic>? att;
       for (final bbm in byBranch) {
-        final bbmSlug = (bbm['branchSlug'] ?? _getBranchSlug(bbm['branchName']?.toString() ?? '')).toString().toLowerCase();
+        final bbmSlug =
+            (bbm['branchSlug'] ??
+                    _getBranchSlug(bbm['branchName']?.toString() ?? ''))
+                .toString()
+                .toLowerCase();
         final bbmName = (bbm['branchName']?.toString() ?? '').toLowerCase();
         if (bbm['branchId'] == bm['id'] ||
             bbmSlug == slug ||
@@ -10031,13 +10134,15 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       }
       att ??= bm['attendanceCounts']?['staff'] as Map<String, dynamic>?;
 
-      int total = (att?['roster'] as num?)?.toInt() ??
+      int total =
+          (att?['roster'] as num?)?.toInt() ??
           (bm['staffTotal'] as num?)?.toInt() ??
           4;
       final present = (att?['present'] as num?)?.toInt() ?? 0;
       final absent = (att?['absent'] as num?)?.toInt() ?? 0;
       final leave = (att?['leave'] as num?)?.toInt() ?? 0;
-      int pending = (att?['notMarked'] as num?)?.toInt() ??
+      int pending =
+          (att?['notMarked'] as num?)?.toInt() ??
           (total - present - absent - leave);
       double progress = total > 0 ? (present / total) : 0.0;
       String pct = '${(progress * 100).toStringAsFixed(1)}%';
@@ -10045,8 +10150,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       String statusText = absent > 0
           ? '$absent Absent • $pending Pending'
           : (present > 0
-              ? '$present Present • $pending Pending'
-              : '$pending Pending Biometric Log');
+                ? '$present Present • $pending Pending'
+                : '$pending Pending Biometric Log');
 
       final rawRoles = bm['roles'] as List<dynamic>? ?? [];
       List<Map<String, String>> sections = [];
@@ -10075,21 +10180,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           pct = '0.0%';
           statusText = '$ntCount Non-teaching staff';
           sections = rawRoles
-              .where((r) =>
-                  r is Map &&
-                  !r['role'].toString().toLowerCase().contains('teacher') &&
-                  !r['role'].toString().toLowerCase().contains('faculty'))
+              .where(
+                (r) =>
+                    r is Map &&
+                    !r['role'].toString().toLowerCase().contains('teacher') &&
+                    !r['role'].toString().toLowerCase().contains('faculty'),
+              )
               .map((r) {
-            final rm = r as Map<String, dynamic>;
-            final roleName = rm['role']?.toString() ?? 'Staff';
-            final filled = rm['filled'] ?? 1;
-            final open = rm['open'] ?? 0;
-            return {
-              'name': roleName,
-              'count': '$filled filled ${open > 0 ? "• $open open" : ""}',
-              'status': 'Sanctioned',
-            };
-          }).toList();
+                final rm = r as Map<String, dynamic>;
+                final roleName = rm['role']?.toString() ?? 'Staff';
+                final filled = rm['filled'] ?? 1;
+                final open = rm['open'] ?? 0;
+                return {
+                  'name': roleName,
+                  'count': '$filled filled ${open > 0 ? "• $open open" : ""}',
+                  'status': 'Sanctioned',
+                };
+              })
+              .toList();
         } else {
           // Specific sub-role selected
           int subFilled = 0;
@@ -10759,19 +10867,35 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         builder: (context) {
                           int dynamicTeachingCount = 0;
                           int dynamicNonTeachingCount = 0;
-                          final brList = _dashboardData?['branches'] as List<dynamic>? ?? [];
+                          final brList =
+                              _dashboardData?['branches'] as List<dynamic>? ??
+                              [];
                           for (final b in brList) {
                             if (b is! Map<String, dynamic>) continue;
-                            final bSlug = _getBranchSlug(b['name']?.toString() ?? '');
-                            if (_selectedBranchFilter != 'all' && bSlug != _selectedBranchFilter) continue;
-                            dynamicTeachingCount += ((b['teachers'] ?? b['staffTeach'] ?? 0) as num).toInt();
-                            dynamicNonTeachingCount += ((b['staffNon'] ?? 0) as num).toInt();
+                            final bSlug = _getBranchSlug(
+                              b['name']?.toString() ?? '',
+                            );
+                            if (_selectedBranchFilter != 'all' &&
+                                bSlug != _selectedBranchFilter)
+                              continue;
+                            dynamicTeachingCount +=
+                                ((b['teachers'] ?? b['staffTeach'] ?? 0) as num)
+                                    .toInt();
+                            dynamicNonTeachingCount +=
+                                ((b['staffNon'] ?? 0) as num).toInt();
                           }
                           if (dynamicTeachingCount == 0) {
-                            dynamicTeachingCount = (_dashboardData?['group']?['teachers'] as num?)?.toInt() ?? 19;
+                            dynamicTeachingCount =
+                                (_dashboardData?['group']?['teachers'] as num?)
+                                    ?.toInt() ??
+                                19;
                           }
                           if (dynamicNonTeachingCount == 0) {
-                            dynamicNonTeachingCount = (totalInScope - dynamicTeachingCount).clamp(0, totalInScope);
+                            dynamicNonTeachingCount =
+                                (totalInScope - dynamicTeachingCount).clamp(
+                                  0,
+                                  totalInScope,
+                                );
                           }
 
                           return Row(
@@ -11589,18 +11713,60 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final allUsers = UsersDirectoryData.users;
 
     // Active counts based on current branch selection
-    final totalUsersCount = allUsers.where((u) => _usersBranchFilter == 'all' || u.branchId == _usersBranchFilter).length;
-    final studentsCount = allUsers.where((u) => u.role == 'students' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
-    final teachingCount = allUsers.where((u) => u.role == 'teaching' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
-    final nonTeachingCount = allUsers.where((u) => u.role == 'non-teaching' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
-    final adminsCount = allUsers.where((u) => u.role == 'admins' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
-    final principalsCount = allUsers.where((u) => u.role == 'principals' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
-    final parentsCount = allUsers.where((u) => u.role == 'parents' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
+    final totalUsersCount = allUsers
+        .where(
+          (u) =>
+              _usersBranchFilter == 'all' || u.branchId == _usersBranchFilter,
+        )
+        .length;
+    final studentsCount = allUsers
+        .where(
+          (u) =>
+              u.role == 'students' &&
+              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
+        )
+        .length;
+    final teachingCount = allUsers
+        .where(
+          (u) =>
+              u.role == 'teaching' &&
+              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
+        )
+        .length;
+    final nonTeachingCount = allUsers
+        .where(
+          (u) =>
+              u.role == 'non-teaching' &&
+              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
+        )
+        .length;
+    final adminsCount = allUsers
+        .where(
+          (u) =>
+              u.role == 'admins' &&
+              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
+        )
+        .length;
+    final principalsCount = allUsers
+        .where(
+          (u) =>
+              u.role == 'principals' &&
+              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
+        )
+        .length;
+    final parentsCount = allUsers
+        .where(
+          (u) =>
+              u.role == 'parents' &&
+              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
+        )
+        .length;
 
     // Count strictly for role + branch (matching web banner behavior)
     final roleAndBranchCount = allUsers.where((u) {
       final matchRole = _usersRoleFilter == 'all' || u.role == _usersRoleFilter;
-      final matchBranch = _usersBranchFilter == 'all' || u.branchId == _usersBranchFilter;
+      final matchBranch =
+          _usersBranchFilter == 'all' || u.branchId == _usersBranchFilter;
       return matchRole && matchBranch;
     }).length;
 
@@ -11674,15 +11840,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       final name = b['name']!;
       final count = allUsers.where((u) {
         final matchBranch = u.branchId == slug;
-        final matchRole = _usersRoleFilter == 'all' || u.role == _usersRoleFilter;
+        final matchRole =
+            _usersRoleFilter == 'all' || u.role == _usersRoleFilter;
         return matchBranch && matchRole;
       }).length;
       if (count > maxBranchCount) maxBranchCount = count;
-      return {
-        'slug': slug,
-        'name': name,
-        'count': count,
-      };
+      return {'slug': slug, 'name': name, 'count': count};
     }).toList();
 
     return Column(
@@ -12061,10 +12224,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               },
               borderRadius: BorderRadius.circular(8),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 7,
-                  horizontal: 4,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 4),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? const Color(0xFFEDE9FE).withValues(alpha: 0.5)
@@ -12397,9 +12557,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 9),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -12408,10 +12566,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           Container(
             width: 34,
             height: 34,
-            decoration: BoxDecoration(
-              color: avatarBg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: avatarBg, shape: BoxShape.circle),
             child: Center(
               child: Text(
                 user.initials,
@@ -12642,7 +12797,8 @@ class CashTrajectoryPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CashTrajectoryPainter oldDelegate) =>
-      oldDelegate.ebitdaMargin != ebitdaMargin || oldDelegate.collectionPct != collectionPct;
+      oldDelegate.ebitdaMargin != ebitdaMargin ||
+      oldDelegate.collectionPct != collectionPct;
 }
 
 // =============================================================================
@@ -12759,8 +12915,14 @@ class PerformanceQuadrantPainter extends CustomPainter {
       tp.paint(canvas, pos);
     }
 
-    drawText('avg collection ${avgCollection.toStringAsFixed(0)}%', Offset(crossX + 4, 8));
-    drawText('avg attendance ${avgAttendance.toStringAsFixed(0)}%', Offset(crossX + 4, (crossY - 14).clamp(16.0, h - 20.0)));
+    drawText(
+      'avg collection ${avgCollection.toStringAsFixed(0)}%',
+      Offset(crossX + 4, 8),
+    );
+    drawText(
+      'avg attendance ${avgAttendance.toStringAsFixed(0)}%',
+      Offset(crossX + 4, (crossY - 14).clamp(16.0, h - 20.0)),
+    );
     drawText(
       '▼ NEEDS ATTENTION',
       Offset(12, h - 16),
