@@ -8,6 +8,8 @@ import '../data/users_directory_data.dart';
 import '../services/api_config.dart';
 import '../services/auth_service.dart';
 import '../services/branch_service.dart';
+import 'people_ops_view.dart';
+import 'student_lookup_view.dart';
 import '../services/session_manager.dart';
 import '../widgets/radial_arc_menu.dart';
 import 'academics/academics_view.dart';
@@ -2215,6 +2217,15 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Color(0xFFF6F8FC),
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
     _kpiPageController = PageController(initialPage: _activeKpiSet);
     _branchSearchController.addListener(() {
       if (mounted) {
@@ -2390,65 +2401,80 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
     final alerts = _dashboardData?['alerts'] as List<dynamic>? ?? [];
 
-    return Scaffold(
-      backgroundColor: const Color(
-        0xFFF6F8FC,
-      ), // Crisp SaaS Canvas from DESIGN.md
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Main Scrollable Body
-            RefreshIndicator(
-              onRefresh: _fetchDashboard,
-              color: const Color(0xFF7C3AED),
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 100),
-                children: [
-                  // 1. App Header
-                  _buildHeader(orgName),
+    final systemOverlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness:
+          _isArcMenuOpen ? Brightness.light : Brightness.dark,
+      statusBarBrightness:
+          _isArcMenuOpen ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor:
+          _isArcMenuOpen ? const Color(0xFF0F172A) : const Color(0xFFF6F8FC),
+      systemNavigationBarIconBrightness:
+          _isArcMenuOpen ? Brightness.light : Brightness.dark,
+    );
 
-                  const SizedBox(height: 12),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemOverlayStyle,
+      child: Scaffold(
+        backgroundColor: const Color(
+          0xFFF6F8FC,
+        ), // Crisp SaaS Canvas from DESIGN.md
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Main Scrollable Body
+              RefreshIndicator(
+                onRefresh: _fetchDashboard,
+                color: const Color(0xFF7C3AED),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 100),
+                  children: [
+                    // 1. App Header
+                    _buildHeader(orgName),
 
-                  // 2. Horizontal Navigation Tabs
-                  _buildNavTabs(),
+                    const SizedBox(height: 12),
 
-                  const SizedBox(height: 14),
+                    // 2. Horizontal Navigation Tabs
+                    _buildNavTabs(),
 
-                  if (_isLoading)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 80.0),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xFF7C3AED),
+                    const SizedBox(height: 14),
+
+                    if (_isLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 80.0),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF7C3AED),
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                  else if (_errorMessage != null)
-                    _buildErrorCard()
-                  else
-                    _buildActiveViewContent(group, branches, alerts),
-                ],
+                      )
+                    else if (_errorMessage != null)
+                      _buildErrorCard()
+                    else
+                      _buildActiveViewContent(group, branches, alerts),
+                  ],
+                ),
               ),
-            ),
 
-            // 3. Radial Arc Wheel Menu Layer (Overlay & Trigger FAB)
-            Positioned.fill(
-              child: RadialArcMenu(
-                isOpen: _isArcMenuOpen,
-                onToggle: () {
-                  setState(() => _isArcMenuOpen = !_isArcMenuOpen);
-                },
-                onItemSelected: (selectedId) {
-                  _switchView(selectedId);
-                },
+              // 3. Radial Arc Wheel Menu Layer (Overlay & Trigger FAB)
+              Positioned.fill(
+                child: RadialArcMenu(
+                  isOpen: _isArcMenuOpen,
+                  onToggle: () {
+                    setState(() => _isArcMenuOpen = !_isArcMenuOpen);
+                  },
+                  onItemSelected: (selectedId) {
+                    _switchView(selectedId);
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -2728,18 +2754,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         'icon': Icons.account_balance_wallet_outlined,
       },
       {
-        'id': 'view-growth',
-        'label': 'Growth & Admissions',
-        'icon': Icons.trending_up_rounded,
-      },
-      {
         'id': 'view-academics',
         'label': 'Academics',
         'icon': Icons.school_outlined,
       },
       {
         'id': 'view-operations',
-        'label': 'Operations',
+        'label': 'People & Ops',
         'icon': Icons.business_center_outlined,
       },
     ];
@@ -2843,7 +2864,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       case 'view-academics':
         return _buildAcademicsView();
       case 'view-operations':
-        return _buildOperationsView();
+        return _buildOperationsView(branches);
       case 'view-classes':
         return _buildClassesView();
       case 'view-attendance':
@@ -6275,125 +6296,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildStudentLookupView() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Student 360 Lookup',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Search by student name or ID...',
-              prefixIcon: const Icon(Icons.search, size: 18),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          _buildSampleStudentCard(
-            'Jatin Kalidindi',
-            'EDU-STU-2026-00012',
-            'Class 6-A',
-            'Steel Plant Branch',
-            94,
-            78,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSampleStudentCard(
-    String name,
-    String id,
-    String klass,
-    String branch,
-    int att,
-    int exam,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD1FAE5),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Active',
-                  style: TextStyle(
-                    color: Color(0xFF065F46),
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Text(
-            '$id · $klass · $branch',
-            style: const TextStyle(color: Color(0xFF64748B), fontSize: 10),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                'Attendance: $att%',
-                style: const TextStyle(
-                  color: Color(0xFF10B981),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Text(
-                'Exam Avg: $exam/100',
-                style: const TextStyle(
-                  color: Color(0xFF6366F1),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return const StudentLookupView();
   }
 
   Widget _buildFinanceFeesView(Map<String, dynamic>? group) {
@@ -7245,28 +7148,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     return AcademicsView(dashboardData: _dashboardData);
   }
 
-  Widget _buildOperationsView() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            'People & Operations',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Staff requisitions, HR exits, hostel occupancy, transport tracking and procurement write-offs.',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
-          ),
-        ],
-      ),
+  Widget _buildOperationsView(List<dynamic> branches) {
+    return PeopleOpsView(
+      branches: branches,
+      dashboardData: _dashboardData,
     );
   }
 

@@ -65,11 +65,11 @@ class _RadialArcMenuState extends State<RadialArcMenu>
   double _snapEndAngle = 0.0;
 
   // Geometry constants
-  // 9 Chairman options matching the 9 horizontal tabs
-  static const int _totalItems = 9;
+  // Total items dynamically matching the options list
+  int get _totalItems => _items.length;
   // Natural spacing between items along the arc (≈ 21.8 deg)
   static const double _stepAngle = 0.38;
-  static const double _period = _totalItems * _stepAngle; // 9 * 0.38 = 3.42 rad
+  double get _period => _items.length * _stepAngle;
   static const double _focalAngle = -3 * math.pi / 4; // -135 deg (up-left from FAB center)
   static const double _orbitRadius = 260.0; // Radius of circular track
 
@@ -133,14 +133,6 @@ class _RadialArcMenuState extends State<RadialArcMenu>
       isFilled: false,
     ),
     ArcMenuItem(
-      id: 'view-growth',
-      label: 'Growth & Admissions',
-      icon: Icons.trending_up_rounded,
-      primaryColor: Color(0xFFEC4899),
-      secondaryColor: Color(0xFFDB2777),
-      isFilled: false,
-    ),
-    ArcMenuItem(
       id: 'view-academics',
       label: 'Academics',
       icon: Icons.school_rounded,
@@ -150,7 +142,7 @@ class _RadialArcMenuState extends State<RadialArcMenu>
     ),
     ArcMenuItem(
       id: 'view-operations',
-      label: 'Operations',
+      label: 'People & Ops',
       icon: Icons.business_center_rounded,
       primaryColor: Color(0xFF4F46E5),
       secondaryColor: Color(0xFF3730A3),
@@ -540,8 +532,8 @@ class _RadialArcMenuState extends State<RadialArcMenu>
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Text(
+                                      children: [
+                                        const Text(
                                           '⟲',
                                           style: TextStyle(
                                             color: Color(0xFF818CF8),
@@ -549,18 +541,18 @@ class _RadialArcMenuState extends State<RadialArcMenu>
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        SizedBox(width: 6),
+                                        const SizedBox(width: 6),
                                         Text(
-                                          '9 Modules • Swipe arc',
-                                          style: TextStyle(
+                                          '${_items.length} Modules • Swipe arc',
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 10.5,
                                             fontWeight: FontWeight.w700,
                                             letterSpacing: 0.3,
                                           ),
                                         ),
-                                        SizedBox(width: 6),
-                                        Text(
+                                        const SizedBox(width: 6),
+                                        const Text(
                                           '⟳',
                                           style: TextStyle(
                                             color: Color(0xFF818CF8),
