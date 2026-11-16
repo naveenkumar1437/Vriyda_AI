@@ -42,7 +42,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // Interactive state for Attendance Audit
   String _attendancePrimaryTab = 'students'; // 'students' | 'staff'
-  DateTime _selectedAttendanceDate = DateTime(2026, 11, 13);
+  DateTime _selectedAttendanceDate = DateTime(2026, 11, 14);
+  bool _isAttendanceLoading = false;
   String _studentResidencyFilter =
       'all-students'; // 'all-students' | 'hostel-residents' | 'day-scholars'
   String _staffRoleFilter =
@@ -2193,6 +2194,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     super.initState();
     _kpiPageController = PageController(initialPage: _activeKpiSet);
     _fetchDashboard();
+    _fetchAttendanceForDate(_selectedAttendanceDate);
     _startKpiTimer();
   }
 
@@ -2254,6 +2256,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               _dashboardData = body;
               _isLoading = false;
             });
+            _fetchAttendanceForDate(_selectedAttendanceDate);
             return;
           }
         } else if (res.statusCode == 401) {
@@ -2302,6 +2305,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     setState(() {
       _activeView = viewId;
     });
+    if (viewId == 'view-attendance') {
+      _fetchAttendanceForDate(_selectedAttendanceDate);
+    }
   }
 
   @override
@@ -5518,12 +5524,156 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         );
       },
     );
-    if (picked != null && picked != _selectedAttendanceDate) {
+    if (picked != null) {
       HapticFeedback.selectionClick();
       setState(() {
         _selectedAttendanceDate = picked;
       });
+      await _fetchAttendanceForDate(picked);
     }
+  }
+
+  Future<void> _fetchAttendanceForDate(DateTime date) async {
+    if (!mounted) return;
+    setState(() {
+      _isAttendanceLoading = true;
+    });
+
+    final token = await SessionManager.getToken();
+    if (token == null || token.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _isAttendanceLoading = false;
+        });
+      }
+      return;
+    }
+
+    final dateStr =
+        '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final url = '${ApiConfig.ownerAttendance}?date=$dateStr';
+
+    try {
+      var res = await http.get(
+        Uri.parse(url),
+        headers: ApiConfig.authHeaders(token),
+      );
+
+      if (res.statusCode == 401) {
+        final refreshed = await AuthService.refreshToken();
+        if (refreshed) {
+          final newToken = await SessionManager.getToken();
+          if (newToken != null && newToken.isNotEmpty) {
+            res = await http.get(
+              Uri.parse(url),
+              headers: ApiConfig.authHeaders(newToken),
+            );
+          }
+        }
+      }
+
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body is Map<String, dynamic> && mounted) {
+          _applyAttendanceData(body);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching attendance for date $dateStr: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAttendanceLoading = false;
+        });
+      }
+    }
+  }
+
+  void _applyAttendanceData(Map<String, dynamic> body) {
+    final rawByBranch = body['byBranch'] as Map<String, dynamic>? ?? {};
+
+    _updateRosterStatusesFromAttendance(rawByBranch);
+
+    setState(() {
+      _dashboardData ??= {};
+      _dashboardData!['attendance'] = body;
+
+      final branches = _dashboardData!['branches'] as List<dynamic>?;
+      if (branches != null) {
+        for (final b in branches) {
+          if (b is Map<String, dynamic>) {
+            final bName = (b['name']?.toString() ?? '').toLowerCase();
+            final bSlug = _getBranchSlug(bName);
+            for (final entry in rawByBranch.entries) {
+              final eName = entry.key.toLowerCase();
+              final eSlug = _getBranchSlug(eName);
+              if (eSlug == bSlug || bName.contains(eName) || eName.contains(bName)) {
+                if (entry.value is Map<String, dynamic>) {
+                  b['attendanceCounts'] = entry.value;
+                }
+                break;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  void _updateRosterStatusesFromAttendance(Map<String, dynamic> rawByBranch) {
+    final allStudents = _getAllStudentRecords();
+    final allStaff = _getAllStaffRecords();
+
+    rawByBranch.forEach((branchName, val) {
+      if (val is! Map<String, dynamic>) return;
+      final branchSlug = _getBranchSlug(branchName);
+
+      final stu = val['students'] as Map<String, dynamic>?;
+      if (stu != null) {
+        final pCount = (stu['present'] as num?)?.toInt() ?? 0;
+        final aCount = (stu['absent'] as num?)?.toInt() ?? 0;
+        final lCount = (stu['leave'] as num?)?.toInt() ?? 0;
+
+        final branchStudents = allStudents.where((s) => s['branchId'] == branchSlug).toList();
+        int idx = 0;
+        for (int i = 0; i < aCount && idx < branchStudents.length; i++, idx++) {
+          branchStudents[idx]['status'] = 'Absent';
+        }
+        for (int i = 0; i < pCount && idx < branchStudents.length; i++, idx++) {
+          branchStudents[idx]['status'] = 'Present';
+        }
+        for (int i = 0; i < lCount && idx < branchStudents.length; i++, idx++) {
+          branchStudents[idx]['status'] = 'On Leave';
+        }
+        while (idx < branchStudents.length) {
+          branchStudents[idx]['status'] = 'Not marked';
+          idx++;
+        }
+      }
+
+      final staff = val['staff'] as Map<String, dynamic>?;
+      if (staff != null) {
+        final pCount = (staff['present'] as num?)?.toInt() ?? 0;
+        final aCount = (staff['absent'] as num?)?.toInt() ?? 0;
+        final lCount = (staff['leave'] as num?)?.toInt() ?? 0;
+
+        final branchStaff = allStaff.where((st) => st['branchId'] == branchSlug).toList();
+        int idx = 0;
+        for (int i = 0; i < lCount && idx < branchStaff.length; i++, idx++) {
+          branchStaff[idx]['status'] = 'On Leave';
+        }
+        for (int i = 0; i < aCount && idx < branchStaff.length; i++, idx++) {
+          branchStaff[idx]['status'] = 'Absent';
+        }
+        for (int i = 0; i < pCount && idx < branchStaff.length; i++, idx++) {
+          branchStaff[idx]['status'] = 'Present';
+        }
+        while (idx < branchStaff.length) {
+          branchStaff[idx]['status'] = 'Not marked';
+          idx++;
+        }
+      }
+    });
   }
 
   String _getBranchLabel(String id) {
@@ -5973,33 +6123,69 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final List<Map<String, dynamic>> byBranch = [];
     if (rawByBranch is List) {
       for (final item in rawByBranch) {
-        if (item is Map<String, dynamic>) byBranch.add(item);
+        if (item is Map<String, dynamic>) {
+          final bName = item['branchName']?.toString() ?? item['branchCode']?.toString() ?? '';
+          byBranch.add({
+            'branchCode': bName,
+            'branchName': bName,
+            'branchSlug': _getBranchSlug(bName),
+            ...item,
+          });
+        }
       }
     } else if (rawByBranch is Map) {
       rawByBranch.forEach((k, v) {
         if (v is Map) {
-          byBranch.add({'branchCode': k, ...v.cast<String, dynamic>()});
+          final bName = k.toString();
+          byBranch.add({
+            'branchCode': bName,
+            'branchName': bName,
+            'branchSlug': _getBranchSlug(bName),
+            ...v.cast<String, dynamic>(),
+          });
         }
       });
     }
 
     if (isStudents) {
-      final stuOverall = attData?['students'] as Map<String, dynamic>?;
-      int total = (stuOverall?['roster'] as num?)?.toInt() ??
-          (_dashboardData?['group']?['students'] as num?)?.toInt() ??
-          122;
-      int present = (stuOverall?['present'] as num?)?.toInt() ?? 22;
-      int absent = (stuOverall?['absent'] as num?)?.toInt() ?? 5;
-      int leave = (stuOverall?['leave'] as num?)?.toInt() ?? 0;
-      int pending = (stuOverall?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+      int total = 0;
+      int present = 0;
+      int absent = 0;
+      int leave = 0;
+      int pending = 0;
 
-      if (_selectedBranchFilter != 'all') {
+      if (_selectedBranchFilter == 'all') {
+        if (byBranch.isNotEmpty) {
+          for (final bm in byBranch) {
+            final s = bm['students'] as Map<String, dynamic>?;
+            if (s != null) {
+              total += (s['roster'] as num?)?.toInt() ?? 0;
+              present += (s['present'] as num?)?.toInt() ?? 0;
+              absent += (s['absent'] as num?)?.toInt() ?? 0;
+              leave += (s['leave'] as num?)?.toInt() ?? 0;
+              pending += (s['notMarked'] as num?)?.toInt() ?? 0;
+            }
+          }
+        }
+        if (total == 0) {
+          final stuOverall = attData?['students'] as Map<String, dynamic>?;
+          total = (stuOverall?['roster'] as num?)?.toInt() ??
+              (_dashboardData?['group']?['students'] as num?)?.toInt() ??
+              122;
+          present = (stuOverall?['present'] as num?)?.toInt() ?? 0;
+          absent = (stuOverall?['absent'] as num?)?.toInt() ?? 0;
+          leave = (stuOverall?['leave'] as num?)?.toInt() ?? 0;
+          pending = (stuOverall?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+        } else if (pending == 0 && (present + absent + leave) < total) {
+          pending = total - present - absent - leave;
+        }
+      } else {
         Map<String, dynamic>? bAtt;
         for (final bm in byBranch) {
+          final bSlug = (bm['branchSlug'] ?? _getBranchSlug(bm['branchName']?.toString() ?? '')).toString().toLowerCase();
           final bName = (bm['branchName']?.toString() ?? '').toLowerCase();
-          final bCode = (bm['branchCode']?.toString() ?? '').toLowerCase();
           final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
-          if (bName.contains(target) || bCode == _selectedBranchFilter) {
+          if (bSlug == _selectedBranchFilter || bName.contains(target)) {
             bAtt = bm['students'] as Map<String, dynamic>?;
             break;
           }
@@ -6111,22 +6297,44 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       };
     } else {
       // Staff
-      final staffOverall = attData?['staff'] as Map<String, dynamic>?;
-      int total = (staffOverall?['roster'] as num?)?.toInt() ??
-          (_dashboardData?['group']?['staffFilled'] as num?)?.toInt() ??
-          46;
-      int present = (staffOverall?['present'] as num?)?.toInt() ?? 0;
-      int absent = (staffOverall?['absent'] as num?)?.toInt() ?? 1;
-      int leave = (staffOverall?['leave'] as num?)?.toInt() ?? 0;
-      int pending = (staffOverall?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+      int total = 0;
+      int present = 0;
+      int absent = 0;
+      int leave = 0;
+      int pending = 0;
 
-      if (_selectedBranchFilter != 'all') {
+      if (_selectedBranchFilter == 'all') {
+        if (byBranch.isNotEmpty) {
+          for (final bm in byBranch) {
+            final st = bm['staff'] as Map<String, dynamic>?;
+            if (st != null) {
+              total += (st['roster'] as num?)?.toInt() ?? 0;
+              present += (st['present'] as num?)?.toInt() ?? 0;
+              absent += (st['absent'] as num?)?.toInt() ?? 0;
+              leave += (st['leave'] as num?)?.toInt() ?? 0;
+              pending += (st['notMarked'] as num?)?.toInt() ?? 0;
+            }
+          }
+        }
+        if (total == 0) {
+          final staffOverall = attData?['staff'] as Map<String, dynamic>?;
+          total = (staffOverall?['roster'] as num?)?.toInt() ??
+              (_dashboardData?['group']?['staffFilled'] as num?)?.toInt() ??
+              46;
+          present = (staffOverall?['present'] as num?)?.toInt() ?? 0;
+          absent = (staffOverall?['absent'] as num?)?.toInt() ?? 0;
+          leave = (staffOverall?['leave'] as num?)?.toInt() ?? 0;
+          pending = (staffOverall?['notMarked'] as num?)?.toInt() ?? (total - present - absent - leave);
+        } else if (pending == 0 && (present + absent + leave) < total) {
+          pending = total - present - absent - leave;
+        }
+      } else {
         Map<String, dynamic>? bAtt;
         for (final bm in byBranch) {
+          final bSlug = (bm['branchSlug'] ?? _getBranchSlug(bm['branchName']?.toString() ?? '')).toString().toLowerCase();
           final bName = (bm['branchName']?.toString() ?? '').toLowerCase();
-          final bCode = (bm['branchCode']?.toString() ?? '').toLowerCase();
           final target = _selectedBranchFilter.replaceAll('-', ' ').toLowerCase();
-          if (bName.contains(target) || bCode == _selectedBranchFilter) {
+          if (bSlug == _selectedBranchFilter || bName.contains(target)) {
             bAtt = bm['staff'] as Map<String, dynamic>?;
             break;
           }
@@ -6155,23 +6363,23 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       if (_staffRoleFilter == 'teaching') {
         final roleCounts = _getNonTeachingRolesCounts();
         final totalNt = roleCounts.values.fold(0, (a, b) => a + b);
-        final teachersTotal = (46 - totalNt).clamp(0, 46); // 21 (19 Teachers + 1 Senior Teacher + 1 Maths Teacher)
+        final teachersTotal = (46 - totalNt).clamp(0, 46); // 21
         if (_selectedBranchFilter == 'all') {
           total = teachersTotal;
-          present = 0;
-          absent = 1;
-          leave = 0;
-          pending = total - present - absent;
+          present = present.clamp(0, total);
+          absent = absent.clamp(0, total);
+          leave = leave.clamp(0, total);
+          pending = total - present - absent - leave;
         } else {
           total = (total * 0.5).round().clamp(2, total);
-          present = 0;
-          absent = (absent > 0 ? 1 : 0);
-          leave = 0;
-          pending = total - present - absent;
+          present = present.clamp(0, total);
+          absent = absent.clamp(0, total);
+          leave = leave.clamp(0, total);
+          pending = total - present - absent - leave;
         }
       } else if (_staffRoleFilter == 'non-teaching') {
         final roleCounts = _getNonTeachingRolesCounts();
-        final allNtTotal = roleCounts.values.fold(0, (a, b) => a + b); // 25 actual non-teaching roles
+        final allNtTotal = roleCounts.values.fold(0, (a, b) => a + b); // 25
 
         if (_staffSubFilter != 'all-nt') {
           int subTotal = 0;
@@ -6193,7 +6401,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             leave = 0;
             pending = total;
           } else {
-            final roleCounts = _getNonTeachingRolesCounts();
             final branchNt = roleCounts.values.fold(0, (sum, count) => sum + count);
             total = branchNt > 0 ? branchNt : (total * 0.5).round().clamp(1, total);
             present = 0;
@@ -6445,11 +6652,21 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       ),
                     ),
                     const SizedBox(width: 3),
-                    const Icon(
-                      Icons.calendar_today_rounded,
-                      size: 12,
-                      color: Color(0xFF7C3AED),
-                    ),
+                    if (_isAttendanceLoading)
+                      const SizedBox(
+                        width: 10,
+                        height: 10,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.8,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
+                        ),
+                      )
+                    else
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 12,
+                        color: Color(0xFF7C3AED),
+                      ),
                   ],
                 ),
               ),
@@ -6729,11 +6946,21 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         ),
                       ),
                       const SizedBox(width: 3),
-                      const Icon(
-                        Icons.expand_more_rounded,
-                        size: 14,
-                        color: Color(0xFF64748B),
-                      ),
+                      if (_isAttendanceLoading)
+                        const SizedBox(
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.8,
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
+                          ),
+                        )
+                      else
+                        const Icon(
+                          Icons.expand_more_rounded,
+                          size: 14,
+                          color: Color(0xFF64748B),
+                        ),
                     ],
                   ),
                 ),
@@ -7932,7 +8159,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
       Map<String, dynamic>? att;
       for (final bbm in byBranch) {
-        if (bbm['branchId'] == bm['id'] || (bbm['branchCode']?.toString().toUpperCase() == bm['code']?.toString().toUpperCase())) {
+        final bbmSlug = (bbm['branchSlug'] ?? _getBranchSlug(bbm['branchName']?.toString() ?? '')).toString().toLowerCase();
+        final bbmName = (bbm['branchName']?.toString() ?? '').toLowerCase();
+        if (bbm['branchId'] == bm['id'] ||
+            bbmSlug == slug ||
+            bbmName.contains(slug) ||
+            slug.contains(bbmSlug)) {
           att = bbm['students'] as Map<String, dynamic>?;
           break;
         }
@@ -7990,9 +8222,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
       Map<String, dynamic>? att;
       for (final bbm in byBranch) {
+        final bbmSlug = (bbm['branchSlug'] ?? _getBranchSlug(bbm['branchName']?.toString() ?? '')).toString().toLowerCase();
+        final bbmName = (bbm['branchName']?.toString() ?? '').toLowerCase();
         if (bbm['branchId'] == bm['id'] ||
-            (bbm['branchCode']?.toString().toUpperCase() ==
-                bm['code']?.toString().toUpperCase())) {
+            bbmSlug == slug ||
+            bbmName.contains(slug) ||
+            slug.contains(bbmSlug)) {
           att = bbm['staff'] as Map<String, dynamic>?;
           break;
         }
