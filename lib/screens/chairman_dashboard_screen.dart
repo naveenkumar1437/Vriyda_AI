@@ -10,6 +10,7 @@ import '../services/auth_service.dart';
 import '../services/branch_service.dart';
 import '../services/session_manager.dart';
 import '../widgets/radial_arc_menu.dart';
+import 'academics/academics_view.dart';
 import 'vriyda_login_screen.dart';
 
 /// Comprehensive Chairman Dashboard matching Stitch code.html and DESIGN.md:
@@ -7241,28 +7242,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildAcademicsView() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            'Academic Operations',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Timetable approvals, syllabus progress tracking, examination schedules, and merit ranks.',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
-          ),
-        ],
-      ),
-    );
+    return AcademicsView(dashboardData: _dashboardData);
   }
 
   Widget _buildOperationsView() {
