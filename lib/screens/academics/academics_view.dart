@@ -132,7 +132,6 @@ class _AcademicsViewState extends State<AcademicsView> {
     final totalTimetables = filteredTimetables.length;
     final totalPapers = filteredTimetables.fold<int>(0, (sum, tt) => sum + tt.papersCount);
     final publishedCount = filteredTimetables.where((tt) => tt.isPublished).length;
-    final draftsCount = filteredTimetables.where((tt) => tt.isDraft).length;
     
     // Branches covered calculation (dynamically read from live API if present)
     final branchesFromApi = activeData?['branches'] as List<dynamic>?;
@@ -155,7 +154,7 @@ class _AcademicsViewState extends State<AcademicsView> {
         _buildHeaderContext(),
         const SizedBox(height: 14),
 
-        // 2. Five KPI Metric Cards (Horizontal scroll)
+        // 2. Five KPI Metric Cards (Attendance-Screen Style without scrolling)
         _buildKpiCards(
           totalTimetables: totalTimetables,
           publishedCount: publishedCount,
@@ -163,7 +162,6 @@ class _AcademicsViewState extends State<AcademicsView> {
           upcomingCount: 0,
           coveredBranches: coveredBranches,
           totalBranchesCount: totalBranchesCount,
-          draftsCount: draftsCount,
         ),
         const SizedBox(height: 16),
 
@@ -294,7 +292,7 @@ class _AcademicsViewState extends State<AcademicsView> {
     );
   }
 
-  // --- Component 2: 5 KPI Metric Cards (Attendance-Screen Style: Compact, Friendly, Color-Tinted) ---
+  // --- Component 2: 5 KPI Metric Cards (Attendance-Screen Style: Compact, Friendly, No-Scroll) ---
   Widget _buildKpiCards({
     required int totalTimetables,
     required int publishedCount,
@@ -302,128 +300,262 @@ class _AcademicsViewState extends State<AcademicsView> {
     required int upcomingCount,
     required int coveredBranches,
     required int totalBranchesCount,
-    required int draftsCount,
   }) {
-    final kpis = [
-      {
-        'label': 'TIMETABLES',
-        'value': '$totalTimetables',
-        'subtext': '$publishedCount published',
-        'icon': Icons.calendar_month_rounded,
-        'dotColor': const Color(0xFF7C3AED),
-        'textColor': const Color(0xFF6D28D9),
-        'bgColor': const Color(0xFFF3E8FF).withValues(alpha: 0.5),
-        'borderColor': const Color(0xFFDDD6FE),
-      },
-      {
-        'label': 'PAPERS',
-        'value': '$totalPapers',
-        'subtext': 'across timetables',
-        'icon': Icons.description_rounded,
-        'dotColor': const Color(0xFF2563EB),
-        'textColor': const Color(0xFF1D4ED8),
-        'bgColor': const Color(0xFFEFF6FF).withValues(alpha: 0.5),
-        'borderColor': const Color(0xFFBFDBFE),
-      },
-      {
-        'label': 'UPCOMING',
-        'value': '$upcomingCount',
-        'subtext': 'today or later',
-        'icon': Icons.schedule_rounded,
-        'dotColor': const Color(0xFFD97706),
-        'textColor': const Color(0xFFB45309),
-        'bgColor': const Color(0xFFFEF3C7).withValues(alpha: 0.45),
-        'borderColor': const Color(0xFFFDE68A),
-      },
-      {
-        'label': 'BRANCHES',
-        'value': '$coveredBranches/$totalBranchesCount',
-        'subtext': 'active campus',
-        'icon': Icons.apartment_rounded,
-        'dotColor': const Color(0xFF059669),
-        'textColor': const Color(0xFF047857),
-        'bgColor': const Color(0xFFD1FAE5).withValues(alpha: 0.45),
-        'borderColor': const Color(0xFFA7F3D0),
-      },
-      {
-        'label': 'DRAFTS',
-        'value': '$draftsCount',
-        'subtext': 'not published',
-        'icon': Icons.edit_note_rounded,
-        'dotColor': const Color(0xFF64748B),
-        'textColor': const Color(0xFF475569),
-        'bgColor': const Color(0xFFF1F5F9),
-        'borderColor': const Color(0xFFE2E8F0),
-      },
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: kpis.map((kpi) {
-          final dotColor = kpi['dotColor'] as Color;
-          final textColor = kpi['textColor'] as Color;
-          final bgColor = kpi['bgColor'] as Color;
-          final borderColor = kpi['borderColor'] as Color;
-          final icon = kpi['icon'] as IconData;
-
-          return Container(
-            width: 104,
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: borderColor),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top Row: Executive Academic Summary Context
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3E8FF),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.school_rounded,
+                  color: Color(0xFF7C3AED),
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(icon, size: 10, color: dotColor),
-                    const SizedBox(width: 3),
-                    Flexible(
-                      child: Text(
-                        kpi['label'] as String,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 8,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.4,
+                    Row(
+                      children: [
+                        Text(
+                          '$totalTimetables Timetables',
+                          style: const TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                          ),
                         ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD1FAE5),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '$publishedCount LIVE',
+                            style: const TextStyle(
+                              color: Color(0xFF047857),
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      'Session 2026–27 • $totalPapers Papers Scheduled',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  kpi['value'] as String,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
-                  ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 1),
-                Text(
-                  kpi['subtext'] as String,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'BRANCHES',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    Text(
+                      '$coveredBranches of $totalBranchesCount Active',
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Bottom Row: 5 Metric Strip Cards without horizontal scrolling!
+          Row(
+            children: [
+              Expanded(
+                child: _buildStripCard(
+                  label: 'TIMETABLE',
+                  value: '$totalTimetables',
+                  subtext: 'Schedules',
+                  dotColor: const Color(0xFF7C3AED),
+                  textColor: const Color(0xFF6D28D9),
+                  bgColor: const Color(0xFFF3E8FF).withValues(alpha: 0.5),
+                  borderColor: const Color(0xFFDDD6FE),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: _buildStripCard(
+                  label: 'PUBLISHED',
+                  value: '$publishedCount',
+                  subtext: 'Active',
+                  dotColor: const Color(0xFF059669),
+                  textColor: const Color(0xFF047857),
+                  bgColor: const Color(0xFFECFDF5),
+                  borderColor: const Color(0xFFA7F3D0),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: _buildStripCard(
+                  label: 'PAPERS',
+                  value: '$totalPapers',
+                  subtext: 'Total',
+                  dotColor: const Color(0xFF2563EB),
+                  textColor: const Color(0xFF1D4ED8),
+                  bgColor: const Color(0xFFEFF6FF).withValues(alpha: 0.5),
+                  borderColor: const Color(0xFFBFDBFE),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: _buildStripCard(
+                  label: 'UPCOMING',
+                  value: '$upcomingCount',
+                  subtext: 'Later',
+                  dotColor: const Color(0xFFD97706),
+                  textColor: const Color(0xFFB45309),
+                  bgColor: const Color(0xFFFEF3C7).withValues(alpha: 0.45),
+                  borderColor: const Color(0xFFFDE68A),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: _buildStripCard(
+                  label: 'BRANCHES',
+                  value: '$coveredBranches/$totalBranchesCount',
+                  subtext: 'Covered',
+                  dotColor: const Color(0xFF6366F1),
+                  textColor: const Color(0xFF4338CA),
+                  bgColor: const Color(0xFFEEF2FF),
+                  borderColor: const Color(0xFFC7D2FE),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStripCard({
+    required String label,
+    required String value,
+    required String subtext,
+    required Color dotColor,
+    required Color textColor,
+    required Color bgColor,
+    required Color borderColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 2.5),
+              Flexible(
+                child: Text(
+                  label,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w600,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 7.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
                   ),
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 2.5),
+          Text(
+            value,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 14.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
             ),
-          );
-        }).toList(),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            subtext,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: const TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 8,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
