@@ -57,9 +57,12 @@ class _AcademicsViewState extends State<AcademicsView> {
     final publishedCount = filteredTimetables.where((tt) => tt.isPublished).length;
     final draftsCount = filteredTimetables.where((tt) => tt.isDraft).length;
     
-    // Branches covered calculation
+    // Branches covered calculation (dynamically read from live API if present)
+    final branchesFromApi = widget.dashboardData?['branches'] as List<dynamic>?;
+    final totalBranchesCount = (branchesFromApi != null && branchesFromApi.isNotEmpty)
+        ? branchesFromApi.length
+        : 6;
     final coveredBranches = allTimetables.map((t) => t.branchId).toSet().length;
-    const totalBranchesCount = 6;
 
     final branchLabel = _selectedBranch == 'all'
         ? 'all branches'
@@ -170,7 +173,7 @@ class _AcademicsViewState extends State<AcademicsView> {
     );
   }
 
-  // --- Component 2: 5 KPI Metric Cards ---
+  // --- Component 2: 5 KPI Metric Cards (Attendance-Screen Style: Compact, Friendly, Color-Tinted) ---
   Widget _buildKpiCards({
     required int totalTimetables,
     required int publishedCount,
@@ -182,44 +185,54 @@ class _AcademicsViewState extends State<AcademicsView> {
   }) {
     final kpis = [
       {
-        'title': 'EXAM TIMETABLES',
+        'label': 'TIMETABLES',
         'value': '$totalTimetables',
         'subtext': '$publishedCount published',
-        'icon': Icons.assignment_rounded,
-        'color': const Color(0xFF7C3AED),
-        'bg': const Color(0xFFF3E8FF),
+        'icon': Icons.calendar_month_rounded,
+        'dotColor': const Color(0xFF7C3AED),
+        'textColor': const Color(0xFF6D28D9),
+        'bgColor': const Color(0xFFF3E8FF).withValues(alpha: 0.5),
+        'borderColor': const Color(0xFFDDD6FE),
       },
       {
-        'title': 'PAPERS SCHEDULED',
+        'label': 'PAPERS',
         'value': '$totalPapers',
-        'subtext': 'across all timetables',
+        'subtext': 'across timetables',
         'icon': Icons.description_rounded,
-        'color': const Color(0xFF2563EB),
-        'bg': const Color(0xFFEFF6FF),
+        'dotColor': const Color(0xFF2563EB),
+        'textColor': const Color(0xFF1D4ED8),
+        'bgColor': const Color(0xFFEFF6FF).withValues(alpha: 0.5),
+        'borderColor': const Color(0xFFBFDBFE),
       },
       {
-        'title': 'UPCOMING',
+        'label': 'UPCOMING',
         'value': '$upcomingCount',
-        'subtext': 'starting today or later',
+        'subtext': 'today or later',
         'icon': Icons.schedule_rounded,
-        'color': const Color(0xFFD97706),
-        'bg': const Color(0xFFFEF3C7),
+        'dotColor': const Color(0xFFD97706),
+        'textColor': const Color(0xFFB45309),
+        'bgColor': const Color(0xFFFEF3C7).withValues(alpha: 0.45),
+        'borderColor': const Color(0xFFFDE68A),
       },
       {
-        'title': 'BRANCHES COVERED',
+        'label': 'BRANCHES',
         'value': '$coveredBranches/$totalBranchesCount',
-        'subtext': 'have at least one timetable',
+        'subtext': 'active campus',
         'icon': Icons.apartment_rounded,
-        'color': const Color(0xFF059669),
-        'bg': const Color(0xFFD1FAE5),
+        'dotColor': const Color(0xFF059669),
+        'textColor': const Color(0xFF047857),
+        'bgColor': const Color(0xFFD1FAE5).withValues(alpha: 0.45),
+        'borderColor': const Color(0xFFA7F3D0),
       },
       {
-        'title': 'DRAFTS',
+        'label': 'DRAFTS',
         'value': '$draftsCount',
-        'subtext': 'not yet published',
+        'subtext': 'not published',
         'icon': Icons.edit_note_rounded,
-        'color': const Color(0xFF64748B),
-        'bg': const Color(0xFFF1F5F9),
+        'dotColor': const Color(0xFF64748B),
+        'textColor': const Color(0xFF475569),
+        'bgColor': const Color(0xFFF1F5F9),
+        'borderColor': const Color(0xFFE2E8F0),
       },
     ];
 
@@ -228,79 +241,63 @@ class _AcademicsViewState extends State<AcademicsView> {
       physics: const BouncingScrollPhysics(),
       child: Row(
         children: kpis.map((kpi) {
-          final color = kpi['color'] as Color;
-          final bg = kpi['bg'] as Color;
+          final dotColor = kpi['dotColor'] as Color;
+          final textColor = kpi['textColor'] as Color;
+          final bgColor = kpi['bgColor'] as Color;
+          final borderColor = kpi['borderColor'] as Color;
+          final icon = kpi['icon'] as IconData;
 
           return Container(
-            width: 145,
-            margin: const EdgeInsets.only(right: 10),
-            padding: const EdgeInsets.all(12),
+            width: 104,
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: bgColor,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: borderColor),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
+                    Icon(icon, size: 10, color: dotColor),
+                    const SizedBox(width: 3),
+                    Flexible(
                       child: Text(
-                        kpi['title'] as String,
-                        style: const TextStyle(
-                          color: Color(0xFF64748B),
-                          fontSize: 9,
+                        kpi['label'] as String,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 8,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.4,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: bg,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Icon(
-                        kpi['icon'] as IconData,
-                        size: 13,
-                        color: color,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 3),
                 Text(
                   kpi['value'] as String,
-                  style: const TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontSize: 20,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text(
                   kpi['subtext'] as String,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                   style: const TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 9.5,
+                    color: Color(0xFF64748B),
+                    fontSize: 8.5,
                     fontWeight: FontWeight.w600,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
