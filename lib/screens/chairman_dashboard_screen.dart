@@ -31,7 +31,8 @@ class ChairmanDashboardScreen extends StatefulWidget {
 class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   bool _isLoading = false;
   String? _errorMessage;
-  Map<String, dynamic>? _dashboardData = kDefaultLiveDashboardData;
+  Map<String, dynamic>? _dashboardData =
+      jsonDecode(jsonEncode(kDefaultLiveDashboardData));
   String _activeView = 'view-overview';
   bool _isArcMenuOpen = false;
 
@@ -3550,13 +3551,17 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'CASH TRAJECTORY (₹ LAKHS)',
-                      style: TextStyle(
-                        color: Color(0xFF1E293B),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
+                    const Expanded(
+                      child: Text(
+                        'CASH TRAJECTORY (₹ LAKHS)',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Color(0xFF1E293B),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                     Row(

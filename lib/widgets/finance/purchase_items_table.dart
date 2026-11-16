@@ -191,3 +191,4 @@ class PurchaseItemsTable extends StatelessWidget {
     );
   }
 }
+

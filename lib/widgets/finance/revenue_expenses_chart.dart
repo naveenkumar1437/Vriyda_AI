@@ -268,3 +268,4 @@ class _RevenueExpensesPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _RevenueExpensesPainter oldDelegate) => true;
 }
+
