@@ -75,7 +75,9 @@ class ExpensesKpiGrid extends StatelessWidget {
               child: FinanceMetricCard(
                 label: 'PURCHASES · $period',
                 value: expenses.formattedPurchases,
-                subtext: '4 line items',
+                subtext: expenses.purchaseLinesCount > 0
+                    ? '${expenses.purchaseLinesCount} line items'
+                    : 'invoiced lines',
               ),
             ),
             const SizedBox(width: 8),

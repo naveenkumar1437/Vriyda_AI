@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/finance_fee_models.dart';
 import '../../services/finance_service.dart';
+import '../../widgets/finance/collection_rate_trend_chart.dart';
 import '../../widgets/finance/expense_mix_chart.dart';
 import '../../widgets/finance/expenses_kpi_grid.dart';
+import '../../widgets/finance/fee_collection_by_branch_card.dart';
+import '../../widgets/finance/fee_collection_card.dart';
 import '../../widgets/finance/finance_metric_card.dart';
+import '../../widgets/finance/most_profitable_branches_card.dart';
+import '../../widgets/finance/payment_mix_card.dart';
 import '../../widgets/finance/purchase_items_table.dart';
 import '../../widgets/finance/revenue_expenses_chart.dart';
 import '../../widgets/finance/spend_by_branch_table.dart';
+import '../../widgets/finance/unit_economics_card.dart';
 
 /// Complete Finance & Fees Screen according to V1 Requirements
-/// (Expenses KPIs, Spend by Branch, Expense Mix, and Trailing Financials)
+/// (Expenses KPIs, Spend by Branch, Expense Mix, Fee Collection, Unit Economics,
+/// and Trailing Financials)
 class FinanceFeesView extends StatefulWidget {
   final Map<String, dynamic>? initialGroup;
   final List<dynamic>? initialBranches;
@@ -173,7 +180,7 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
     final data = _data!;
     final kpis = data.kpis;
 
-    // Extract available branches for filter dropdown
+    // Extract available branches dynamically from initialBranches and spendByBranch
     final List<String> branchOptions = ['All branches'];
     if (widget.initialBranches != null) {
       for (final b in widget.initialBranches!) {
@@ -183,14 +190,10 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
         }
       }
     }
-    if (branchOptions.length == 1) {
-      branchOptions.addAll([
-        'Gachibowli Campus',
-        'Kondapur Branch',
-        'Kukatpally Campus',
-        'Maddipalem',
-        'Steel Plant Branch',
-      ]);
+    for (final b in data.spendByBranch) {
+      if (b.branchName.isNotEmpty && !branchOptions.contains(b.branchName)) {
+        branchOptions.add(b.branchName);
+      }
     }
 
     return Column(
@@ -510,7 +513,70 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
         ),
         const SizedBox(height: 18),
 
-        // 5. V1 Requirement Row 30: Spend by Branch Table
+        // 5. Fee Collection (Billed vs collected & Receivables Aging)
+        FeeCollectionCard(
+          feeCollection: data.feeCollection,
+          agingItems: data.receivablesAging,
+        ),
+        const SizedBox(height: 18),
+
+        // 6. Collection Rate Trend Chart
+        CollectionRateTrendChart(
+          trendSeries: data.trendSeries,
+          currentCollectionPct: data.feeCollection.collectionPct,
+        ),
+        const SizedBox(height: 18),
+
+        // 7. Unit Economics
+        UnitEconomicsCard(
+          unitEconomics: data.unitEconomics,
+        ),
+        const SizedBox(height: 18),
+
+        // 8. Payment Mix
+        PaymentMixCard(
+          paymentMix: data.paymentMix,
+        ),
+        const SizedBox(height: 18),
+
+        // 9. Most Profitable Branches
+        MostProfitableBranchesCard(
+          profitableBranches: data.profitableBranches,
+        ),
+        const SizedBox(height: 18),
+
+        // 10. Fee Collection by Branch
+        FeeCollectionByBranchCard(
+          branchCollections: data.branchFeeCollections,
+        ),
+        const SizedBox(height: 24),
+
+        // 11. Expense Detail Section Header
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'Expense detail',
+              style: TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              'Spend per branch, the mix, and every purchased line — academic year to date',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // 12. V1 Requirement Row 30: Spend by Branch Table
         SpendByBranchTable(
           branchSpends: data.spendByBranch,
           onBranchTap: (b) {
@@ -519,20 +585,19 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
         ),
         const SizedBox(height: 18),
 
-        // 6. V1 Requirement Row 30: Expense Mix Donut Chart
+        // 13. V1 Requirement Row 30: Expense Mix Donut Chart
         ExpenseMixChart(
           categories: data.expenseMix,
           totalSpend: data.expenses.totalSpend,
         ),
         const SizedBox(height: 18),
 
-        // 7. Purchase Invoices List
+        // 14. Purchase Invoices List
         PurchaseItemsTable(
           purchases: data.purchaseItems,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
       ],
     );
   }
 }
-

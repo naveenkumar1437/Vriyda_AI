@@ -7,8 +7,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   SharedPreferences.setMockInitialValues({});
 
-  group('Finance & Fees Models & Calculation Tests', () {
-    test('FinanceKpis parses correctly and adapts to periods', () {
+  group('Finance & Fees Models & Dynamic API Parsing Tests', () {
+    test('FinanceKpis parses correctly and scales across periods without hardcoding', () {
       final groupData = {
         'revenueYTD': 14155020.0,
         'revenueTarget': 15287422.0,
@@ -47,71 +47,188 @@ void main() {
       expect(fy.revenue, closeTo(14155020.0 * 1.15, 1.0));
     });
 
-    test('ExpenseKpis parses V1 Row 29 KPI fields properly', () {
-      final expenses = ExpenseKpis.fromJson(null, period: 'YTD');
-      expect(expenses.totalSpend, 320000.0);
-      expect(expenses.formattedTotalSpend, '₹3.2 L');
-      expect(expenses.payroll, 50000.0);
-      expect(expenses.formattedPayroll, '₹50,000');
-      expect(expenses.rentMonthly, isNull);
-      expect(expenses.formattedRent, '—');
-      expect(expenses.fuelAndFleet, 5000.0);
-      expect(expenses.formattedFuelFleet, '₹5,000');
-      expect(expenses.purchases, 12200.0);
-      expect(expenses.formattedPurchases, '₹12,200');
-      expect(expenses.staffClaims, 260000.0);
-      expect(expenses.formattedStaffClaims, '₹2.6 L');
+    test('ExpenseKpis returns zeros for null/empty API responses with zero hardcoding', () {
+      final empty = ExpenseKpis.fromJson(null, period: 'YTD');
+      expect(empty.totalSpend, 0.0);
+      expect(empty.payroll, 0.0);
+      expect(empty.rentMonthly, isNull);
+      expect(empty.fuelAndFleet, 0.0);
+      expect(empty.purchases, 0.0);
+      expect(empty.staffClaims, 0.0);
+      expect(empty.purchaseLinesCount, 0);
+      expect(empty.formattedTotalSpend, '₹0');
+      expect(empty.formattedRent, '—');
     });
 
-    test('FinanceFeeData full aggregation parses spend by branch & expense mix', () {
+    test('ExpenseKpis parses dynamic API expenses correctly', () {
+      final expensesJson = {
+        'totalYTD': 326200.0,
+        'payrollYTD': 50000.0,
+        'rentMonthly': 0.0,
+        'fuelYTD': 7000.0,
+        'purchasesYTD': 12700.0,
+        'claimsYTD': 256500.0,
+        'purchaseLines': [
+          {'item': 'Notebook', 'amount': 2200.0},
+          {'item': 'Chalk', 'amount': 500.0},
+        ],
+      };
+
+      final expenses = ExpenseKpis.fromJson(expensesJson, period: 'YTD');
+      expect(expenses.totalSpend, 326200.0);
+      expect(expenses.formattedTotalSpend, '₹3.3 L');
+      expect(expenses.payroll, 50000.0);
+      expect(expenses.formattedPayroll, '₹50,000');
+      expect(expenses.fuelAndFleet, 7000.0);
+      expect(expenses.formattedFuelFleet, '₹7,000');
+      expect(expenses.purchases, 12700.0);
+      expect(expenses.formattedPurchases, '₹12,700');
+      expect(expenses.staffClaims, 256500.0);
+      expect(expenses.formattedStaffClaims, '₹2.6 L');
+      expect(expenses.purchaseLinesCount, 2);
+    });
+
+    test('FinanceFeeData full dynamic aggregation parses all V1 sections', () {
       final samplePayload = {
         'group': {
-          'revenueYTD': 14000000,
-          'collectedYTD': 9500000,
-          'outstanding': 4500000,
+          'revenueYTD': 14000000.0,
+          'collectedYTD': 9500000.0,
+          'outstanding': 4500000.0,
+          'collectionPct': 67.8,
+          'ebitdaMargin': 35.8,
+          'revPerStudent': 116025.0,
+          'costPerStudent': 74371.0,
+          'onlinePayPct': 70.4,
         },
+        'collection': {
+          'collected': 9500000.0,
+          'due': 2620000.0,
+          'overdue': 1880000.0,
+        },
+        'aging': [
+          {'bucket': '0–30 d', 'amount': 1850000.0},
+          {'bucket': '31–60 d', 'amount': 1220000.0},
+          {'bucket': '61–90 d', 'amount': 860000.0},
+          {'bucket': '90+ d', 'amount': 590000.0},
+        ],
+        'paymentMix': [
+          {'name': 'Razorpay (online)', 'value': 70.4},
+          {'name': 'Counter / cheque', 'value': 29.6},
+        ],
         'branches': [
           {
             'id': 1,
-            'name': 'Steel Plant Branch',
-            'inventorySpendMTD': 12200,
+            'name': 'Gachibowli Campus',
+            'revenue': 2730000.0,
+            'outstanding': 1320000.0,
+            'collectionPct': 51.6,
+            'ebitdaMargin': 42.0,
+            'expenses': {
+              'payrollYTD': 0.0,
+              'fuelYTD': 0.0,
+              'totalYTD': 0.0,
+            },
           },
           {
-            'id': 2,
-            'name': 'Gachibowli Campus',
-            'inventorySpendMTD': 9100,
+            'id': 6,
+            'name': 'Steel Plant Branch',
+            'revenue': 2500000.0,
+            'outstanding': 420000.0,
+            'collectionPct': 83.3,
+            'ebitdaMargin': 38.0,
+            'expenses': {
+              'payrollYTD': 50000.0,
+              'fuelYTD': 5000.0,
+              'totalYTD': 55000.0,
+            },
           },
+        ],
+        'expenses': {
+          'totalYTD': 326200.0,
+          'payrollYTD': 50000.0,
+          'fuelYTD': 5000.0,
+          'purchasesYTD': 12200.0,
+          'claimsYTD': 256500.0,
+          'categories': [
+            {'category': 'Payroll', 'amount': 50000.0},
+            {'category': 'Fuel & fleet', 'amount': 5000.0},
+            {'category': 'Purchases', 'amount': 12200.0},
+            {'category': 'Staff claims', 'amount': 256500.0},
+          ],
+          'purchaseLines': [
+            {
+              'date': '2026-11-03',
+              'item': 'A4 Notebook - 200 Pages',
+              'category': 'Stationary',
+              'supplier': 'Sri Sai Enterprises',
+              'amount': 2200.0,
+              'branch': 'Steel Plant Branch',
+              'status': 'Paid',
+            },
+          ],
+        },
+        'revenueSeries': [
+          {'month': 'Jul', 'revenue': 1.2, 'expenses': 0.8},
+          {'month': 'Aug', 'revenue': 1.4, 'expenses': 0.9},
         ],
       };
 
       final data = FinanceFeeData.fromDashboardJson(samplePayload, period: 'YTD');
 
+      // KPIs
+      expect(data.kpis.revenue, 14000000.0);
+      expect(data.kpis.collected, 9500000.0);
+
+      // Fee Collection
+      expect(data.feeCollection.collected, 9500000.0);
+      expect(data.feeCollection.due, 2620000.0);
+      expect(data.feeCollection.overdue, 1880000.0);
+      expect(data.receivablesAging.length, 4);
+
+      // Unit Economics
+      expect(data.unitEconomics.revPerStudent, 116025.0);
+      expect(data.unitEconomics.costPerStudent, 74371.0);
+      expect(data.unitEconomics.contributionPerStudent, 116025.0 - 74371.0);
+
+      // Payment Mix
+      expect(data.paymentMix.length, 2);
+      expect(data.paymentMix[0].percentage, 70.4);
+
+      // Most Profitable Branches (Ranked descending)
+      expect(data.profitableBranches.length, 2);
+      expect(data.profitableBranches[0].branchName, 'Gachibowli Campus');
+      expect(data.profitableBranches[0].ebitdaMargin, 42.0);
+      expect(data.profitableBranches[1].branchName, 'Steel Plant Branch');
+      expect(data.profitableBranches[1].ebitdaMargin, 38.0);
+
+      // Fee Collection by branch
+      expect(data.branchFeeCollections.length, 2);
+      expect(data.branchFeeCollections[0].branchName, 'Gachibowli Campus');
+      expect(data.branchFeeCollections[0].billed, 2730000.0);
+      expect(data.branchFeeCollections[0].due, 1320000.0);
+
       // Spend by branch (Row 30)
       expect(data.spendByBranch.length, 2);
-      expect(data.spendByBranch[0].branchName, 'Steel Plant Branch');
-      expect(data.spendByBranch[0].payroll, 50000.0);
-      expect(data.spendByBranch[0].fuelFleet, 5000.0);
-      expect(data.spendByBranch[1].branchName, 'Gachibowli Campus');
+      expect(data.spendByBranch[1].branchName, 'Steel Plant Branch');
+      expect(data.spendByBranch[1].payroll, 50000.0);
+      expect(data.spendByBranch[1].fuelFleet, 5000.0);
 
       // Expense mix (Row 30)
       expect(data.expenseMix.length, 4);
-      expect(data.expenseMix.any((c) => c.category == 'Payroll'), isTrue);
-      expect(data.expenseMix.any((c) => c.category == 'Fuel & fleet'), isTrue);
-      expect(data.expenseMix.any((c) => c.category == 'Purchases'), isTrue);
-      expect(data.expenseMix.any((c) => c.category == 'Staff claims'), isTrue);
 
-      // Trailing 12 months
-      expect(data.trendSeries.length, 12);
-      expect(data.purchaseItems.isNotEmpty, isTrue);
+      // Purchase Invoices
+      expect(data.purchaseItems.length, 1);
+      expect(data.purchaseItems[0].item, 'A4 Notebook - 200 Pages');
+
+      // Trailing Trend
+      expect(data.trendSeries.length, 2);
     });
 
-    test('FinanceService returns valid FinanceFeeData', () async {
-      final data = await FinanceService.fetchFinanceData(period: 'YTD');
-      expect(data, isNotNull);
-      expect(data.kpis.revenue, greaterThan(0));
-      expect(data.expenses.totalSpend, greaterThan(0));
-      expect(data.spendByBranch.isNotEmpty, isTrue);
-      expect(data.expenseMix.isNotEmpty, isTrue);
+    test('FinanceService throws meaningful error when authentication token is missing', () async {
+      expect(
+        () => FinanceService.fetchFinanceData(period: 'YTD'),
+        throwsA(isA<Exception>()),
+      );
     });
   });
 }
