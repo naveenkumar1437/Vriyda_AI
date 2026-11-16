@@ -5,7 +5,9 @@ class ExamPaperItem {
   final String date;
   final String time;
   final int maxMarks;
+  final int passMarks;
   final String room;
+  final String invigilator;
 
   const ExamPaperItem({
     required this.id,
@@ -13,7 +15,9 @@ class ExamPaperItem {
     required this.date,
     required this.time,
     required this.maxMarks,
+    required this.passMarks,
     required this.room,
+    required this.invigilator,
   });
 
   Map<String, dynamic> toMap() => {
@@ -22,7 +26,9 @@ class ExamPaperItem {
         'date': date,
         'time': time,
         'maxMarks': maxMarks,
+        'passMarks': passMarks,
         'room': room,
+        'invigilator': invigilator,
       };
 }
 
@@ -36,6 +42,7 @@ class ExamTimetableItem {
   final String program; // e.g. 'Grade 10', 'Class - 1'
   final String className; // e.g. 'Class 10 - Mathematics', 'Class 1-A'
   final String dateRange; // e.g. '5 Nov 2026' or '17 Aug 2026 → 19 Aug 2026'
+  final String academicYear; // e.g. '2026–27'
   final int papersCount;
   final String status; // 'Published', 'Draft', 'Archived'
   final List<ExamPaperItem> papers;
@@ -49,6 +56,7 @@ class ExamTimetableItem {
     required this.program,
     required this.className,
     required this.dateRange,
+    this.academicYear = '2026–27',
     required this.papersCount,
     required this.status,
     required this.papers,
@@ -70,16 +78,19 @@ class AcademicsData {
       program: 'Grade 10',
       className: 'Class 10 - Mathematics',
       dateRange: '5 Nov 2026',
+      academicYear: '2026–27',
       papersCount: 1,
       status: 'Published',
       papers: [
         ExamPaperItem(
           id: 'p-101',
           subject: 'Mathematics',
-          date: '05 Nov 2026',
-          time: '09:30 AM - 12:30 PM',
-          maxMarks: 100,
-          room: 'Hall A-101',
+          date: '5 Nov 2026',
+          time: '09:00–10:30',
+          maxMarks: 25,
+          passMarks: 9,
+          room: 'HTL-ROOM-2026-00007',
+          invigilator: 'Dr. Neha Gupta',
         ),
       ],
     ),
@@ -92,32 +103,39 @@ class AcademicsData {
       program: 'Class - 1',
       className: 'Class 1-A',
       dateRange: '17 Aug 2026 → 19 Aug 2026',
+      academicYear: '2026–27',
       papersCount: 3,
       status: 'Published',
       papers: [
         ExamPaperItem(
           id: 'p-201',
-          subject: 'English Language & Lit',
+          subject: 'English',
           date: '17 Aug 2026',
-          time: '09:30 AM - 11:30 AM',
-          maxMarks: 50,
-          room: 'Primary Wing 102',
+          time: '09:00–10:30',
+          maxMarks: 25,
+          passMarks: 9,
+          room: 'HTL-ROOM-2026-00007',
+          invigilator: 'Bhavya Malli',
         ),
         ExamPaperItem(
           id: 'p-202',
-          subject: 'Elementary Mathematics',
+          subject: 'Hindi',
           date: '18 Aug 2026',
-          time: '09:30 AM - 11:30 AM',
-          maxMarks: 50,
-          room: 'Primary Wing 102',
+          time: '09:00–10:30',
+          maxMarks: 25,
+          passMarks: 9,
+          room: 'HTL-ROOM-2026-00007',
+          invigilator: 'Bhavya Malli',
         ),
         ExamPaperItem(
           id: 'p-203',
-          subject: 'Environmental Studies',
+          subject: 'Mathematics',
           date: '19 Aug 2026',
-          time: '09:30 AM - 11:30 AM',
-          maxMarks: 50,
-          room: 'Primary Wing 102',
+          time: '09:00–10:30',
+          maxMarks: 25,
+          passMarks: 9,
+          room: 'HTL-ROOM-2026-00007',
+          invigilator: 'Jeevani Boppudi',
         ),
       ],
     ),

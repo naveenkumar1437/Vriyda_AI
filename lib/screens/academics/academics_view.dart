@@ -842,104 +842,469 @@ class _AcademicsViewState extends State<AcademicsView> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: EdgeInsets.fromLTRB(
-            16,
-            12,
-            16,
-            MediaQuery.of(ctx).padding.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Grab handle
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
+        bool showTableView = true;
 
-              // Title Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                12,
+                16,
+                MediaQuery.of(ctx).padding.bottom + 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${item.examName} · Paper Schedule',
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${item.className} • ${item.branchName}',
-                          style: const TextStyle(
-                            color: Color(0xFF64748B),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                  // Grab handle
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFCBD5E1),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD1FAE5),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      item.status,
-                      style: const TextStyle(
-                        color: Color(0xFF047857),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                  const SizedBox(height: 12),
+
+                  // Header: Exam Name, Status Badge, Close Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            item.examName,
+                            style: const TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: item.isPublished
+                                  ? const Color(0xFFD1FAE5)
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: item.isPublished
+                                    ? const Color(0xFFA7F3D0)
+                                    : const Color(0xFFCBD5E1),
+                              ),
+                            ),
+                            child: Text(
+                              item.status,
+                              style: TextStyle(
+                                color: item.isPublished
+                                    ? const Color(0xFF047857)
+                                    : const Color(0xFF475569),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
+                      IconButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          size: 20,
+                          color: Color(0xFF64748B),
+                        ),
+                        splashRadius: 18,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Subtitle: Steel Plant Branch · Class - 1 · Class 1-A · 17 Aug 2026 → 19 Aug 2026 · 2026–27
+                  Text(
+                    '${item.branchName} · ${item.program} · ${item.className} · ${item.dateRange} · ${item.academicYear}',
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Toggle Row: Table vs Cards view & Paper count
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'PAPERS SCHEDULE (${item.papers.length})',
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      // View Switcher (Table vs Card)
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                setSheetState(() {
+                                  showTableView = true;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: showTableView ? Colors.white : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(6),
+                                  boxShadow: showTableView
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.05),
+                                            blurRadius: 2,
+                                          )
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.table_chart_rounded,
+                                      size: 12,
+                                      color: showTableView
+                                          ? const Color(0xFF7C3AED)
+                                          : const Color(0xFF64748B),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Table',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: showTableView
+                                            ? const Color(0xFF7C3AED)
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setSheetState(() {
+                                  showTableView = false;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: !showTableView ? Colors.white : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(6),
+                                  boxShadow: !showTableView
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.05),
+                                            blurRadius: 2,
+                                          )
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.view_agenda_rounded,
+                                      size: 12,
+                                      color: !showTableView
+                                          ? const Color(0xFF7C3AED)
+                                          : const Color(0xFF64748B),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Cards',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: !showTableView
+                                            ? const Color(0xFF7C3AED)
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Content: Table or Cards
+                  Flexible(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: showTableView
+                          ? _buildScheduleTable(item.papers)
+                          : _buildScheduleCards(item.papers),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              const SizedBox(height: 12),
+            );
+          },
+        );
+      },
+    );
+  }
 
-              const Text(
-                'SCHEDULED PAPERS',
-                style: TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
+  Widget _buildScheduleTable(List<ExamPaperItem> papers) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFCBD5E1)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: DataTable(
+                headingRowHeight: 38,
+                dataRowMinHeight: 46,
+                dataRowMaxHeight: 52,
+                headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
+                horizontalMargin: 12,
+                columnSpacing: 16,
+                dividerThickness: 1,
+                border: const TableBorder(
+                  horizontalInside: BorderSide(color: Color(0xFFF1F5F9), width: 1),
                 ),
-              ),
-              const SizedBox(height: 8),
-
-              ...item.papers.map((paper) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                columns: const [
+                  DataColumn(
+                    label: Text(
+                      'Date',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
                   ),
-                  child: Row(
+                  DataColumn(
+                    label: Text(
+                      'Time',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Subject',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Room',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Invigilator',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Max',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Pass',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ],
+                rows: papers.map((paper) {
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        Text(
+                          paper.date,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF1E293B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          paper.time,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF1E293B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          paper.subject,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFF0F172A),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          paper.room,
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          paper.invigilator,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF1E293B),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          '${paper.maxMarks}',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFF0F172A),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          '${paper.passMarks}',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFF0F172A),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.swipe_left_rounded, size: 12, color: Color(0xFF94A3B8)),
+            SizedBox(width: 4),
+            Text(
+              'Swipe table horizontally to view room, invigilator & marks',
+              style: TextStyle(
+                fontSize: 10,
+                color: Color(0xFF94A3B8),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScheduleCards(List<ExamPaperItem> papers) {
+    return Column(
+      children: papers.map((paper) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
                     children: [
                       Container(
                         width: 32,
@@ -955,70 +1320,86 @@ class _AcademicsViewState extends State<AcademicsView> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              paper.subject,
-                              style: const TextStyle(
-                                color: Color(0xFF0F172A),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${paper.date} • ${paper.time}',
-                              style: const TextStyle(
-                                color: Color(0xFF64748B),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                      Text(
+                        paper.subject,
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              '${paper.maxMarks} M',
-                              style: const TextStyle(
-                                color: Color(0xFF2563EB),
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            paper.room,
-                            style: const TextStyle(
-                              color: Color(0xFF94A3B8),
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
-                );
-              }),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                        ),
+                        child: Text(
+                          'Max: ${paper.maxMarks}',
+                          style: const TextStyle(
+                            color: Color(0xFF1D4ED8),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFECFDF5),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFA7F3D0)),
+                        ),
+                        child: Text(
+                          'Pass: ${paper.passMarks}',
+                          style: const TextStyle(
+                            color: Color(0xFF047857),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMetaDetail(
+                      icon: Icons.calendar_today_rounded,
+                      label: 'Date & Time',
+                      value: '${paper.date} • ${paper.time}',
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildMetaDetail(
+                      icon: Icons.person_outline_rounded,
+                      label: 'Invigilator',
+                      value: paper.invigilator,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              _buildMetaDetail(
+                icon: Icons.meeting_room_outlined,
+                label: 'Room',
+                value: paper.room,
+              ),
             ],
           ),
         );
-      },
+      }).toList(),
     );
   }
 
