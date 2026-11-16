@@ -187,3 +187,4 @@ class _PaymentMixDonutPainter extends CustomPainter {
   bool shouldRepaint(covariant _PaymentMixDonutPainter oldDelegate) =>
       oldDelegate.onlinePct != onlinePct;
 }
+

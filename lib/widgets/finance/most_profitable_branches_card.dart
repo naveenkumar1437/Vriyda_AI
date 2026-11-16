@@ -132,3 +132,4 @@ class MostProfitableBranchesCard extends StatelessWidget {
     );
   }
 }
+

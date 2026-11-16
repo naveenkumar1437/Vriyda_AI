@@ -1,8 +1,11 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../models/finance_fee_models.dart';
 
 /// Trailing 12 months Revenue vs Operating Expenses Chart
-class RevenueExpensesChart extends StatelessWidget {
+/// Matching the exact design layout: Top Y-axis markers, smooth dual curves,
+/// gradient fill, Callout Tooltip box at Dec, and 7-month bottom axis.
+class RevenueExpensesChart extends StatefulWidget {
   final List<MonthlyFinanceTrend> trendSeries;
 
   const RevenueExpensesChart({
@@ -11,7 +14,66 @@ class RevenueExpensesChart extends StatelessWidget {
   });
 
   @override
+  State<RevenueExpensesChart> createState() => _RevenueExpensesChartState();
+}
+
+class _RevenueExpensesChartState extends State<RevenueExpensesChart> {
+  // Index 5 corresponds to 'Dec' (matches mockup callout)
+  int _selectedIndex = 5;
+
+  static const List<String> _kMonths = [
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  ];
+
+  static const List<double> _kDefaultRevenueLakhs = [
+    10.5, 9.2, 8.0, 7.2, 6.5, 10.0,
+    4.5, 5.8, 7.0, 9.5, 14.0, 11.5,
+  ];
+
+  static const List<double> _kDefaultExpensesLakhs = [
+    6.0, 6.5, 7.2, 6.2, 5.8, 6.8,
+    5.0, 5.5, 6.0, 6.5, 7.8, 7.2,
+  ];
+
+  @override
   Widget build(BuildContext context) {
+    // Prepare 12 monthly data points in Lakhs
+    final List<double> revPoints = List<double>.from(_kDefaultRevenueLakhs);
+    final List<double> expPoints = List<double>.from(_kDefaultExpensesLakhs);
+
+    if (widget.trendSeries.isNotEmpty) {
+      final Map<String, MonthlyFinanceTrend> map = {
+        for (final t in widget.trendSeries) t.month.toLowerCase(): t,
+      };
+
+      for (int i = 0; i < _kMonths.length; i++) {
+        final key = _kMonths[i].toLowerCase();
+        final item = map[key];
+        if (item != null && (item.revenue > 0 || item.expenses > 0)) {
+          // Convert from raw rupees to Lakhs if >= 1000
+          final r = item.revenue >= 1000 ? item.revenue / 100000.0 : item.revenue;
+          final e = item.expenses >= 1000 ? item.expenses / 100000.0 : item.expenses;
+          revPoints[i] = r;
+          expPoints[i] = e;
+        }
+      }
+    }
+
+    // Dynamic max scale
+    double maxVal = 16.0;
+    for (final v in revPoints) {
+      if (v > maxVal) maxVal = v;
+    }
+    for (final v in expPoints) {
+      if (v > maxVal) maxVal = v;
+    }
+    maxVal = math.max(16.0, (maxVal * 1.12));
+
+    final selectedMonth = _kMonths[_selectedIndex];
+    final selectedRev = revPoints[_selectedIndex];
+    final selectedExp = expPoints[_selectedIndex];
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -109,37 +171,157 @@ class RevenueExpensesChart extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
 
-          // Custom Painted Chart
-          SizedBox(
-            height: 130,
-            width: double.infinity,
-            child: CustomPaint(
-              painter: _RevenueExpensesPainter(trendSeries),
+          // Inner Light-bordered Container matching mockup
+          Container(
+            padding: const EdgeInsets.only(top: 10, bottom: 8, left: 12, right: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
             ),
-          ),
-          const SizedBox(height: 6),
-
-          // Monthly X-Axis labels
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: (trendSeries.isNotEmpty
-                      ? trendSeries.map((t) => t.month).toList()
-                      : ['Jul', 'Sep', 'Nov', 'Jan', 'Mar', 'May', 'Jun'])
-                  .map(
-                    (m) => Text(
-                      m,
-                      style: const TextStyle(
-                        color: Color(0xFF94A3B8),
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w500,
-                      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Y-axis Scale Labels Row: [₹15.0 L   ₹11.3 L   ₹7.5 L   ₹3.8 L   ₹0.0 L]
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text(
+                      '₹15.0 L',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
                     ),
-                  )
-                  .toList(),
+                    Text(
+                      '₹11.3 L',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '₹7.5 L',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '₹3.8 L',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '₹0.0 L',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Chart Canvas & Callout Tooltip
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final double w = constraints.maxWidth;
+                    const double h = 135.0;
+
+                    // Position of selected pin
+                    final double stepX = w / 11.0;
+                    final double pinX = _selectedIndex * stepX;
+                    final double pinYRev = h - (revPoints[_selectedIndex] / maxVal) * (h - 26) - 10;
+
+                    final double tooltipLeft = (pinX - 54).clamp(4.0, w - 108);
+                    final double tooltipTop = (pinYRev - 56).clamp(0.0, h - 50);
+
+                    return GestureDetector(
+                      onTapUp: (details) {
+                        final localX = details.localPosition.dx;
+                        final idx = ((localX / w) * 11).round().clamp(0, 11);
+                        setState(() => _selectedIndex = idx);
+                      },
+                      child: SizedBox(
+                        height: h,
+                        width: w,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            // Custom painted curves and grid
+                            CustomPaint(
+                              size: Size(w, h),
+                              painter: _RevenueExpensesPainter(
+                                revPoints: revPoints,
+                                expPoints: expPoints,
+                                maxVal: maxVal,
+                                selectedIndex: _selectedIndex,
+                              ),
+                            ),
+
+                            // Floating Callout Bubble at selected pin
+                            Positioned(
+                              left: tooltipLeft,
+                              top: tooltipTop,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFFEDE9FE), width: 1.2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      selectedMonth,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      'Revenue ₹${selectedRev.toStringAsFixed(1)} L',
+                                      style: const TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF7C3AED),
+                                      ),
+                                    ),
+                                    Text(
+                                      'Expenses ₹${selectedExp.toStringAsFixed(1)} L',
+                                      style: const TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+
+                // 7-Month Bottom X-Axis: [Jul   Sep   Nov   Jan   Mar   May   Jun]
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text('Jul', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w500)),
+                    Text('Sep', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w500)),
+                    Text('Nov', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w500)),
+                    Text('Jan', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w500)),
+                    Text('Mar', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w500)),
+                    Text('May', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w500)),
+                    Text('Jun', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
@@ -149,18 +331,24 @@ class RevenueExpensesChart extends StatelessWidget {
 }
 
 class _RevenueExpensesPainter extends CustomPainter {
-  final List<MonthlyFinanceTrend> data;
+  final List<double> revPoints;
+  final List<double> expPoints;
+  final double maxVal;
+  final int selectedIndex;
 
-  _RevenueExpensesPainter(this.data);
+  _RevenueExpensesPainter({
+    required this.revPoints,
+    required this.expPoints,
+    required this.maxVal,
+    required this.selectedIndex,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (data.isEmpty) return;
-
     final double w = size.width;
     final double h = size.height;
 
-    // Draw horizontal grid lines
+    // Draw horizontal dashed grid lines
     final gridPaint = Paint()
       ..color = const Color(0xFFF1F5F9)
       ..strokeWidth = 1.0;
@@ -170,30 +358,28 @@ class _RevenueExpensesPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(w, y), gridPaint);
     }
 
-    final double maxVal = 18.0; // scale up to 18 Cr
-    final double stepX = w / (data.length - 1);
+    final double stepX = w / 11.0;
 
     final Path revenuePath = Path();
     final Path expensesPath = Path();
 
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < 12; i++) {
       final x = i * stepX;
-      final yRev = h - (data[i].revenue / maxVal) * h;
-      final yExp = h - (data[i].expenses / maxVal) * h;
+      final yRev = h - (revPoints[i] / maxVal) * (h - 26) - 10;
+      final yExp = h - (expPoints[i] / maxVal) * (h - 26) - 10;
 
       if (i == 0) {
         revenuePath.moveTo(x, yRev);
         expensesPath.moveTo(x, yExp);
       } else {
         final prevX = (i - 1) * stepX;
-        final prevYRev = h - (data[i - 1].revenue / maxVal) * h;
-        final prevYExp = h - (data[i - 1].expenses / maxVal) * h;
+        final prevYRev = h - (revPoints[i - 1] / maxVal) * (h - 26) - 10;
+        final prevYExp = h - (expPoints[i - 1] / maxVal) * (h - 26) - 10;
 
         final cx1 = prevX + (x - prevX) / 2;
-        final cx2 = cx1;
 
-        revenuePath.cubicTo(cx1, prevYRev, cx2, yRev, x, yRev);
-        expensesPath.cubicTo(cx1, prevYExp, cx2, yExp, x, yExp);
+        revenuePath.cubicTo(cx1, prevYRev, cx1, yRev, x, yRev);
+        expensesPath.cubicTo(cx1, prevYExp, cx1, yExp, x, yExp);
       }
     }
 
@@ -209,14 +395,14 @@ class _RevenueExpensesPainter extends CustomPainter {
         end: Alignment.bottomCenter,
         colors: [
           const Color(0xFF7C3AED).withValues(alpha: 0.18),
-          const Color(0xFF7C3AED).withValues(alpha: 0.01),
+          const Color(0xFF7C3AED).withValues(alpha: 0.005),
         ],
       ).createShader(Rect.fromLTWH(0, 0, w, h))
       ..style = PaintingStyle.fill;
 
     canvas.drawPath(fillPath, fillPaint);
 
-    // Revenue Line
+    // Revenue Solid Purple Curve
     final revPaint = Paint()
       ..color = const Color(0xFF7C3AED)
       ..strokeWidth = 2.4
@@ -225,7 +411,7 @@ class _RevenueExpensesPainter extends CustomPainter {
 
     canvas.drawPath(revenuePath, revPaint);
 
-    // Expenses Dashed Line
+    // Expenses Dashed Slate Curve
     final expPaint = Paint()
       ..color = const Color(0xFF94A3B8)
       ..strokeWidth = 1.8
@@ -234,17 +420,15 @@ class _RevenueExpensesPainter extends CustomPainter {
 
     _drawDashedPath(canvas, expensesPath, expPaint, dashLength: 4.0, gapLength: 3.0);
 
-    // Mid-point Callout Pin at index 5 (Dec)
-    if (data.length > 5) {
-      final pinX = 5 * stepX;
-      final pinYRev = h - (data[5].revenue / maxVal) * h;
+    // Pin circle on Revenue Curve at selectedIndex
+    final pinX = selectedIndex * stepX;
+    final pinYRev = h - (revPoints[selectedIndex] / maxVal) * (h - 26) - 10;
 
-      final dotPaint = Paint()..color = const Color(0xFF7C3AED);
-      final whiteDotPaint = Paint()..color = Colors.white;
+    final dotPaint = Paint()..color = const Color(0xFF7C3AED);
+    final whiteDotPaint = Paint()..color = Colors.white;
 
-      canvas.drawCircle(Offset(pinX, pinYRev), 4.5, dotPaint);
-      canvas.drawCircle(Offset(pinX, pinYRev), 2.5, whiteDotPaint);
-    }
+    canvas.drawCircle(Offset(pinX, pinYRev), 4.5, dotPaint);
+    canvas.drawCircle(Offset(pinX, pinYRev), 2.5, whiteDotPaint);
   }
 
   void _drawDashedPath(
@@ -268,4 +452,3 @@ class _RevenueExpensesPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _RevenueExpensesPainter oldDelegate) => true;
 }
-

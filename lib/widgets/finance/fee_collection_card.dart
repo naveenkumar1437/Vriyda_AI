@@ -284,3 +284,4 @@ class _FeeCollectionDonutPainter extends CustomPainter {
   bool shouldRepaint(covariant _FeeCollectionDonutPainter oldDelegate) =>
       oldDelegate.collectedPct != collectedPct;
 }
+

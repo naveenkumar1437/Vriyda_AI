@@ -184,3 +184,4 @@ class FeeCollectionByBranchCard extends StatelessWidget {
     );
   }
 }
+

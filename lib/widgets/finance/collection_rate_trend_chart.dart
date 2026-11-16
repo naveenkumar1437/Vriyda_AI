@@ -204,3 +204,4 @@ class _CollectionTrendPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _CollectionTrendPainter oldDelegate) => true;
 }
+
