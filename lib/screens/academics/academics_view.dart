@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import '../../data/academics_data.dart';
+import '../../services/api_config.dart';
+import '../../services/session_manager.dart';
 
 /// Academics View displaying Exam Timetables and Paper-by-Paper Schedules
-/// Matching the web portal layout while adhering to mobile Dashboard / Attendance UI/UX
+/// Sourced directly from live API (GET /owner-dashboard -> exams) matching web portal
 class AcademicsView extends StatefulWidget {
   final Map<String, dynamic>? dashboardData;
 
@@ -18,6 +22,61 @@ class _AcademicsViewState extends State<AcademicsView> {
   String _selectedClass = 'All classes';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  Map<String, dynamic>? _liveDashboardData;
+  bool _isRefreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _liveDashboardData = widget.dashboardData;
+    if (_liveDashboardData == null || _liveDashboardData!['exams'] == null) {
+      _fetchLiveExams();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AcademicsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.dashboardData != oldWidget.dashboardData) {
+      setState(() {
+        _liveDashboardData = widget.dashboardData;
+      });
+    }
+  }
+
+  Future<void> _fetchLiveExams() async {
+    final token = await SessionManager.getToken();
+    if (token != null && token.isNotEmpty) {
+      try {
+        final res = await http.get(
+          Uri.parse(ApiConfig.ownerDashboard),
+          headers: ApiConfig.authHeaders(token),
+        );
+        if (res.statusCode == 200) {
+          final body = jsonDecode(res.body);
+          if (mounted && body is Map<String, dynamic>) {
+            setState(() {
+              _liveDashboardData = body;
+              _isRefreshing = false;
+            });
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _handleRefresh() async {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isRefreshing = true;
+    });
+    await _fetchLiveExams();
+    if (mounted) {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -25,14 +84,32 @@ class _AcademicsViewState extends State<AcademicsView> {
     super.dispose();
   }
 
+  List<String> _getAvailableClasses(List<ExamTimetableItem> timetables) {
+    final classes = {'All classes'};
+    for (final tt in timetables) {
+      if (tt.className.isNotEmpty) {
+        classes.add(tt.className);
+      }
+    }
+    return classes.toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final allTimetables = AcademicsData.timetables;
+    final activeData = _liveDashboardData ?? widget.dashboardData;
+    final allTimetables = AcademicsData.parseFromDashboard(activeData);
+    final availableBranchesList = AcademicsData.parseBranchesFromDashboard(activeData);
+    final availableClassesList = _getAvailableClasses(allTimetables);
 
     // Filter timetables
     final filteredTimetables = allTimetables.where((tt) {
-      if (_selectedBranch != 'all' && tt.branchId != _selectedBranch) {
-        return false;
+      if (_selectedBranch != 'all') {
+        final bSlug = AcademicsData.slugify(tt.branchName);
+        if (tt.branchId != _selectedBranch &&
+            bSlug != _selectedBranch &&
+            !tt.branchName.toLowerCase().contains(_selectedBranch.toLowerCase())) {
+          return false;
+        }
       }
       if (_selectedClass != 'All classes' && tt.className != _selectedClass) {
         return false;
@@ -58,15 +135,15 @@ class _AcademicsViewState extends State<AcademicsView> {
     final draftsCount = filteredTimetables.where((tt) => tt.isDraft).length;
     
     // Branches covered calculation (dynamically read from live API if present)
-    final branchesFromApi = widget.dashboardData?['branches'] as List<dynamic>?;
+    final branchesFromApi = activeData?['branches'] as List<dynamic>?;
     final totalBranchesCount = (branchesFromApi != null && branchesFromApi.isNotEmpty)
         ? branchesFromApi.length
         : 6;
-    final coveredBranches = allTimetables.map((t) => t.branchId).toSet().length;
+    final coveredBranches = allTimetables.map((t) => t.branchName).toSet().length;
 
     final branchLabel = _selectedBranch == 'all'
         ? 'all branches'
-        : (AcademicsData.availableBranches.firstWhere(
+        : (availableBranchesList.firstWhere(
             (b) => b['id'] == _selectedBranch,
             orElse: () => {'label': _selectedBranch},
           )['label'] ?? _selectedBranch);
@@ -74,7 +151,7 @@ class _AcademicsViewState extends State<AcademicsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Header Context
+        // 1. Header Context with Live API badge
         _buildHeaderContext(),
         const SizedBox(height: 14),
 
@@ -91,7 +168,7 @@ class _AcademicsViewState extends State<AcademicsView> {
         const SizedBox(height: 16),
 
         // 3. Filter Selectors Row (Branch & Class)
-        _buildFilterSelectorsRow(),
+        _buildFilterSelectorsRow(availableBranchesList, availableClassesList),
         const SizedBox(height: 14),
 
         // 4. Main Section Card with Timetable List
@@ -146,6 +223,50 @@ class _AcademicsViewState extends State<AcademicsView> {
                     ),
                   ),
                 ],
+              ),
+            ),
+            // Live Real-Time API Badge & Tap to refresh
+            GestureDetector(
+              onTap: _isRefreshing ? null : _handleRefresh,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _isRefreshing
+                        ? const SizedBox(
+                            width: 8,
+                            height: 8,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF059669)),
+                            ),
+                          )
+                        : Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF059669),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                    const SizedBox(width: 5),
+                    Text(
+                      _isRefreshing ? 'Syncing...' : 'LIVE API',
+                      style: const TextStyle(
+                        color: Color(0xFF047857),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -308,10 +429,13 @@ class _AcademicsViewState extends State<AcademicsView> {
   }
 
   // --- Component 3: Filter Selectors Row (Branch & Class) ---
-  Widget _buildFilterSelectorsRow() {
+  Widget _buildFilterSelectorsRow(
+    List<Map<String, String>> branchesList,
+    List<String> classesList,
+  ) {
     final branchLabel = _selectedBranch == 'all'
         ? 'All branches'
-        : (AcademicsData.availableBranches.firstWhere(
+        : (branchesList.firstWhere(
             (b) => b['id'] == _selectedBranch,
             orElse: () => {'label': _selectedBranch},
           )['label'] ?? _selectedBranch);
@@ -321,7 +445,7 @@ class _AcademicsViewState extends State<AcademicsView> {
         // Branch Filter Dropdown
         Expanded(
           child: GestureDetector(
-            onTap: () => _showBranchPicker(),
+            onTap: () => _showBranchPicker(branchesList),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8.5),
               decoration: BoxDecoration(
@@ -369,7 +493,7 @@ class _AcademicsViewState extends State<AcademicsView> {
         // Class Filter Dropdown
         Expanded(
           child: GestureDetector(
-            onTap: () => _showClassPicker(),
+            onTap: () => _showClassPicker(classesList),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8.5),
               decoration: BoxDecoration(
@@ -1404,7 +1528,7 @@ class _AcademicsViewState extends State<AcademicsView> {
   }
 
   // --- Filter Picker Helpers ---
-  void _showBranchPicker() {
+  void _showBranchPicker(List<Map<String, String>> branchesList) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1444,7 +1568,7 @@ class _AcademicsViewState extends State<AcademicsView> {
                 ),
               ),
               const SizedBox(height: 10),
-              ...AcademicsData.availableBranches.map((b) {
+              ...branchesList.map((b) {
                 final id = b['id']!;
                 final label = b['label']!;
                 final isSelected = _selectedBranch == id;
@@ -1502,7 +1626,7 @@ class _AcademicsViewState extends State<AcademicsView> {
     );
   }
 
-  void _showClassPicker() {
+  void _showClassPicker(List<String> classesList) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1542,7 +1666,7 @@ class _AcademicsViewState extends State<AcademicsView> {
                 ),
               ),
               const SizedBox(height: 10),
-              ...AcademicsData.availableClasses.map((cls) {
+              ...classesList.map((cls) {
                 final isSelected = _selectedClass == cls;
 
                 return InkWell(
