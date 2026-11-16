@@ -15,6 +15,8 @@ class ApiConfig {
 
   // Part B - Chairman / Owner Screens
   static const String ownerDashboard = '$baseUrl/owner-dashboard';
+  static const String ownerBranchTree = '$baseUrl/owner-dashboard/branches';
+  static const String ownerBranchHierarchy = '$baseUrl/branches/hierarchy';
   static const String ownerAttendance = '$baseUrl/owner-dashboard/attendance';
   static const String ownerApprovals = '$baseUrl/owner-dashboard/approvals';
   static const String ownerStudents = '$baseUrl/owner-dashboard/students';
