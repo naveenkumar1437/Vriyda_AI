@@ -4019,14 +4019,19 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Branch Performance Benchmark',
-                style: TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
+              const Expanded(
+                child: Text(
+                  'Branch Performance Benchmark',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: () => _switchView('view-branches'),
                 child: Container(
@@ -4124,24 +4129,31 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 1),
-              Text(
-                sub,
-                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
-              ),
-            ],
+                const SizedBox(height: 1),
+                Text(
+                  sub,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
