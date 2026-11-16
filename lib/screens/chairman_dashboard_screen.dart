@@ -2327,11 +2327,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     }
   }
 
-  Future<void> _fetchBranchTree() async {
+  Future<void> _fetchBranchTree({String? period}) async {
+    final activePeriod = period ?? _branchPeriod;
     setState(() => _isBranchTreeLoading = true);
     try {
       final tree = await BranchService.fetchBranchTree(
         orgName: _dashboardData?['orgName'] ?? widget.user.organizationName,
+        period: activePeriod,
       );
       if (mounted) {
         setState(() {
@@ -5294,6 +5296,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     onTap: () {
                       HapticFeedback.selectionClick();
                       setState(() => _branchPeriod = p);
+                      _fetchBranchTree(period: p);
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
@@ -5377,7 +5380,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Exporting ${treeData.totalBranches} branches hierarchy data...',
+                      'Exporting $_branchPeriod hierarchy data for ${_branchSelectedFilter == "All branches" ? "${treeData.totalBranches} branches" : _branchSelectedFilter}...',
                     ),
                     backgroundColor: const Color(0xFF0F172A),
                     behavior: SnackBarBehavior.floating,
@@ -5423,12 +5426,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         ),
         const SizedBox(height: 10),
 
-        // Subtitle with purple "click a row to drill down"
+        // Subtitle with active period and purple "click a row to drill down"
         RichText(
-          text: const TextSpan(
-            style: TextStyle(fontSize: 11.5, height: 1.4),
+          text: TextSpan(
+            style: const TextStyle(fontSize: 11.5, height: 1.4),
             children: [
-              TextSpan(
+              const TextSpan(
                 text: 'Branch hierarchy ',
                 style: TextStyle(
                   color: Color(0xFF0F172A),
@@ -5437,13 +5440,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               ),
               TextSpan(
                 text:
-                    'Group → region → branch · roll-ups aggregate every child · ',
-                style: TextStyle(
+                    '• Period: $_branchPeriod · roll-ups aggregate every child · ',
+                style: const TextStyle(
                   color: Color(0xFF64748B),
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              TextSpan(
+              const TextSpan(
                 text: 'click a row to drill down',
                 style: TextStyle(
                   color: Color(0xFF7C3AED),
@@ -5621,8 +5624,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 9),
                         child: Row(
-                          children: const [
-                            SizedBox(
+                          children: [
+                            const SizedBox(
                               width: 175,
                               child: Text(
                                 'BRANCH',
@@ -5634,7 +5637,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(
+                            const SizedBox(
                               width: 65,
                               child: Text(
                                 'STUDENTS',
@@ -5647,7 +5650,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(
+                            const SizedBox(
                               width: 75,
                               child: Text(
                                 'CAPACITY',
@@ -5663,10 +5666,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                             SizedBox(
                               width: 95,
                               child: Text(
-                                'COLLECTION %',
+                                'COLLECTION ($_branchPeriod)',
                                 textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  color: Color(0xFF94A3B8),
+                                style: const TextStyle(
+                                  color: Color(0xFF7C3AED),
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.5,
@@ -5784,7 +5787,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               SizedBox(
                                 width: 95,
                                 child: Text(
-                                  '${treeData.collectionPct.toStringAsFixed(treeData.collectionPct % 1 == 0 ? 0 : 1)}%',
+                                  '${treeData.getCollectionPctForPeriod(_branchPeriod).toStringAsFixed(treeData.getCollectionPctForPeriod(_branchPeriod) % 1 == 0 ? 0 : 1)}%',
                                   textAlign: TextAlign.right,
                                   style: const TextStyle(
                                     color: Color(0xFF334155),
@@ -5987,7 +5990,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                     SizedBox(
                                       width: 95,
                                       child: Text(
-                                        '${branch.collectionPct.toStringAsFixed(branch.collectionPct % 1 == 0 ? 0 : 1)}%',
+                                        '${branch.getCollectionPctForPeriod(_branchPeriod).toStringAsFixed(branch.getCollectionPctForPeriod(_branchPeriod) % 1 == 0 ? 0 : 1)}%',
                                         textAlign: TextAlign.right,
                                         style: const TextStyle(
                                           color: Color(0xFF334155),
@@ -6020,195 +6023,255 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+        return StatefulBuilder(
+          builder: (modalCtx, setModalState) {
+            final periodColPct = branch.getCollectionPctForPeriod(_branchPeriod);
+            final periodRev = branch.getRevenueForPeriod(_branchPeriod);
+            final periodOutstanding = branch.getOutstandingForPeriod(_branchPeriod);
+            return Container(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: branch.dotColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          branch.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                        Text(
-                          '${branch.code} · ${branch.city} · ${branch.region}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF64748B),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: branch.status == 'good'
-                          ? const Color(0xFFDCFCE7)
-                          : (branch.status == 'warning'
-                                ? const Color(0xFFFEF3C7)
-                                : const Color(0xFFF1F5F9)),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      branch.status == 'good'
-                          ? 'Good'
-                          : (branch.status == 'warning'
-                                ? 'Attention'
-                                : 'Active'),
-                      style: TextStyle(
-                        color: branch.status == 'good'
-                            ? const Color(0xFF166534)
-                            : (branch.status == 'warning'
-                                  ? const Color(0xFFB45309)
-                                  : const Color(0xFF334155)),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFCBD5E1),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              // KPI Cards Grid
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDrillCard(
-                      'STUDENTS',
-                      '${branch.students}',
-                      '${branch.capacityPct}% of ${branch.capacity} capacity',
-                      const Color(0xFF7C3AED),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDrillCard(
-                      'COLLECTION',
-                      '${branch.collectionPct}%',
-                      'Billed fees collected',
-                      const Color(0xFF10B981),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDrillCard(
-                      'ATTENDANCE',
-                      '${branch.attendancePct}%',
-                      'Present today',
-                      const Color(0xFF3B82F6),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildDrillCard(
-                      'FACULTY',
-                      '${branch.teachers}',
-                      'Exam Index: ${branch.examIndex}',
-                      const Color(0xFFF59E0B),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Quick Actions
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF7C3AED),
-                        side: const BorderSide(color: Color(0xFFDDD6FE)),
-                        shape: RoundedRectangleBorder(
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: branch.dotColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              branch.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            Text(
+                              '${branch.code} · ${branch.city} · ${branch.region}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: branch.status == 'good'
+                              ? const Color(0xFFDCFCE7)
+                              : (branch.status == 'warning'
+                                    ? const Color(0xFFFEF3C7)
+                                    : const Color(0xFFF1F5F9)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _switchView('view-lookup');
-                      },
-                      child: const Text(
-                        'View Students',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                        child: Text(
+                          branch.status == 'good'
+                              ? 'Good'
+                              : (branch.status == 'warning'
+                                    ? 'Attention'
+                                    : 'Active'),
+                          style: TextStyle(
+                            color: branch.status == 'good'
+                                ? const Color(0xFF166534)
+                                : (branch.status == 'warning'
+                                      ? const Color(0xFFB45309)
+                                      : const Color(0xFF334155)),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  // Modal period filter pill toggle
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    padding: const EdgeInsets.all(2.5),
+                    child: Row(
+                      children: ['MTD', 'QTD', 'YTD', 'FY'].map((p) {
+                        final isSel = _branchPeriod == p;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setModalState(() => _branchPeriod = p);
+                              setState(() => _branchPeriod = p);
+                              _fetchBranchTree(period: p);
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSel
+                                    ? const Color(0xFF7C3AED)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(7),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  p,
+                                  style: TextStyle(
+                                    color: isSel
+                                        ? Colors.white
+                                        : const Color(0xFF64748B),
+                                    fontWeight: isSel
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C3AED),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _switchView('view-finance');
-                      },
-                      child: const Text(
-                        'View Finance',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                  const SizedBox(height: 14),
+                  // KPI Cards Grid
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDrillCard(
+                          'STUDENTS',
+                          '${branch.students}',
+                          '${branch.capacityPct.toStringAsFixed(branch.capacityPct % 1 == 0 ? 0 : 1)}% of ${branch.capacity} capacity',
+                          const Color(0xFF7C3AED),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildDrillCard(
+                          'COLLECTION · $_branchPeriod',
+                          '${periodColPct.toStringAsFixed(periodColPct % 1 == 0 ? 0 : 1)}%',
+                          periodRev > 0
+                              ? '₹${periodRev >= 100000 ? "${(periodRev / 100000).toStringAsFixed(1)}L" : periodRev.toStringAsFixed(0)} billed'
+                              : '$_branchPeriod fees collected',
+                          const Color(0xFF10B981),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDrillCard(
+                          'ATTENDANCE',
+                          '${branch.attendancePct.toStringAsFixed(branch.attendancePct % 1 == 0 ? 0 : 1)}%',
+                          'Present today',
+                          const Color(0xFF3B82F6),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildDrillCard(
+                          'FACULTY & DUES',
+                          '${branch.teachers} Staff',
+                          periodOutstanding > 0
+                              ? '₹${periodOutstanding >= 100000 ? "${(periodOutstanding / 100000).toStringAsFixed(1)}L" : periodOutstanding.toStringAsFixed(0)} dues'
+                              : 'Exam Index: ${branch.examIndex}',
+                          const Color(0xFFF59E0B),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Quick Actions
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF7C3AED),
+                            side: const BorderSide(color: Color(0xFFDDD6FE)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _switchView('view-lookup');
+                          },
+                          child: const Text(
+                            'View Students',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF7C3AED),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _switchView('view-finance');
+                          },
+                          child: const Text(
+                            'View Finance',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

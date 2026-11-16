@@ -68,4 +68,103 @@ void main() {
     expect(tree.branches.any((b) => b.name == 'Maddipalem'), isFalse);
     expect(tree.branches.any((b) => b.name == 'Banjara Hills'), isFalse);
   });
+
+  test('BranchItem period metrics calculation (MTD, QTD, YTD, FY)', () {
+    final branch = BranchItem(
+      id: 'b1',
+      code: 'TEST-01',
+      name: 'Test Branch',
+      subtitle: 'CBSE · K-12 · Active',
+      city: 'Test City',
+      region: 'Test Region',
+      students: 100,
+      capacity: 120,
+      capacityPct: 83.3,
+      collectionPct: 80.0,
+      revenue: 1200000.0,
+      outstanding: 240000.0,
+      attendancePct: 95.0,
+      examIndex: 90.0,
+      teachers: 10,
+      status: 'good',
+    );
+
+    // YTD baseline
+    expect(branch.getCollectionPctForPeriod('YTD'), 80.0);
+    expect(branch.getRevenueForPeriod('YTD'), 1200000.0);
+    expect(branch.getOutstandingForPeriod('YTD'), 240000.0);
+
+    // MTD
+    expect(branch.getCollectionPctForPeriod('MTD'), 89.6); // 80.0 * 1.12 = 89.6
+    expect(branch.getRevenueForPeriod('MTD'), 100000.0); // 1200000 / 12
+    expect(branch.getOutstandingForPeriod('MTD'), 200000.0 / 10); // 240000 / 12 = 20000
+
+    // QTD
+    expect(branch.getCollectionPctForPeriod('QTD'), 84.8); // 80.0 * 1.06 = 84.8
+    expect(branch.getRevenueForPeriod('QTD'), closeTo(336000.0, 0.1)); // 1200000 * 0.28
+    expect(branch.getOutstandingForPeriod('QTD'), closeTo(67200.0, 0.1)); // 240000 * 0.28
+
+    // FY (projected annual)
+    expect(branch.getCollectionPctForPeriod('FY'), 99.0); // capped at 99.0 because 80 * 1.25 = 100 > 99
+    expect(branch.getRevenueForPeriod('FY'), closeTo(1380000.0, 0.1)); // 1200000 * 1.15
+    expect(branch.getOutstandingForPeriod('FY'), closeTo(96000.0, 0.1)); // 240000 * 0.40
+  });
+
+  test('BranchGroupNode period metrics aggregate over child branches', () {
+    final b1 = BranchItem(
+      id: 'b1',
+      code: 'B1',
+      name: 'Branch 1',
+      subtitle: 'CBSE · K-12',
+      city: 'C1',
+      region: 'R1',
+      students: 100,
+      capacity: 100,
+      capacityPct: 100,
+      collectionPct: 80.0,
+      revenue: 1200000.0,
+      outstanding: 100000.0,
+      attendancePct: 90,
+      examIndex: 90,
+      teachers: 10,
+      status: 'good',
+    );
+    final b2 = BranchItem(
+      id: 'b2',
+      code: 'B2',
+      name: 'Branch 2',
+      subtitle: 'ICSE · K-12',
+      city: 'C2',
+      region: 'R2',
+      students: 100,
+      capacity: 100,
+      capacityPct: 100,
+      collectionPct: 90.0,
+      revenue: 2400000.0,
+      outstanding: 200000.0,
+      attendancePct: 90,
+      examIndex: 90,
+      teachers: 10,
+      status: 'good',
+    );
+
+    final group = BranchGroupNode(
+      name: 'Test Org',
+      initial: 'T',
+      totalBranches: 2,
+      totalRegions: 2,
+      students: 200,
+      capacityPct: 100,
+      collectionPct: 85.0,
+      branches: [b1, b2],
+    );
+
+    // Collection % for YTD: (80 + 90) / 2 = 85.0
+    expect(group.getCollectionPctForPeriod('YTD'), 85.0);
+    // Revenue for YTD: 1200000 + 2400000 = 3600000.0
+    expect(group.getRevenueForPeriod('YTD'), 3600000.0);
+
+    // Revenue for MTD: (1200000/12) + (2400000/12) = 100000 + 200000 = 300000.0
+    expect(group.getRevenueForPeriod('MTD'), 300000.0);
+  });
 }

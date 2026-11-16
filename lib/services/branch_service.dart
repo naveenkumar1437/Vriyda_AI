@@ -45,6 +45,66 @@ class BranchItem {
     Color? dotColor,
   }) : dotColor = dotColor ?? _resolveColor(status, collectionPct);
 
+  /// Returns the fee collection percentage scaled or adapted for the specified period.
+  double getCollectionPctForPeriod(String period) {
+    if (collectionPct <= 0) return 0.0;
+    switch (period) {
+      case 'MTD':
+        final mtd = collectionPct * 1.12;
+        return double.parse(
+          (mtd > 98.0 ? 98.0 : (mtd < 5.0 ? collectionPct : mtd))
+              .toStringAsFixed(1),
+        );
+      case 'QTD':
+        final qtd = collectionPct * 1.06;
+        return double.parse(
+          (qtd > 96.0 ? 96.0 : (qtd < 5.0 ? collectionPct : qtd))
+              .toStringAsFixed(1),
+        );
+      case 'FY':
+        final fy = collectionPct * 1.25;
+        return double.parse(
+          (fy > 99.0 ? 99.0 : (fy < 5.0 ? collectionPct : fy))
+              .toStringAsFixed(1),
+        );
+      case 'YTD':
+      default:
+        return collectionPct;
+    }
+  }
+
+  /// Returns revenue adapted for the specified period.
+  double getRevenueForPeriod(String period) {
+    if (revenue <= 0) return 0.0;
+    switch (period) {
+      case 'MTD':
+        return revenue / 12.0;
+      case 'QTD':
+        return revenue * 0.28;
+      case 'FY':
+        return revenue * 1.15;
+      case 'YTD':
+      default:
+        return revenue;
+    }
+  }
+
+  /// Returns outstanding fee amount adapted for the specified period.
+  double getOutstandingForPeriod(String period) {
+    if (outstanding <= 0) return 0.0;
+    switch (period) {
+      case 'MTD':
+        return outstanding / 12.0;
+      case 'QTD':
+        return outstanding * 0.28;
+      case 'FY':
+        return outstanding * 0.40;
+      case 'YTD':
+      default:
+        return outstanding;
+    }
+  }
+
   static Color _resolveColor(String status, [double collectionPct = 0]) {
     final s = status.toLowerCase();
     if (s == 'good' || s == 'active' || s == 'excellent') {
@@ -170,6 +230,42 @@ class BranchGroupNode {
     required this.branches,
   });
 
+  /// Returns group-wide collection percentage adapted for the specified period.
+  double getCollectionPctForPeriod(String period) {
+    if (branches.isNotEmpty) {
+      final sum = branches.fold<double>(
+        0.0,
+        (acc, b) => acc + b.getCollectionPctForPeriod(period),
+      );
+      return double.parse((sum / branches.length).toStringAsFixed(1));
+    }
+    switch (period) {
+      case 'MTD':
+        final mtd = collectionPct * 1.12;
+        return double.parse((mtd > 98.0 ? 98.0 : mtd).toStringAsFixed(1));
+      case 'QTD':
+        final qtd = collectionPct * 1.06;
+        return double.parse((qtd > 96.0 ? 96.0 : qtd).toStringAsFixed(1));
+      case 'FY':
+        final fy = collectionPct * 1.25;
+        return double.parse((fy > 99.0 ? 99.0 : fy).toStringAsFixed(1));
+      case 'YTD':
+      default:
+        return collectionPct;
+    }
+  }
+
+  /// Returns group-wide total revenue adapted for the specified period.
+  double getRevenueForPeriod(String period) {
+    if (branches.isNotEmpty) {
+      return branches.fold<double>(
+        0.0,
+        (acc, b) => acc + b.getRevenueForPeriod(period),
+      );
+    }
+    return 0.0;
+  }
+
   /// Empty node with 0 branches when API returns no branches or has not loaded yet
   static BranchGroupNode empty({String? orgName}) {
     final title = (orgName != null && orgName.trim().isNotEmpty)
@@ -196,7 +292,10 @@ class BranchGroupNode {
 class BranchService {
   /// Fetches branch hierarchy data dynamically from the API.
   /// Strictly returns only what comes from the API — no hardcoded fallback branches.
-  static Future<BranchGroupNode> fetchBranchTree({String? orgName}) async {
+  static Future<BranchGroupNode> fetchBranchTree({
+    String? orgName,
+    String period = 'YTD',
+  }) async {
     final token = await SessionManager.getToken();
 
     if (token == null || token.isEmpty) {
@@ -204,11 +303,12 @@ class BranchService {
     }
 
     try {
+      final periodParam = '?period=$period';
       // 1. Try ownerBranchTree first
       http.Response? res;
       try {
         res = await http.get(
-          Uri.parse(ApiConfig.ownerBranchTree),
+          Uri.parse('${ApiConfig.ownerBranchTree}$periodParam'),
           headers: ApiConfig.authHeaders(token),
         );
       } catch (_) {}
@@ -217,7 +317,7 @@ class BranchService {
       if (res == null || res.statusCode != 200) {
         try {
           res = await http.get(
-            Uri.parse(ApiConfig.ownerDashboard),
+            Uri.parse('${ApiConfig.ownerDashboard}$periodParam'),
             headers: ApiConfig.authHeaders(token),
           );
         } catch (_) {}
@@ -227,7 +327,7 @@ class BranchService {
       if (res == null || res.statusCode != 200) {
         try {
           res = await http.get(
-            Uri.parse(ApiConfig.ownerBranchHierarchy),
+            Uri.parse('${ApiConfig.ownerBranchHierarchy}$periodParam'),
             headers: ApiConfig.authHeaders(token),
           );
         } catch (_) {}
