@@ -54,60 +54,12 @@ class AuthService {
         );
       }
 
-      // If remote server returns invalid credentials for test/demo chairman, allow demo access
-      if (email.toLowerCase().contains('charan') ||
-          email.toLowerCase().contains('demo') ||
-          email.toLowerCase().contains('admin')) {
-        final demoSession = UserSession(
-          id: 'USR-0001',
-          token: 'demo-chairman-token',
-          refreshToken: 'demo-refresh-token',
-          email: email.trim(),
-          name: 'Charan Makkuva',
-          role: 'owner',
-          branchId: null,
-          branchName: null,
-          organizationId: 'ORG-1779945270970-5CC83094',
-          organizationName: 'Sai Ravindra School',
-          mustChangePassword: false,
-        );
-        await SessionManager.saveSession(demoSession, rememberMe: rememberMe);
-        return ApiResponse(
-          success: true,
-          message: 'Welcome back (Demo Chairman)',
-          data: demoSession,
-          statusCode: 200,
-        );
-      }
-
       return ApiResponse(
         success: false,
         message: msg,
         statusCode: response.statusCode,
       );
     } catch (e) {
-      if (email.toLowerCase().contains('charan') || email.toLowerCase().contains('demo') || email.toLowerCase().contains('admin')) {
-        final demoSession = UserSession(
-          id: 'USR-0001',
-          token: 'demo-chairman-token',
-          refreshToken: 'demo-refresh-token',
-          email: email.trim(),
-          name: 'Charan Makkuva',
-          role: 'owner',
-          branchId: null,
-          branchName: null,
-          organizationId: 'ORG-1779945270970-5CC83094',
-          organizationName: 'Sai Ravindra School',
-          mustChangePassword: false,
-        );
-        await SessionManager.saveSession(demoSession, rememberMe: rememberMe);
-        return ApiResponse(
-          success: true,
-          message: 'Welcome back (Demo Chairman)',
-          data: demoSession,
-          statusCode: 200,
-        );
-      }
       return ApiResponse(
         success: false,
         message: 'Something went wrong, please check your network connection.',
