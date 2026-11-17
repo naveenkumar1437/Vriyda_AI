@@ -30,7 +30,7 @@ class ExpensesKpiGrid extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Row 1: Total Spend, Payroll, Rent
+        // Row 1: Total Spend & Payroll
         Row(
           children: [
             Expanded(
@@ -40,7 +40,7 @@ class ExpensesKpiGrid extends StatelessWidget {
                 subtext: 'all expense lines',
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
               child: FinanceMetricCard(
                 label: 'PAYROLL · $period',
@@ -48,7 +48,13 @@ class ExpensesKpiGrid extends StatelessWidget {
                 subtext: 'submitted salary slips',
               ),
             ),
-            const SizedBox(width: 8),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Row 2: Rent & Fuel & Fleet
+        Row(
+          children: [
             Expanded(
               child: FinanceMetricCard(
                 label: 'RENT · MONTHLY',
@@ -56,13 +62,7 @@ class ExpensesKpiGrid extends StatelessWidget {
                 subtext: 'committed, not posted',
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-
-        // Row 2: Fuel & Fleet, Purchases, Staff Claims
-        Row(
-          children: [
+            const SizedBox(width: 10),
             Expanded(
               child: FinanceMetricCard(
                 label: 'FUEL & FLEET · $period',
@@ -70,7 +70,13 @@ class ExpensesKpiGrid extends StatelessWidget {
                 subtext: expenses.fuelAndFleet > 0 ? 'fleet logs' : 'no fuel logged yet',
               ),
             ),
-            const SizedBox(width: 8),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Row 3: Purchases & Staff Claims
+        Row(
+          children: [
             Expanded(
               child: FinanceMetricCard(
                 label: 'PURCHASES · $period',
@@ -80,7 +86,7 @@ class ExpensesKpiGrid extends StatelessWidget {
                     : 'invoiced lines',
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
               child: FinanceMetricCard(
                 label: 'STAFF CLAIMS · $period',

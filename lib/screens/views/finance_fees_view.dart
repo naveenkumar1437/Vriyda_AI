@@ -4,12 +4,11 @@ import '../../models/finance_fee_models.dart';
 import '../../services/finance_service.dart';
 import '../../widgets/finance/expense_mix_chart.dart';
 import '../../widgets/finance/expenses_kpi_grid.dart';
-import '../../widgets/finance/purchase_items_table.dart';
 import '../../widgets/finance/spend_by_branch_table.dart';
 
 /// Finance & Fees Screen strictly displaying V1 Feature Matrix Page-6:
 /// - Row 29: Expenses (KPIs: Total spend · YTD, Payroll · YTD, Rent · monthly, Fuel & fleet, Purchases, Staff claims)
-/// - Row 30: Spend by branch, Expense mix (plus submitted purchase invoice lines)
+/// - Row 30: Spend by branch, Expense mix
 ///
 /// 100% dynamic API data from GET /owner-dashboard — zero static or hardcoded fallback data.
 class FinanceFeesView extends StatefulWidget {
@@ -382,12 +381,6 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
         ExpenseMixChart(
           categories: data.expenseMix,
           totalSpend: data.expenses.totalSpend,
-        ),
-        const SizedBox(height: 18),
-
-        // 5. Items Purchased (Submitted purchase invoices lines)
-        PurchaseItemsTable(
-          purchases: data.purchaseItems,
         ),
         const SizedBox(height: 28),
       ],
