@@ -4,11 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../data/live_dashboard_payload.dart';
+import '../data/users_directory_data.dart';
 import '../services/api_config.dart';
 import '../services/auth_service.dart';
 import '../services/branch_service.dart';
+import 'people_ops_view.dart';
+import 'student_lookup_view.dart';
+import '../widgets/notifications_overlay.dart';
 import '../services/session_manager.dart';
 import '../widgets/radial_arc_menu.dart';
+import 'academics/academics_view.dart';
 import 'views/finance_fees_view.dart';
 import 'vriyda_login_screen.dart';
 
@@ -79,6 +84,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   bool _showAllAttendanceStudents = false;
   bool _showAllAttendanceStaff = false;
+
+  // Interactive state for Users Directory
+  String _usersRoleFilter = 'all'; // 'all' | 'students' | 'teaching' | 'non-teaching' | 'admins' | 'principals' | 'parents'
+  String _usersBranchFilter = 'all'; // 'all' or branch slug ('steel-plant', 'gachibowli', etc.)
+  String _usersSearchQuery = '';
+  final TextEditingController _usersSearchController = TextEditingController();
+  bool _showAllUsers = false;
 
   static List<Map<String, dynamic>>? _cachedAllStudentsList;
   static List<Map<String, dynamic>> _getAllStudentRecords() {
@@ -2208,6 +2220,15 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Color(0xFFF6F8FC),
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
     _kpiPageController = PageController(initialPage: _activeKpiSet);
     _branchSearchController.addListener(() {
       if (mounted) {
@@ -2229,6 +2250,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   void dispose() {
     _kpiTimer?.cancel();
     _kpiPageController.dispose();
+    _usersSearchController.dispose();
     _branchSearchController.dispose();
     super.dispose();
   }
@@ -2383,73 +2405,94 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final group = _dashboardData?['group'] as Map<String, dynamic>?;
     final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
     final alerts = _dashboardData?['alerts'] as List<dynamic>? ?? [];
+    final approvals = _dashboardData?['approvals'] as List<dynamic>? ?? [];
 
-    return Scaffold(
-      backgroundColor: const Color(
-        0xFFF6F8FC,
-      ), // Crisp SaaS Canvas from DESIGN.md
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Main Scrollable Body
-            RefreshIndicator(
-              onRefresh: _fetchDashboard,
-              color: const Color(0xFF7C3AED),
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 100),
-                children: [
-                  // 1. App Header
-                  _buildHeader(orgName),
+    final systemOverlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness:
+          _isArcMenuOpen ? Brightness.light : Brightness.dark,
+      statusBarBrightness:
+          _isArcMenuOpen ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor:
+          _isArcMenuOpen ? const Color(0xFF0F172A) : const Color(0xFFF6F8FC),
+      systemNavigationBarIconBrightness:
+          _isArcMenuOpen ? Brightness.light : Brightness.dark,
+    );
 
-                  const SizedBox(height: 12),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemOverlayStyle,
+      child: Scaffold(
+        backgroundColor: const Color(
+          0xFFF6F8FC,
+        ), // Crisp SaaS Canvas from DESIGN.md
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Main Scrollable Body
+              RefreshIndicator(
+                onRefresh: _fetchDashboard,
+                color: const Color(0xFF7C3AED),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 100),
+                  children: [
+                    // 1. App Header
+                    _buildHeader(orgName, alerts, approvals, branches),
 
-                  // 2. Horizontal Navigation Tabs
-                  _buildNavTabs(),
+                    const SizedBox(height: 12),
 
-                  const SizedBox(height: 14),
+                    // 2. Horizontal Navigation Tabs
+                    _buildNavTabs(),
 
-                  if (_isLoading)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 80.0),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xFF7C3AED),
+                    const SizedBox(height: 14),
+
+                    if (_isLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 80.0),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF7C3AED),
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                  else if (_errorMessage != null)
-                    _buildErrorCard()
-                  else
-                    _buildActiveViewContent(group, branches, alerts),
-                ],
+                      )
+                    else if (_errorMessage != null)
+                      _buildErrorCard()
+                    else
+                      _buildActiveViewContent(group, branches, alerts),
+                  ],
+                ),
               ),
-            ),
 
-            // 3. Radial Arc Wheel Menu Layer (Overlay & Trigger FAB)
-            Positioned.fill(
-              child: RadialArcMenu(
-                isOpen: _isArcMenuOpen,
-                onToggle: () {
-                  setState(() => _isArcMenuOpen = !_isArcMenuOpen);
-                },
-                onItemSelected: (selectedId) {
-                  _switchView(selectedId);
-                },
+              // 3. Radial Arc Wheel Menu Layer (Overlay & Trigger FAB)
+              Positioned.fill(
+                child: RadialArcMenu(
+                  isOpen: _isArcMenuOpen,
+                  onToggle: () {
+                    setState(() => _isArcMenuOpen = !_isArcMenuOpen);
+                  },
+                  onItemSelected: (selectedId) {
+                    _switchView(selectedId);
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   // --- Header Component ---
-  Widget _buildHeader(String orgName) {
+  Widget _buildHeader(
+    String orgName,
+    List<dynamic> alerts,
+    List<dynamic> approvals,
+    List<dynamic> branches,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2558,11 +2601,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   _fetchDashboard,
                 ),
                 const SizedBox(width: 6),
-                _buildHeaderIconBtn(
-                  Icons.notifications_outlined,
-                  const Color(0xFFF43F5E),
-                  () {},
-                ),
+                _buildNotificationBell(alerts, approvals, branches),
                 const SizedBox(width: 6),
                 _buildUserAvatar(),
               ],
@@ -2570,6 +2609,165 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildNotificationBell(
+    List<dynamic> alerts,
+    List<dynamic> approvals,
+    List<dynamic> branches,
+  ) {
+    final alertCount = alerts.isNotEmpty ? alerts.length : 4;
+    final approvalCount = approvals.isNotEmpty ? approvals.length : 10;
+    final totalCount = alertCount + approvalCount;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        _openNotificationsSheet(alerts, approvals, branches);
+      },
+      child: Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.all(4),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.notifications_outlined,
+                color: Color(0xFFF43F5E),
+                size: 16,
+              ),
+            ),
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                child: Text(
+                  '$totalCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w900,
+                    height: 1.0,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openNotificationsSheet(
+    List<dynamic> alerts,
+    List<dynamic> approvals,
+    List<dynamic> branches,
+  ) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) {
+        return NotificationsDropdownSheet(
+          alerts: alerts,
+          approvals: approvals,
+          branches: branches,
+          onClose: () => Navigator.of(ctx).pop(),
+          onAlertTap: (al) =>
+              Navigator.of(ctx).pop({'action': 'alert', 'data': al}),
+          onApprovalTap: (ap) =>
+              Navigator.of(ctx).pop({'action': 'approval', 'data': ap}),
+        );
+      },
+    );
+
+    if (!mounted || result == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (result['action'] == 'alert') {
+        final al = result['data'] as Map<String, dynamic>;
+        final branchName = al['branch']?.toString() ?? 'Gachibowli Campus';
+        Map<String, dynamic>? matchedBranch;
+        for (final b in branches) {
+          if (b is Map && b['name']?.toString() == branchName) {
+            matchedBranch = Map<String, dynamic>.from(b);
+            break;
+          }
+        }
+        _openBranchDetailsDialog(
+          branchName,
+          matchedBranch,
+        );
+      } else if (result['action'] == 'approval') {
+        final ap = result['data'] as Map<String, dynamic>;
+        _openApprovalDialog(ap);
+      }
+    });
+  }
+
+  void _openBranchDetailsDialog(
+    String branchName,
+    Map<String, dynamic>? branchData,
+  ) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) {
+        return BranchNotificationDetailsDialog(
+          branchName: branchName,
+          branchData: branchData,
+          onClose: () => Navigator.of(ctx).pop(),
+        );
+      },
+    );
+  }
+
+  void _openApprovalDialog(Map<String, dynamic> ap) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) {
+        return ApprovalDecisionDialog(
+          approvalItem: ap,
+          onClose: () => Navigator.of(ctx).pop(),
+          onDecision: (decision, note) {
+            final id = ap['id']?.toString() ?? '';
+            setState(() {
+              if (decision == 'approved') {
+                _approvedItemIds.add(id);
+              } else {
+                _approvedItemIds.remove(id);
+              }
+            });
+            _fetchDashboard();
+          },
+        );
+      },
     );
   }
 
@@ -2722,18 +2920,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         'icon': Icons.account_balance_wallet_outlined,
       },
       {
-        'id': 'view-growth',
-        'label': 'Growth & Admissions',
-        'icon': Icons.trending_up_rounded,
-      },
-      {
         'id': 'view-academics',
         'label': 'Academics',
         'icon': Icons.school_outlined,
       },
       {
         'id': 'view-operations',
-        'label': 'Operations',
+        'label': 'People & Ops',
         'icon': Icons.business_center_outlined,
       },
     ];
@@ -2837,7 +3030,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       case 'view-academics':
         return _buildAcademicsView();
       case 'view-operations':
-        return _buildOperationsView();
+        return _buildOperationsView(branches);
       case 'view-classes':
         return _buildClassesView();
       case 'view-attendance':
@@ -6353,125 +6546,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildStudentLookupView() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Student 360 Lookup',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Search by student name or ID...',
-              prefixIcon: const Icon(Icons.search, size: 18),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          _buildSampleStudentCard(
-            'Jatin Kalidindi',
-            'EDU-STU-2026-00012',
-            'Class 6-A',
-            'Steel Plant Branch',
-            94,
-            78,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSampleStudentCard(
-    String name,
-    String id,
-    String klass,
-    String branch,
-    int att,
-    int exam,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD1FAE5),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Active',
-                  style: TextStyle(
-                    color: Color(0xFF065F46),
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Text(
-            '$id · $klass · $branch',
-            style: const TextStyle(color: Color(0xFF64748B), fontSize: 10),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                'Attendance: $att%',
-                style: const TextStyle(
-                  color: Color(0xFF10B981),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Text(
-                'Exam Avg: $exam/100',
-                style: const TextStyle(
-                  color: Color(0xFF6366F1),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return const StudentLookupView();
   }
 
   Widget _buildFinanceFeesView(Map<String, dynamic>? group) {
@@ -6510,52 +6585,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildAcademicsView() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            'Academic Operations',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Timetable approvals, syllabus progress tracking, examination schedules, and merit ranks.',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
-          ),
-        ],
-      ),
-    );
+    return AcademicsView(dashboardData: _dashboardData);
   }
 
-  Widget _buildOperationsView() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            'People & Operations',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Staff requisitions, HR exits, hostel occupancy, transport tracking and procurement write-offs.',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
-          ),
-        ],
-      ),
+  Widget _buildOperationsView(List<dynamic> branches) {
+    return PeopleOpsView(
+      branches: branches,
+      dashboardData: _dashboardData,
     );
   }
 
@@ -10986,25 +11022,900 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     );
   }
 
+  // ============================================================================
+  // --- USERS DIRECTORY VIEW (Matching Web Design with Dashboard / Attendance UI/UX) ---
+  // ============================================================================
   Widget _buildUsersView() {
+    final allUsers = UsersDirectoryData.users;
+
+    // Active counts based on current branch selection
+    final totalUsersCount = allUsers.where((u) => _usersBranchFilter == 'all' || u.branchId == _usersBranchFilter).length;
+    final studentsCount = allUsers.where((u) => u.role == 'students' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
+    final teachingCount = allUsers.where((u) => u.role == 'teaching' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
+    final nonTeachingCount = allUsers.where((u) => u.role == 'non-teaching' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
+    final adminsCount = allUsers.where((u) => u.role == 'admins' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
+    final principalsCount = allUsers.where((u) => u.role == 'principals' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
+    final parentsCount = allUsers.where((u) => u.role == 'parents' && (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter)).length;
+
+    // Count strictly for role + branch (matching web banner behavior)
+    final roleAndBranchCount = allUsers.where((u) {
+      final matchRole = _usersRoleFilter == 'all' || u.role == _usersRoleFilter;
+      final matchBranch = _usersBranchFilter == 'all' || u.branchId == _usersBranchFilter;
+      return matchRole && matchBranch;
+    }).length;
+
+    // Filtered user list (incorporating search)
+    final filteredUsers = allUsers.where((u) {
+      if (_usersRoleFilter != 'all' && u.role != _usersRoleFilter) {
+        return false;
+      }
+      if (_usersBranchFilter != 'all' && u.branchId != _usersBranchFilter) {
+        return false;
+      }
+      if (_usersSearchQuery.isNotEmpty) {
+        final q = _usersSearchQuery.toLowerCase();
+        final nameMatches = u.name.toLowerCase().contains(q);
+        final metaMatches = u.meta.toLowerCase().contains(q);
+        final branchMatches = u.branchName.toLowerCase().contains(q);
+        final roleMatches = u.roleLabel.toLowerCase().contains(q);
+        if (!nameMatches && !metaMatches && !branchMatches && !roleMatches) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+
+    final displayedUsers = _showAllUsers
+        ? filteredUsers
+        : filteredUsers.take(10).toList();
+
+    // Active role label for banner
+    String roleLabel = 'All users';
+    switch (_usersRoleFilter) {
+      case 'students':
+        roleLabel = 'Students';
+        break;
+      case 'teaching':
+        roleLabel = 'Teaching staff';
+        break;
+      case 'non-teaching':
+        roleLabel = 'Non-teaching staff';
+        break;
+      case 'admins':
+        roleLabel = 'Admins';
+        break;
+      case 'principals':
+        roleLabel = 'Principals';
+        break;
+      case 'parents':
+        roleLabel = 'Parents / guardians';
+        break;
+    }
+
+    // Active branch label for banner
+    String branchLabel = 'All branches';
+    if (_usersBranchFilter != 'all') {
+      branchLabel = _getBranchLabel(_usersBranchFilter);
+    }
+
+    // Branch breakdown data
+    final branchConfigs = [
+      {'slug': 'steel-plant', 'name': 'Steel Plant Branch'},
+      {'slug': 'gachibowli', 'name': 'Gachibowli Campus'},
+      {'slug': 'maddipalem', 'name': 'Maddipalem'},
+      {'slug': 'kukatpally', 'name': 'Kukatpally Campus'},
+      {'slug': 'kondapur', 'name': 'Kondapur Branch'},
+      {'slug': 'madhapur', 'name': 'Madhapur Branch'},
+    ];
+
+    int maxBranchCount = 1;
+    final List<Map<String, dynamic>> branchBreakdown = branchConfigs.map((b) {
+      final slug = b['slug']!;
+      final name = b['name']!;
+      final count = allUsers.where((u) {
+        final matchBranch = u.branchId == slug;
+        final matchRole = _usersRoleFilter == 'all' || u.role == _usersRoleFilter;
+        return matchBranch && matchRole;
+      }).length;
+      if (count > maxBranchCount) maxBranchCount = count;
+      return {
+        'slug': slug,
+        'name': name,
+        'count': count,
+      };
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Header Context & Title
+        _buildUsersHeaderContext(),
+        const SizedBox(height: 14),
+
+        // 2. Role Filter Pills (Horizontal Scrolling)
+        _buildUsersRoleFilterPills(
+          totalUsersCount,
+          studentsCount,
+          teachingCount,
+          nonTeachingCount,
+          adminsCount,
+          principalsCount,
+          parentsCount,
+        ),
+        const SizedBox(height: 14),
+
+        // 3. Branch Filter Dropdown / Selector
+        _buildUsersBranchFilterDropdown(),
+        const SizedBox(height: 14),
+
+        // 4. Summary Banner Strip (Matching Web Purple Banner)
+        _buildUsersSummaryBanner(roleAndBranchCount, roleLabel, branchLabel),
+        const SizedBox(height: 16),
+
+        // 5. "BY BRANCH" Breakdown Card
+        _buildUsersByBranchCard(branchBreakdown, maxBranchCount),
+        const SizedBox(height: 20),
+
+        // 6. User Directory / Search & Roster Section
+        _buildUsersDirectoryListCard(filteredUsers, displayedUsers),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  // --- Users Component 1: Header Context ---
+  Widget _buildUsersHeaderContext() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 3.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C3AED).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'SAI RAVINDRA',
+                    style: TextStyle(
+                      color: Color(0xFF7C3AED),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: Text(
+                    '•',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                  ),
+                ),
+                const Text(
+                  'DIRECTORY SUITE',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Users directory',
+          style: TextStyle(
+            color: Color(0xFF0F172A),
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 2),
+        const Text(
+          'Filter by role, branch, class & section · counts update instantly',
+          style: TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --- Users Component 2: Role Filter Pills ---
+  Widget _buildUsersRoleFilterPills(
+    int totalCount,
+    int studentsCount,
+    int teachingCount,
+    int nonTeachingCount,
+    int adminsCount,
+    int principalsCount,
+    int parentsCount,
+  ) {
+    final pills = [
+      {'id': 'all', 'label': 'All users $totalCount'},
+      {'id': 'students', 'label': 'Students $studentsCount'},
+      {'id': 'teaching', 'label': 'Teaching staff $teachingCount'},
+      {'id': 'non-teaching', 'label': 'Non-teaching staff $nonTeachingCount'},
+      {'id': 'admins', 'label': 'Admins $adminsCount'},
+      {'id': 'principals', 'label': 'Principals $principalsCount'},
+      {'id': 'parents', 'label': 'Parents / guardians $parentsCount'},
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: pills.map((p) {
+          final isSelected = _usersRoleFilter == p['id'];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  _usersRoleFilter = p['id']!;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 7.5,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFF7C3AED)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? const Color(0xFF7C3AED)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF7C3AED,
+                            ).withValues(alpha: 0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1.5),
+                          ),
+                        ]
+                      : [],
+                ),
+                child: Text(
+                  p['label']!,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : const Color(0xFF475569),
+                    fontSize: 11.5,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // --- Users Component 3: Branch Filter Dropdown ---
+  Widget _buildUsersBranchFilterDropdown() {
+    final branchName = _usersBranchFilter == 'all'
+        ? 'All branches'
+        : _getBranchLabel(_usersBranchFilter);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'BRANCH',
+          style: TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 9.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: () {
+            final branchOptions = [
+              {'id': 'all', 'label': 'All branches'},
+              {'id': 'steel-plant', 'label': 'Steel Plant Branch'},
+              {'id': 'gachibowli', 'label': 'Gachibowli Campus'},
+              {'id': 'maddipalem', 'label': 'Maddipalem'},
+              {'id': 'kukatpally', 'label': 'Kukatpally Campus'},
+              {'id': 'kondapur', 'label': 'Kondapur Branch'},
+              {'id': 'madhapur', 'label': 'Madhapur Branch'},
+            ];
+            _showFilterPicker(
+              title: 'Select Campus Branch',
+              options: branchOptions,
+              selectedValue: _usersBranchFilter,
+              onSelected: (val) {
+                setState(() {
+                  _usersBranchFilter = val;
+                });
+              },
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8.5),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.apartment_rounded,
+                      size: 14,
+                      color: Color(0xFF7C3AED),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      branchName,
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                const Icon(
+                  Icons.expand_more_rounded,
+                  size: 16,
+                  color: Color(0xFF64748B),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --- Users Component 4: Summary Banner Strip ---
+  Widget _buildUsersSummaryBanner(
+    int count,
+    String roleLabel,
+    String branchLabel,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3E8FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFDDD6FE)),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '$count',
+            style: const TextStyle(
+              color: Color(0xFF1E1B4B),
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            '$roleLabel · $branchLabel',
+            style: const TextStyle(
+              color: Color(0xFF6D28D9),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Users Component 5: "BY BRANCH" Breakdown Card ---
+  Widget _buildUsersByBranchCard(
+    List<Map<String, dynamic>> branchBreakdown,
+    int maxBranchCount,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            'Staff & Faculty Directory',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text(
+                'BY BRANCH',
+                style: TextStyle(
+                  color: Color(0xFF1E1B4B),
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.6,
+                ),
+              ),
+              Text(
+                'COUNT',
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 8),
-          Text(
-            'Institutional employee directory, department breakdown, biometric punch logs, and role permissions.',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
+          const SizedBox(height: 8),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 8),
+          ...branchBreakdown.map((b) {
+            final slug = b['slug'] as String;
+            final name = b['name'] as String;
+            final count = b['count'] as int;
+            final isSelected = _usersBranchFilter == slug;
+            final double ratio = maxBranchCount > 0
+                ? (count / maxBranchCount).clamp(0.0, 1.0)
+                : 0.0;
+
+            return InkWell(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  _usersBranchFilter = isSelected ? 'all' : slug;
+                });
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 7,
+                  horizontal: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFFEDE9FE).withValues(alpha: 0.5)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          name,
+                          style: TextStyle(
+                            color: isSelected
+                                ? const Color(0xFF7C3AED)
+                                : const Color(0xFF0F172A),
+                            fontSize: 12,
+                            fontWeight: isSelected
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '$count',
+                          style: TextStyle(
+                            color: isSelected
+                                ? const Color(0xFF7C3AED)
+                                : const Color(0xFF0F172A),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: Container(
+                        height: 5,
+                        width: double.infinity,
+                        color: const Color(0xFFF1F5F9),
+                        child: FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: ratio,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? const Color(0xFF6D28D9)
+                                  : const Color(0xFF7C3AED),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // --- Users Component 6: User Directory List Card ---
+  Widget _buildUsersDirectoryListCard(
+    List<UserDirectoryItem> filteredUsers,
+    List<UserDirectoryItem> displayedUsers,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7C3AED).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: const Icon(
+                      Icons.people_alt_rounded,
+                      size: 14,
+                      color: Color(0xFF7C3AED),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'User Directory',
+                    style: TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7,
+                  vertical: 2.5,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: Text(
+                  'Showing ${displayedUsers.length} of ${filteredUsers.length} Users',
+                  style: const TextStyle(
+                    color: Color(0xFF92400E),
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Search Input
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.search_rounded,
+                  size: 16,
+                  color: Color(0xFF94A3B8),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: TextField(
+                    controller: _usersSearchController,
+                    onChanged: (val) {
+                      setState(() {
+                        _usersSearchQuery = val;
+                      });
+                    },
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF0F172A),
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: 'Search all users by name...',
+                      hintStyle: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF94A3B8),
+                      ),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
+                ),
+                if (_usersSearchQuery.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      _usersSearchController.clear();
+                      setState(() {
+                        _usersSearchQuery = '';
+                      });
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      child: Icon(
+                        Icons.clear_rounded,
+                        size: 16,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Users List
+          if (filteredUsers.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 30),
+              alignment: Alignment.center,
+              child: Column(
+                children: const [
+                  Icon(
+                    Icons.search_off_rounded,
+                    size: 36,
+                    color: Color(0xFFCBD5E1),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'No users found matching current filters',
+                    style: TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else ...[
+            ...displayedUsers.map((user) => _buildUserCardItem(user)),
+            const SizedBox(height: 10),
+
+            // Expand/Collapse Button
+            if (filteredUsers.length > 10)
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _showAllUsers = !_showAllUsers;
+                  });
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _showAllUsers
+                              ? 'Showing all ${filteredUsers.length} users (tap to collapse)'
+                              : 'Showing 10 of ${filteredUsers.length} users (tap to show all)',
+                          style: const TextStyle(
+                            color: Color(0xFF7C3AED),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          _showAllUsers
+                              ? Icons.keyboard_arrow_up_rounded
+                              : Icons.keyboard_arrow_down_rounded,
+                          size: 14,
+                          color: const Color(0xFF7C3AED),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // --- Users Component 7: User Card Item ---
+  Widget _buildUserCardItem(UserDirectoryItem user) {
+    Color avatarBg;
+    Color avatarTextColor;
+    Color roleBadgeBg;
+    Color roleBadgeTextColor;
+
+    switch (user.role) {
+      case 'students':
+        avatarBg = const Color(0xFFEFF6FF);
+        avatarTextColor = const Color(0xFF2563EB);
+        roleBadgeBg = const Color(0xFFDBEAFE);
+        roleBadgeTextColor = const Color(0xFF1D4ED8);
+        break;
+      case 'teaching':
+        avatarBg = const Color(0xFFF3E8FF);
+        avatarTextColor = const Color(0xFF7C3AED);
+        roleBadgeBg = const Color(0xFFEDE9FE);
+        roleBadgeTextColor = const Color(0xFF6D28D9);
+        break;
+      case 'non-teaching':
+        avatarBg = const Color(0xFFFFFBEB);
+        avatarTextColor = const Color(0xFFD97706);
+        roleBadgeBg = const Color(0xFFFEF3C7);
+        roleBadgeTextColor = const Color(0xFFB45309);
+        break;
+      case 'admins':
+        avatarBg = const Color(0xFFFFE4E6);
+        avatarTextColor = const Color(0xFFE11D48);
+        roleBadgeBg = const Color(0xFFFFE4E6);
+        roleBadgeTextColor = const Color(0xFFBE123C);
+        break;
+      case 'principals':
+        avatarBg = const Color(0xFFEEF2FF);
+        avatarTextColor = const Color(0xFF4F46E5);
+        roleBadgeBg = const Color(0xFFE0E7FF);
+        roleBadgeTextColor = const Color(0xFF4338CA);
+        break;
+      case 'parents':
+      default:
+        avatarBg = const Color(0xFFECFDF5);
+        avatarTextColor = const Color(0xFF059669);
+        roleBadgeBg = const Color(0xFFD1FAE5);
+        roleBadgeTextColor = const Color(0xFF047857);
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 9),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Initials Avatar
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: avatarBg,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                user.initials,
+                style: TextStyle(
+                  color: avatarTextColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // User Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        user.name,
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: roleBadgeBg,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        user.roleLabel,
+                        style: TextStyle(
+                          color: roleBadgeTextColor,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  user.meta,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),

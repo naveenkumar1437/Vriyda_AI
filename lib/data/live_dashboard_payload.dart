@@ -965,5 +965,83 @@ const Map<String, dynamic> kDefaultLiveDashboardData = {
         }
       }
     }
+  },
+  "exams": {
+    "timetables": [
+      {
+        "id": "7",
+        "title": "Unit Test - 2",
+        "examType": "Half-Yearly",
+        "branch": "Steel Plant Branch",
+        "program": "Grade 10",
+        "studentGroup": "Class 10 - Mathematics",
+        "academicYear": "2026-27",
+        "academicTerm": "Term ii",
+        "startDate": "2026-11-05",
+        "endDate": "2026-11-05",
+        "status": "Published",
+        "paperCount": 1
+      },
+      {
+        "id": "1",
+        "title": "Unit Test-1",
+        "examType": "Unit Test",
+        "branch": "Steel Plant Branch",
+        "program": "Class - 1",
+        "studentGroup": "Class 1-A",
+        "academicYear": "2026-27",
+        "academicTerm": "2026-27 (Term 1)",
+        "startDate": "2026-08-17",
+        "endDate": "2026-08-19",
+        "status": "Published",
+        "paperCount": 3
+      }
+    ],
+    "papers": [
+      {
+        "timetableId": "1",
+        "course": "English",
+        "date": "2026-08-17",
+        "start": "09:00:00",
+        "end": "10:30:00",
+        "room": "HTL-ROOM-2026-00007",
+        "instructor": "Bhavya Malli",
+        "maxMarks": 25,
+        "passingMarks": 9
+      },
+      {
+        "timetableId": "1",
+        "course": "Hindi",
+        "date": "2026-08-18",
+        "start": "09:00:00",
+        "end": "10:30:00",
+        "room": "HTL-ROOM-2026-00007",
+        "instructor": "Bhavya Malli",
+        "maxMarks": 25,
+        "passingMarks": 9
+      },
+      {
+        "timetableId": "1",
+        "course": "Mathematics",
+        "date": "2026-08-19",
+        "start": "09:00:00",
+        "end": "10:30:00",
+        "room": "HTL-ROOM-2026-00007",
+        "instructor": "Jeevani Boppudi",
+        "maxMarks": 25,
+        "passingMarks": 9
+      },
+      {
+        "timetableId": "7",
+        "course": "Mathematics",
+        "date": "2026-11-05",
+        "start": "11:00:00",
+        "end": "12:00:00",
+        "room": "class Room-2",
+        "instructor": "Keerthana Bangla",
+        "maxMarks": 100,
+        "passingMarks": 35
+      }
+    ]
   }
 };
