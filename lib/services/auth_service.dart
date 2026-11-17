@@ -41,7 +41,11 @@ class AuthService {
 
       if (isSuccess && body['data'] != null) {
         final session = UserSession.fromJson(body['data']);
-        await SessionManager.saveSession(session, rememberMe: rememberMe);
+        if (session.isOwner) {
+          await SessionManager.saveSession(session, rememberMe: rememberMe);
+        } else {
+          await SessionManager.clear();
+        }
         return ApiResponse(
           success: true,
           message: msg,

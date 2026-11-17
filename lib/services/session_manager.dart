@@ -9,6 +9,7 @@ class UserSession {
   final String email;
   final String name;
   final String role;
+  final List<String> roles;
   final String? branchId;
   final String? branchName;
   final String? organizationId;
@@ -22,6 +23,7 @@ class UserSession {
     required this.email,
     required this.name,
     required this.role,
+    this.roles = const [],
     this.branchId,
     this.branchName,
     this.organizationId,
@@ -29,7 +31,15 @@ class UserSession {
     required this.mustChangePassword,
   });
 
-  bool get isOwner => role.toLowerCase() == 'owner' || role.toLowerCase() == 'chairman';
+  bool get isOwner {
+    final r = role.trim().toLowerCase();
+    if (r == 'owner' || r == 'chairman') return true;
+    for (final item in roles) {
+      final sub = item.trim().toLowerCase();
+      if (sub == 'owner' || sub == 'chairman') return true;
+    }
+    return false;
+  }
 
   factory UserSession.fromJson(Map<String, dynamic> json) {
     return UserSession(
@@ -39,6 +49,9 @@ class UserSession {
       email: json['email']?.toString() ?? '',
       name: json['name']?.toString() ?? json['fullName']?.toString() ?? '',
       role: json['role']?.toString() ?? '',
+      roles: (json['roles'] is List)
+          ? (json['roles'] as List).map((e) => e.toString()).toList()
+          : (json['role'] != null ? [json['role'].toString()] : const []),
       branchId: json['branch_id']?.toString() ?? json['branchId']?.toString(),
       branchName: json['branch_name']?.toString() ?? json['branchName']?.toString(),
       organizationId: json['organizationId']?.toString(),
@@ -54,6 +67,7 @@ class UserSession {
         'email': email,
         'name': name,
         'role': role,
+        'roles': roles,
         'branch_id': branchId,
         'branch_name': branchName,
         'organizationId': organizationId,
@@ -127,6 +141,7 @@ class SessionManager {
         email: session.email,
         name: session.name,
         role: session.role,
+        roles: session.roles,
         branchId: session.branchId,
         branchName: session.branchName,
         organizationId: session.organizationId,

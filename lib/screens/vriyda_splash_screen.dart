@@ -100,7 +100,10 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
         ),
       );
     } else {
-      // First time launch, unchecked 'Keep me signed in', or logged out -> redirect to Login screen
+      if (user != null && !user.isOwner) {
+        await SessionManager.clear();
+      }
+      // First time launch, unchecked 'Keep me signed in', non-owner, or logged out -> redirect to Login screen
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 700),

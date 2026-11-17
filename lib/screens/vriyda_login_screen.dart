@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/auth_service.dart';
+import '../services/session_manager.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/animated_grid.dart';
 import '../widgets/floating_particles.dart';
@@ -102,6 +103,14 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
     if (res.success && res.data != null) {
       final user = res.data!;
 
+      // Check if role is owner or chairman
+      if (!user.isOwner) {
+        await SessionManager.clear();
+        if (!mounted) return;
+        _showRoleUnderDevelopmentDialog();
+        return;
+      }
+
       // Check if user must change password first
       if (user.mustChangePassword) {
         Navigator.of(context).pushReplacement(
@@ -113,27 +122,93 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
       }
 
       // If user is owner / chairman, open Chairman Dashboard
-      if (user.isOwner) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => ChairmanDashboardScreen(user: user),
-          ),
-        );
-        return;
-      }
-
-      // Other roles: Show success confirmation
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: const Color(0xFF10B981),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Text('Logged in as ${user.name} (${user.role})'),
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ChairmanDashboardScreen(user: user),
         ),
       );
+      return;
     } else {
       setState(() => _errorMessage = res.message);
     }
+  }
+
+  void _showRoleUnderDevelopmentDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 26.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.construction_rounded,
+                  color: Color(0xFFF59E0B),
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'Role Under Development',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Urbanist',
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'This role is under development. Please use the web portal to login.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontSize: 14,
+                  height: 1.45,
+                  fontFamily: 'Urbanist',
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6366F1),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Urbanist',
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _openForgotPassword() {
