@@ -59,10 +59,12 @@ class AuthService {
         message: msg,
         statusCode: response.statusCode,
       );
-    } catch (e) {
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('[LOGIN_EXCEPTION] $e\n$stack');
       return ApiResponse(
         success: false,
-        message: 'Something went wrong, please check your network connection.',
+        message: 'Unable to reach server. Please check your internet connection.',
         statusCode: 500,
       );
     }
