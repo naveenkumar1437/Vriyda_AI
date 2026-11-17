@@ -66,94 +66,100 @@ class ExpenseMixChart extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-              // Donut Chart with Center Total
-              SizedBox(
-                width: 130,
-                height: 130,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CustomPaint(
-                      size: const Size(130, 130),
-                      painter: _DonutChartPainter(categories),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          FinanceKpis.formatIndianCurrency(totalSpend),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F172A),
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'TOTAL SPEND',
-                          style: TextStyle(
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF94A3B8),
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 20),
-
-              // Legend items list
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: categories.map((cat) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Donut Chart with Center Total
+                SizedBox(
+                  width: 112,
+                  height: 112,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CustomPaint(
+                        size: const Size(112, 112),
+                        painter: _DonutChartPainter(categories),
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: cat.color,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                cat.category,
-                                style: const TextStyle(
-                                  color: Color(0xFF334155),
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
                           Text(
-                            FinanceKpis.formatIndianCurrency(cat.amount),
+                            FinanceKpis.formatIndianCurrency(totalSpend),
                             style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
                               color: Color(0xFF0F172A),
-                              fontSize: 12,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'TOTAL SPEND',
+                            style: TextStyle(
+                              fontSize: 8,
                               fontWeight: FontWeight.w800,
+                              color: Color(0xFF94A3B8),
+                              letterSpacing: 0.4,
                             ),
                           ),
                         ],
                       ),
-                    );
-                  }).toList(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 14),
+
+                // Legend items list
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: categories.map((cat) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: cat.color,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      cat.category,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Color(0xFF334155),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              FinanceKpis.formatIndianCurrency(cat.amount),
+                              style: const TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -172,7 +178,7 @@ class _DonutChartPainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
-    const strokeWidth = 14.0;
+    const strokeWidth = 12.0;
 
     double startAngle = -math.pi / 2;
 
