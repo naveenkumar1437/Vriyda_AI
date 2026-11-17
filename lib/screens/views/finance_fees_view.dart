@@ -2,22 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/finance_fee_models.dart';
 import '../../services/finance_service.dart';
-import '../../widgets/finance/collection_rate_trend_chart.dart';
 import '../../widgets/finance/expense_mix_chart.dart';
 import '../../widgets/finance/expenses_kpi_grid.dart';
-import '../../widgets/finance/fee_collection_by_branch_card.dart';
-import '../../widgets/finance/fee_collection_card.dart';
-import '../../widgets/finance/finance_metric_card.dart';
-import '../../widgets/finance/most_profitable_branches_card.dart';
-import '../../widgets/finance/payment_mix_card.dart';
 import '../../widgets/finance/purchase_items_table.dart';
-import '../../widgets/finance/revenue_expenses_chart.dart';
 import '../../widgets/finance/spend_by_branch_table.dart';
-import '../../widgets/finance/unit_economics_card.dart';
 
-/// Complete Finance & Fees Screen according to V1 Requirements
-/// (Expenses KPIs, Spend by Branch, Expense Mix, Fee Collection, Unit Economics,
-/// and Trailing Financials)
+/// Finance & Fees Screen strictly displaying V1 Feature Matrix Page-6:
+/// - Row 29: Expenses (KPIs: Total spend · YTD, Payroll · YTD, Rent · monthly, Fuel & fleet, Purchases, Staff claims)
+/// - Row 30: Spend by branch, Expense mix (plus submitted purchase invoice lines)
+///
+/// 100% dynamic API data from GET /owner-dashboard — zero static or hardcoded fallback data.
 class FinanceFeesView extends StatefulWidget {
   final Map<String, dynamic>? initialGroup;
   final List<dynamic>? initialBranches;
@@ -121,7 +115,7 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Exporting $_period Finance & Expense report for $_branch...',
+                'Exporting $_period Expenses & Spend report for $_branch...',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -178,9 +172,8 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
     }
 
     final data = _data!;
-    final kpis = data.kpis;
 
-    // Extract available branches dynamically from initialBranches and spendByBranch
+    // Extract available branches dynamically from API initialBranches and spendByBranch
     final List<String> branchOptions = ['All branches'];
     if (widget.initialBranches != null) {
       for (final b in widget.initialBranches!) {
@@ -355,228 +348,27 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
             style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
             children: [
               const TextSpan(
-                text: 'Finance & fees ',
+                text: 'Expenses ',
                 style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
               ),
               TextSpan(
-                text: '• $_period Group P&L, unit economics, collection & receivables',
+                text: '• $_period Total spend, payroll, rent, fuel, purchases & staff claims',
               ),
             ],
           ),
         ),
         const SizedBox(height: 14),
 
-        // 2. Primary 6 Financial KPI Cards (3 columns x 2 rows)
-        Row(
-          children: [
-            Expanded(
-              child: FinanceMetricCard(
-                label: 'REVENUE · $_period',
-                value: kpis.formattedRevenue,
-                bottomWidget: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 3.5, vertical: 1.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.arrow_drop_up_rounded, size: 12, color: Color(0xFF16A34A)),
-                          Text(
-                            '+${kpis.revenueDelta}%',
-                            style: const TextStyle(
-                              color: Color(0xFF16A34A),
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 3),
-                    Flexible(
-                      child: Text(
-                        'vs target ${kpis.targetPercentage}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 8.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: FinanceMetricCard(
-                label: 'COLLECTED',
-                value: kpis.formattedCollected,
-                bottomWidget: Row(
-                  children: [
-                    const Icon(Icons.arrow_drop_up_rounded, size: 13, color: Color(0xFF16A34A)),
-                    Text(
-                      '${kpis.collectedPct}%',
-                      style: const TextStyle(
-                        color: Color(0xFF16A34A),
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    const Flexible(
-                      child: Text(
-                        'of billed',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 8.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: FinanceMetricCard(
-                label: 'OUTSTANDING',
-                value: kpis.formattedOutstanding,
-                bottomWidget: Row(
-                  children: [
-                    const Icon(Icons.arrow_drop_down_rounded, size: 13, color: Color(0xFFDC2626)),
-                    Text(
-                      '${kpis.outstandingPct}%',
-                      style: const TextStyle(
-                        color: Color(0xFFDC2626),
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    const Flexible(
-                      child: Text(
-                        'receivables',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 8.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-
-        Row(
-          children: [
-            Expanded(
-              child: FinanceMetricCard(
-                label: 'EBITDA MARGIN',
-                value: '${kpis.ebitdaMargin}%',
-                subtext: 'group blended',
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: FinanceMetricCard(
-                label: 'PAYROLL COST',
-                value: '${kpis.payrollCostPct}%',
-                subtext: 'of revenue',
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: FinanceMetricCard(
-                label: 'ONLINE PAYMENTS',
-                value: '${kpis.onlinePaymentsPct}%',
-                subtext: 'Razorpay share',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 18),
-
-        // 3. V1 Requirement Row 29: Expenses KPIs
+        // 2. V1 Requirement Row 29: Expenses KPIs
+        // Total spend · YTD, Payroll · YTD, Rent · monthly, Fuel & fleet, Purchases, Staff claims
         ExpensesKpiGrid(
           expenses: data.expenses,
           period: _period,
         ),
         const SizedBox(height: 18),
 
-        // 4. Trailing 12 Months Revenue vs Operating Expenses Chart
-        RevenueExpensesChart(
-          trendSeries: data.trendSeries,
-        ),
-        const SizedBox(height: 18),
-
-        // 5. Fee Collection (Billed vs collected & Receivables Aging)
-        FeeCollectionCard(
-          feeCollection: data.feeCollection,
-          agingItems: data.receivablesAging,
-        ),
-        const SizedBox(height: 18),
-
-        // 6. Collection Rate Trend Chart
-        CollectionRateTrendChart(
-          trendSeries: data.trendSeries,
-          currentCollectionPct: data.feeCollection.collectionPct,
-        ),
-        const SizedBox(height: 18),
-
-        // 7. Unit Economics
-        UnitEconomicsCard(
-          unitEconomics: data.unitEconomics,
-        ),
-        const SizedBox(height: 18),
-
-        // 8. Payment Mix
-        PaymentMixCard(
-          paymentMix: data.paymentMix,
-        ),
-        const SizedBox(height: 18),
-
-        // 9. Most Profitable Branches
-        MostProfitableBranchesCard(
-          profitableBranches: data.profitableBranches,
-        ),
-        const SizedBox(height: 18),
-
-        // 10. Fee Collection by Branch
-        FeeCollectionByBranchCard(
-          branchCollections: data.branchFeeCollections,
-        ),
-        const SizedBox(height: 24),
-
-        // 11. Expense Detail Section Header
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'Expense detail',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              'Spend per branch, the mix, and every purchased line — academic year to date',
-              style: TextStyle(
-                color: Color(0xFF64748B),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-
-        // 12. V1 Requirement Row 30: Spend by Branch Table
+        // 3. V1 Requirement Row 30: Spend by Branch Table
+        // Academic year to date breakdown per branch with summary
         SpendByBranchTable(
           branchSpends: data.spendByBranch,
           onBranchTap: (b) {
@@ -585,14 +377,15 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
         ),
         const SizedBox(height: 18),
 
-        // 13. V1 Requirement Row 30: Expense Mix Donut Chart
+        // 4. V1 Requirement Row 30: Expense Mix Donut Chart
+        // Share of total spend donut chart with detailed legend breakdown
         ExpenseMixChart(
           categories: data.expenseMix,
           totalSpend: data.expenses.totalSpend,
         ),
         const SizedBox(height: 18),
 
-        // 14. Purchase Invoices List
+        // 5. Items Purchased (Submitted purchase invoices lines)
         PurchaseItemsTable(
           purchases: data.purchaseItems,
         ),

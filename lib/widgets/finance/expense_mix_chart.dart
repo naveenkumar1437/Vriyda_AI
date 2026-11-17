@@ -52,9 +52,20 @@ class ExpenseMixChart extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+          if (categories.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  'No expense mix categories recorded in API.',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5),
+                ),
+              ),
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
               // Donut Chart with Center Total
               SizedBox(
                 width: 130,

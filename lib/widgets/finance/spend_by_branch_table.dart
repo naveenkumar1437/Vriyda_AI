@@ -61,8 +61,19 @@ class SpendByBranchTable extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Horizontal scrollable table container
-          SingleChildScrollView(
+          if (branchSpends.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  'No branch spend recorded in API.',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5),
+                ),
+              ),
+            )
+          else
+            // Horizontal scrollable table container
+            SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             child: SizedBox(

@@ -48,7 +48,18 @@ class PurchaseItemsTable extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          SingleChildScrollView(
+          if (purchases.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  'No purchase invoices recorded in API.',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5),
+                ),
+              ),
+            )
+          else
+            SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             child: SizedBox(

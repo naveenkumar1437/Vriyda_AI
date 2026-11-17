@@ -76,8 +76,8 @@ class MostProfitableBranchesCard extends StatelessWidget {
               child: Row(
                 children: [
                   // Branch Name
-                  SizedBox(
-                    width: 120,
+                  Expanded(
+                    flex: 4,
                     child: Text(
                       b.branchName,
                       maxLines: 1,
@@ -93,6 +93,7 @@ class MostProfitableBranchesCard extends StatelessWidget {
 
                   // Horizontal Bar
                   Expanded(
+                    flex: 4,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(3),
                       child: Container(
