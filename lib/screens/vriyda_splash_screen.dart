@@ -105,6 +105,7 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
       if (user != null && !user.isOwner && !user.isPrincipal) {
         await SessionManager.clear();
       }
+      if (!mounted) return;
       // First time launch, unchecked 'Keep me signed in', non-owner, or logged out -> redirect to Login screen
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(

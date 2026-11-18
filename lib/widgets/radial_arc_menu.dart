@@ -69,8 +69,6 @@ class _RadialArcMenuState extends State<RadialArcMenu>
   double _snapEndAngle = 0.0;
 
   // Geometry constants
-  // Total items dynamically matching the options list
-  int get _totalItems => _items.length;
   // Natural spacing between items along the arc (≈ 21.8 deg)
   static const double _stepAngle = 0.38;
   double get _period => _items.length * _stepAngle;

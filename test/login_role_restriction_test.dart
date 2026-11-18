@@ -103,7 +103,7 @@ void main() {
                                 height: 54,
                                 decoration: BoxDecoration(
                                   color:
-                                      const Color(0xFFF59E0B).withOpacity(0.12),
+                                      const Color(0xFFF59E0B).withValues(alpha: 0.12),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
