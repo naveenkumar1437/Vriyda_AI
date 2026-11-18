@@ -257,56 +257,96 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
                   }).toList(),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
 
-              // Branch Selector Dropdown
+              // Branch Selector Dropdown (styled identically to Branch Tree screen)
               PopupMenuButton<String>(
                 onSelected: _changeBranch,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                itemBuilder: (ctx) => branchOptions
-                    .map(
-                      (b) => PopupMenuItem(
-                        value: b,
-                        child: Text(
-                          b,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: _branch == b ? FontWeight.bold : FontWeight.w500,
-                            color: _branch == b ? const Color(0xFF7C3AED) : const Color(0xFF0F172A),
+                elevation: 6,
+                color: Colors.white,
+                surfaceTintColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
+                itemBuilder: (ctx) => branchOptions.map((b) {
+                  final isSel = _branch == b;
+                  Color dotColor;
+                  if (b == 'All branches') {
+                    dotColor = const Color(0xFF7C3AED);
+                  } else {
+                    final match = data.spendByBranch.where((s) => s.branchName == b).firstOrNull;
+                    dotColor = match?.dotColor ?? const Color(0xFF10B981);
+                  }
+
+                  return PopupMenuItem<String>(
+                    value: b,
+                    height: 42,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: dotColor,
+                            shape: BoxShape.circle,
                           ),
                         ),
-                      ),
-                    )
-                    .toList(),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            b,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
+                              color: isSel ? const Color(0xFF7C3AED) : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                        if (isSel)
+                          const Icon(
+                            Icons.check_rounded,
+                            size: 16,
+                            color: Color(0xFF7C3AED),
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        _branch,
-                        style: const TextStyle(
-                          color: Color(0xFF334155),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: Text(
+                          _branch,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 2),
                       const Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        size: 16,
+                        size: 15,
                         color: Color(0xFF64748B),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
 
               // Export Button
               InkWell(
