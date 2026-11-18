@@ -41,7 +41,7 @@ class AuthService {
 
       if (isSuccess && body['data'] != null) {
         final session = UserSession.fromJson(body['data']);
-        if (session.isOwner) {
+        if (session.isOwner || session.isPrincipal) {
           await SessionManager.saveSession(session, rememberMe: rememberMe);
         } else {
           await SessionManager.clear();

@@ -41,6 +41,16 @@ class UserSession {
     return false;
   }
 
+  bool get isPrincipal {
+    final r = role.trim().toLowerCase();
+    if (r == 'principal') return true;
+    for (final item in roles) {
+      final sub = item.trim().toLowerCase();
+      if (sub == 'principal') return true;
+    }
+    return false;
+  }
+
   factory UserSession.fromJson(Map<String, dynamic> json) {
     return UserSession(
       id: json['id']?.toString() ?? '',

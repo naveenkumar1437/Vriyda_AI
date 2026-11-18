@@ -41,12 +41,16 @@ class RadialArcMenu extends StatefulWidget {
   final bool isOpen;
   final VoidCallback onToggle;
   final Function(String id) onItemSelected;
+  final List<ArcMenuItem>? items;
+  final String roleLabel;
 
   const RadialArcMenu({
     super.key,
     required this.isOpen,
     required this.onToggle,
     required this.onItemSelected,
+    this.items,
+    this.roleLabel = 'CHAIRMAN',
   });
 
   @override
@@ -80,8 +84,10 @@ class _RadialArcMenuState extends State<RadialArcMenu>
   final List<_AngleSample> _recentSamples = [];
   int _lastActiveIndex = 0;
 
+  List<ArcMenuItem> get _items => widget.items ?? _defaultChairmanItems;
+
   // 9 Chairman Options matching top horizontal tabs
-  final List<ArcMenuItem> _items = const [
+  static const List<ArcMenuItem> _defaultChairmanItems = [
     ArcMenuItem(
       id: 'view-overview',
       label: 'Overview',
@@ -482,14 +488,14 @@ class _RadialArcMenuState extends State<RadialArcMenu>
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Icon(Icons.circle, color: Colors.white, size: 5),
-                                        SizedBox(width: 4),
-                                        Icon(Icons.circle, color: Colors.white, size: 5),
-                                        SizedBox(width: 6),
+                                      children: [
+                                        const Icon(Icons.circle, color: Colors.white, size: 5),
+                                        const SizedBox(width: 4),
+                                        const Icon(Icons.circle, color: Colors.white, size: 5),
+                                        const SizedBox(width: 6),
                                         Text(
-                                          'CHAIRMAN',
-                                          style: TextStyle(
+                                          widget.roleLabel,
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 10.5,
                                             fontWeight: FontWeight.w900,

@@ -9,6 +9,7 @@ import '../widgets/floating_particles.dart';
 import '../widgets/forgot_password_dialog.dart';
 import 'chairman_dashboard_screen.dart';
 import 'change_password_screen.dart';
+import 'principal_dashboard_screen.dart';
 
 /// Pixel-perfect Flutter replica of the Stitch role-based web/mobile login screen
 /// connected to real Vriyda Mobile API (Part A - Login, Refresh, Profile, Forgot Password, Change Password).
@@ -103,8 +104,8 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
     if (res.success && res.data != null) {
       final user = res.data!;
 
-      // Check if role is owner or chairman
-      if (!user.isOwner) {
+      // Check if role is owner, chairman, or principal
+      if (!user.isOwner && !user.isPrincipal) {
         await SessionManager.clear();
         if (!mounted) return;
         _showRoleUnderDevelopmentDialog();
@@ -121,12 +122,20 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
         return;
       }
 
-      // If user is owner / chairman, open Chairman Dashboard
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => ChairmanDashboardScreen(user: user),
-        ),
-      );
+      // Route by role
+      if (user.isPrincipal) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => PrincipalDashboardScreen(user: user),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => ChairmanDashboardScreen(user: user),
+          ),
+        );
+      }
       return;
     } else {
       setState(() => _errorMessage = res.message);
