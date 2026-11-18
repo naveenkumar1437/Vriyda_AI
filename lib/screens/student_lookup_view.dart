@@ -178,7 +178,7 @@ class _StudentLookupViewState extends State<StudentLookupView> {
         const SizedBox(height: 16),
 
         // 3. Student 360 Garuda AI Snapshot Card
-        if (_isLoadingSnippet)
+        if (_isLoadingRoster || _isLoadingSnippet)
           Container(
             padding: const EdgeInsets.symmetric(vertical: 40),
             decoration: BoxDecoration(

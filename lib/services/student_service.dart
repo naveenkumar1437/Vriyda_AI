@@ -142,7 +142,7 @@ class StudentService {
   }
 
   /// 2. Fetch standard student snapshot (Fast response)
-  /// API 15: GET /owner-dashboard/student-snippet?student=<id>
+  /// API 15: `GET /owner-dashboard/student-snippet?student=<id>`
   static Future<StudentSnippetData?> getStudentSnippet(String studentId) async {
     final token = await SessionManager.getToken();
     if (token != null && token.isNotEmpty) {
@@ -170,7 +170,7 @@ class StudentService {
   }
 
   /// 3. Fetch Garuda AI student summary (Rich AI response)
-  /// API 16: GET /owner-dashboard/student-snippet/ai?student=<id>
+  /// API 16: `GET /owner-dashboard/student-snippet/ai?student=<id>`
   static Future<StudentSnippetData?> getStudentAiSnippet(String studentId) async {
     final token = await SessionManager.getToken();
     if (token != null && token.isNotEmpty) {

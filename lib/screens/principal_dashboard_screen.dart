@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/session_manager.dart';
@@ -44,18 +43,14 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
   // Students state
   String _studentSearchQuery = '';
   String _selectedClass = 'All classes';
-  String _selectedSection = 'All sections';
-  String _selectedStatus = 'All status';
   String _selectedGender = 'All genders';
 
   // Staff state
   String _staffSearchQuery = '';
   String _staffTabFilter = 'All'; // 'All', 'Teaching', 'Non-teaching'
-  String _selectedArea = 'All areas';
-  String _selectedDepartment = 'All departments';
 
   // Attendance slider/threshold
-  double _attendanceThreshold = 75.0;
+  final double _attendanceThreshold = 75.0;
 
   // 15 Modules for Principal Arc Menu
   static const List<ArcMenuItem> _principalArcItems = [
@@ -343,7 +338,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
   void _openNotifications() {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.38),
+      barrierColor: Colors.black.withValues(alpha: 0.38),
       builder: (ctx) => NotificationsDropdownSheet(
         alerts: const [
           {
@@ -466,7 +461,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6366F1).withOpacity(0.3),
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -680,7 +675,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                           decoration: BoxDecoration(
-                            color: isSelected ? Colors.white.withOpacity(0.25) : const Color(0xFFEF4444),
+                            color: isSelected ? Colors.white.withValues(alpha: 0.25) : const Color(0xFFEF4444),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -1029,7 +1024,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
           border: Border.all(color: const Color(0xFFE2E8F0)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -1043,7 +1038,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: badgeColor.withOpacity(0.12),
+                    color: badgeColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: badgeColor, size: 16),
@@ -1098,7 +1093,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: badgeColor.withOpacity(0.1),
+                color: badgeColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -1146,7 +1141,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
+                    color: iconColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: iconColor, size: 16),
@@ -1692,7 +1687,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Row(
@@ -2163,7 +2158,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: (s['avatarColor'] as Color).withOpacity(0.15),
+                    backgroundColor: (s['avatarColor'] as Color).withValues(alpha: 0.15),
                     child: Text(
                       s['initials']!,
                       style: TextStyle(
@@ -2357,7 +2352,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: const Color(0xFF6366F1).withOpacity(0.15),
+                    backgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.15),
                     child: Text(
                       s['initials']!,
                       style: const TextStyle(color: Color(0xFF4F46E5), fontWeight: FontWeight.bold, fontSize: 12),
@@ -2513,7 +2508,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF6366F1).withOpacity(0.12),
+                color: const Color(0xFF6366F1).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: const Color(0xFF6366F1), size: 22),
@@ -2576,7 +2571,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withOpacity(0.1),
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: const Color(0xFF6366F1), size: 24),
