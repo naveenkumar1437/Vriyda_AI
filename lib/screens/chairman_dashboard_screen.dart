@@ -7446,24 +7446,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
 
-  String _formatDateShort(DateTime d) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[d.month - 1]} ${d.day}, ${d.year}';
-  }
-
   Future<void> _selectAttendanceDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -8577,58 +8559,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   ),
                 ),
               ],
-            ),
-            GestureDetector(
-              onTap: _selectAttendanceDate,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4.5,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF10B981),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      _formatDateShort(_selectedAttendanceDate),
-                      style: const TextStyle(
-                        color: Color(0xFF334155),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 3),
-                    if (_isAttendanceLoading)
-                      const SizedBox(
-                        width: 10,
-                        height: 10,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.8,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
-                        ),
-                      )
-                    else
-                      const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 12,
-                        color: Color(0xFF7C3AED),
-                      ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
