@@ -18,7 +18,7 @@ class RevenueExpensesChart extends StatefulWidget {
 }
 
 class _RevenueExpensesChartState extends State<RevenueExpensesChart> {
-  // Index 5 corresponds to 'Dec' (matches mockup callout)
+  // Index 5 corresponds to 'Dec' (or first available month)
   int _selectedIndex = 5;
 
   static const List<String> _kMonths = [
@@ -26,21 +26,11 @@ class _RevenueExpensesChartState extends State<RevenueExpensesChart> {
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   ];
 
-  static const List<double> _kDefaultRevenueLakhs = [
-    10.5, 9.2, 8.0, 7.2, 6.5, 10.0,
-    4.5, 5.8, 7.0, 9.5, 14.0, 11.5,
-  ];
-
-  static const List<double> _kDefaultExpensesLakhs = [
-    6.0, 6.5, 7.2, 6.2, 5.8, 6.8,
-    5.0, 5.5, 6.0, 6.5, 7.8, 7.2,
-  ];
-
   @override
   Widget build(BuildContext context) {
-    // Prepare 12 monthly data points in Lakhs
-    final List<double> revPoints = List<double>.from(_kDefaultRevenueLakhs);
-    final List<double> expPoints = List<double>.from(_kDefaultExpensesLakhs);
+    // 100% dynamic monthly data points in Lakhs from API series - no hardcoded fallbacks
+    final List<double> revPoints = List<double>.filled(_kMonths.length, 0.0);
+    final List<double> expPoints = List<double>.filled(_kMonths.length, 0.0);
 
     if (widget.trendSeries.isNotEmpty) {
       final Map<String, MonthlyFinanceTrend> map = {
@@ -50,7 +40,7 @@ class _RevenueExpensesChartState extends State<RevenueExpensesChart> {
       for (int i = 0; i < _kMonths.length; i++) {
         final key = _kMonths[i].toLowerCase();
         final item = map[key];
-        if (item != null && (item.revenue > 0 || item.expenses > 0)) {
+        if (item != null) {
           // Convert from raw rupees to Lakhs if >= 1000
           final r = item.revenue >= 1000 ? item.revenue / 100000.0 : item.revenue;
           final e = item.expenses >= 1000 ? item.expenses / 100000.0 : item.expenses;
@@ -184,27 +174,27 @@ class _RevenueExpensesChartState extends State<RevenueExpensesChart> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Y-axis Scale Labels Row: [₹15.0 L   ₹11.3 L   ₹7.5 L   ₹3.8 L   ₹0.0 L]
+                // Top Y-axis Scale Labels Row: Dynamically derived from maxVal
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+                  children: [
                     Text(
-                      '₹15.0 L',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
+                      '₹${maxVal.toStringAsFixed(1)} L',
+                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
                     ),
                     Text(
-                      '₹11.3 L',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
+                      '₹${(maxVal * 0.75).toStringAsFixed(1)} L',
+                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
                     ),
                     Text(
-                      '₹7.5 L',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
+                      '₹${(maxVal * 0.50).toStringAsFixed(1)} L',
+                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
                     ),
                     Text(
-                      '₹3.8 L',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
+                      '₹${(maxVal * 0.25).toStringAsFixed(1)} L',
+                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
                     ),
-                    Text(
+                    const Text(
                       '₹0.0 L',
                       style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5, fontWeight: FontWeight.w600),
                     ),
