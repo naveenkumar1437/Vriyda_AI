@@ -58,7 +58,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   final TextEditingController _branchSearchController = TextEditingController();
   String _branchSearchQuery = '';
   bool _isOrgTreeExpanded = true;
-  String _branchPeriod = 'YTD';
+  final String _branchPeriod = 'YTD';
   String _branchSelectedFilter = 'All branches';
   final GlobalKey _branchDropdownKey = GlobalKey();
   // Interactive state for Attendance Audit
@@ -5495,68 +5495,20 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         ),
         const SizedBox(height: 10),
 
-        // Control bar: [MTD QTD YTD FY] [All branches v] [^ Export]
+        // Control bar: [All branches v] [^ Export]
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Time Period Pill Toggle
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              padding: const EdgeInsets.all(2.5),
-              child: Row(
-                children: ['MTD', 'QTD', 'YTD', 'FY'].map((p) {
-                  final isSelected = _branchPeriod == p;
-                  return GestureDetector(
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      setState(() => _branchPeriod = p);
-                      _fetchBranchTree(period: p);
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF7C3AED)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Text(
-                        p,
-                        style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : const Color(0xFF64748B),
-                          fontWeight: isSelected
-                              ? FontWeight.w800
-                              : FontWeight.w600,
-                          fontSize: 10.5,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(width: 4),
-
             // Dropdown for branches
-            Flexible(
+            Expanded(
               child: GestureDetector(
                 key: _branchDropdownKey,
                 onTap: () => _openBranchDropdown(context, treeData),
                 behavior: HitTestBehavior.opaque,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
+                    horizontal: 10,
+                    vertical: 7,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -5564,24 +5516,23 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Flexible(
+                      Expanded(
                         child: Text(
                           _branchSelectedFilter,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: const TextStyle(
                             color: Color(0xFF0F172A),
-                            fontSize: 11,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: 4),
                       const Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        size: 15,
+                        size: 16,
                         color: Color(0xFF64748B),
                       ),
                     ],
@@ -5589,7 +5540,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 8),
 
             // Export Button - always visible on screen
             GestureDetector(
@@ -5598,7 +5549,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Exporting $_branchPeriod hierarchy data for ${_branchSelectedFilter == "All branches" ? "${treeData.totalBranches} branches" : _branchSelectedFilter}...',
+                      'Exporting hierarchy data for ${_branchSelectedFilter == "All branches" ? "${treeData.totalBranches} branches" : _branchSelectedFilter}...',
                     ),
                     backgroundColor: const Color(0xFF0F172A),
                     behavior: SnackBarBehavior.floating,
@@ -5611,8 +5562,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 6,
+                  horizontal: 12,
+                  vertical: 7,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -5644,12 +5595,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         ),
         const SizedBox(height: 10),
 
-        // Subtitle with active period and purple "click a row to drill down"
+        // Subtitle with purple "click a row to drill down"
         RichText(
-          text: TextSpan(
-            style: const TextStyle(fontSize: 11.5, height: 1.4),
+          text: const TextSpan(
+            style: TextStyle(fontSize: 11.5, height: 1.4),
             children: [
-              const TextSpan(
+              TextSpan(
                 text: 'Branch hierarchy ',
                 style: TextStyle(
                   color: Color(0xFF0F172A),
@@ -5657,14 +5608,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ),
               ),
               TextSpan(
-                text:
-                    '• Period: $_branchPeriod · roll-ups aggregate every child · ',
-                style: const TextStyle(
+                text: '• roll-ups aggregate every child · ',
+                style: TextStyle(
                   color: Color(0xFF64748B),
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const TextSpan(
+              TextSpan(
                 text: 'click a row to drill down',
                 style: TextStyle(
                   color: Color(0xFF7C3AED),
@@ -5884,7 +5834,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                             SizedBox(
                               width: 95,
                               child: Text(
-                                'COLLECTION ($_branchPeriod)',
+                                'COLLECTION',
                                 textAlign: TextAlign.right,
                                 style: const TextStyle(
                                   color: Color(0xFF7C3AED),
@@ -6242,7 +6192,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         return StatefulBuilder(
-          builder: (modalCtx, setModalState) {
+          builder: (modalCtx, _) {
             final periodColPct = branch.getCollectionPctForPeriod(_branchPeriod);
             final periodRev = branch.getRevenueForPeriod(_branchPeriod);
             final periodOutstanding = branch.getOutstandingForPeriod(_branchPeriod);
@@ -6334,56 +6284,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  // Modal period filter pill toggle
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    padding: const EdgeInsets.all(2.5),
-                    child: Row(
-                      children: ['MTD', 'QTD', 'YTD', 'FY'].map((p) {
-                        final isSel = _branchPeriod == p;
-                        return Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              HapticFeedback.selectionClick();
-                              setModalState(() => _branchPeriod = p);
-                              setState(() => _branchPeriod = p);
-                              _fetchBranchTree(period: p);
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              decoration: BoxDecoration(
-                                color: isSel
-                                    ? const Color(0xFF7C3AED)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(7),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  p,
-                                  style: TextStyle(
-                                    color: isSel
-                                        ? Colors.white
-                                        : const Color(0xFF64748B),
-                                    fontWeight: isSel
-                                        ? FontWeight.w800
-                                        : FontWeight.w600,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   // KPI Cards Grid
                   Row(
                     children: [
@@ -6398,11 +6299,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: _buildDrillCard(
-                          'COLLECTION · $_branchPeriod',
+                          'COLLECTION',
                           '${periodColPct.toStringAsFixed(periodColPct % 1 == 0 ? 0 : 1)}%',
                           periodRev > 0
                               ? '₹${periodRev >= 100000 ? "${(periodRev / 100000).toStringAsFixed(1)}L" : periodRev.toStringAsFixed(0)} billed'
-                              : '$_branchPeriod fees collected',
+                              : 'Fees collected',
                           const Color(0xFF10B981),
                         ),
                       ),
