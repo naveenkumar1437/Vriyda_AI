@@ -631,12 +631,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- TOP BAR / BREADCRUMB ---
-                  _buildTopBar(orgName, roleName),
-                  const SizedBox(height: 12),
-
-                  // --- PAGE SUBHEADER ---
-                  _buildSubHeader(),
+                  // --- TOP BAR ---
+                  _buildTopBar(),
                   const SizedBox(height: 16),
 
                   // --- HERO PROFILE BANNER CARD ---
@@ -698,7 +694,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // --- TOP BAR ---
-  Widget _buildTopBar(String orgName, String roleName) {
+  Widget _buildTopBar() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -724,43 +720,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontSize: 22,
             fontWeight: FontWeight.w900,
             letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            '$roleName · $orgName · Thu, 19 Nov 2026',
-            style: const TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // --- SUBHEADER ---
-  Widget _buildSubHeader() {
-    return Row(
-      children: [
-        const Text(
-          'My Profile',
-          style: TextStyle(
-            color: Color(0xFF0F172A),
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(width: 8),
-        const Text(
-          'Your account, contact details and password',
-          style: TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
           ),
         ),
       ],
