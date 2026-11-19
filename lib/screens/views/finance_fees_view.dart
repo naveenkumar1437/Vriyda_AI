@@ -114,31 +114,6 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
     _loadFinanceData();
   }
 
-  void _exportReport() {
-    HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Exporting $_period Expenses & Spend report for $_branch...',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF7C3AED),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     // If loading for the first time
@@ -352,36 +327,6 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
                         Icons.keyboard_arrow_down_rounded,
                         size: 15,
                         color: Color(0xFF64748B),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-
-              // Export Button
-              InkWell(
-                onTap: _exportReport,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.file_upload_outlined, size: 14, color: Color(0xFF334155)),
-                      SizedBox(width: 4),
-                      Text(
-                        'Export',
-                        style: TextStyle(
-                          color: Color(0xFF334155),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                        ),
                       ),
                     ],
                   ),

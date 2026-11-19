@@ -5495,74 +5495,17 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         ),
         const SizedBox(height: 10),
 
-        // Control bar: [All branches v] [^ Export]
+        // Control bar: [All branches v]
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Dropdown for branches
-            Expanded(
-              child: GestureDetector(
-                key: _branchDropdownKey,
-                onTap: () => _openBranchDropdown(context, treeData),
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _branchSelectedFilter,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 16,
-                        color: Color(0xFF64748B),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-
-            // Export Button - always visible on screen
             GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Exporting hierarchy data for ${_branchSelectedFilter == "All branches" ? "${treeData.totalBranches} branches" : _branchSelectedFilter}...',
-                    ),
-                    backgroundColor: const Color(0xFF0F172A),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
+              key: _branchDropdownKey,
+              onTap: () => _openBranchDropdown(context, treeData),
+              behavior: HitTestBehavior.opaque,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
+                  horizontal: 10,
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
@@ -5570,22 +5513,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.file_upload_outlined,
-                      size: 14,
-                      color: Color(0xFF0F172A),
-                    ),
-                    SizedBox(width: 4),
                     Text(
-                      'Export',
-                      style: TextStyle(
+                      _branchSelectedFilter,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: const TextStyle(
                         color: Color(0xFF0F172A),
                         fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 16,
+                      color: Color(0xFF64748B),
                     ),
                   ],
                 ),
