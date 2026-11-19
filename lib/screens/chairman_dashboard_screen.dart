@@ -6543,11 +6543,20 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Future<void> _selectAttendanceDate() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final initial = _selectedAttendanceDate.isAfter(today)
+        ? today
+        : (_selectedAttendanceDate.isBefore(DateTime(2024, 1, 1))
+            ? today
+            : _selectedAttendanceDate);
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedAttendanceDate,
-      firstDate: DateTime(2025, 1, 1),
-      lastDate: DateTime(2027, 12, 31),
+      initialDate: initial,
+      firstDate: DateTime(2024, 1, 1),
+      lastDate: today,
+      selectableDayPredicate: (DateTime date) => !date.isAfter(today),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
