@@ -5747,38 +5747,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 10),
-
-        // Subtitle with purple "click a row to drill down"
-        RichText(
-          text: const TextSpan(
-            style: TextStyle(fontSize: 11.5, height: 1.4),
-            children: [
-              TextSpan(
-                text: 'Branch hierarchy ',
-                style: TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              TextSpan(
-                text:
-                    'Group → region → branch · roll-ups aggregate every child · ',
-                style: TextStyle(
-                  color: Color(0xFF64748B),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              TextSpan(
-                text: 'click a row to drill down',
-                style: TextStyle(
-                  color: Color(0xFF7C3AED),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
         const SizedBox(height: 14),
 
         // Organization tree Card
