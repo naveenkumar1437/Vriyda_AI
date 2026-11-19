@@ -92,6 +92,23 @@ class SessionManager {
   static const String _keyRefreshToken = 'vriyda_refresh_token';
   static const String _keyUserSession = 'vriyda_user_session';
   static const String _keyRememberMe = 'vriyda_remember_me';
+  static const String _keyProfileDetails = 'vriyda_profile_details';
+
+  static Future<void> saveProfileDetails(Map<String, dynamic> details) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyProfileDetails, jsonEncode(details));
+  }
+
+  static Future<Map<String, dynamic>?> getProfileDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keyProfileDetails);
+    if (raw != null) {
+      try {
+        return jsonDecode(raw) as Map<String, dynamic>;
+      } catch (_) {}
+    }
+    return null;
+  }
 
   static Future<void> saveSession(UserSession session, {bool rememberMe = false}) async {
     final prefs = await SharedPreferences.getInstance();

@@ -56,12 +56,13 @@ class AuthService {
 
       return ApiResponse(
         success: false,
-        message: msg,
+        message: msg.isNotEmpty ? msg : 'Invalid email or password',
         statusCode: response.statusCode,
       );
     } catch (e, stack) {
       // ignore: avoid_print
       print('[LOGIN_EXCEPTION] $e\n$stack');
+
       return ApiResponse(
         success: false,
         message: 'Unable to reach server. Please check your internet connection.',
@@ -113,6 +114,35 @@ class AuthService {
       (token) => http.get(
         Uri.parse(ApiConfig.myProfile),
         headers: ApiConfig.authHeaders(token),
+      ),
+      parser: (json) => (json['data'] as Map<String, dynamic>?) ?? {},
+    );
+  }
+
+  /// 3b. Update My Profile
+  /// PUT /my-profile
+  static Future<ApiResponse<Map<String, dynamic>>> updateMyProfile({
+    String? firstName,
+    String? lastName,
+    String? fullName,
+    String? phone,
+    String? officePhone,
+    String? gender,
+    String? dateOfBirth,
+  }) async {
+    return _authenticatedRequest<Map<String, dynamic>>(
+      (token) => http.put(
+        Uri.parse(ApiConfig.myProfile),
+        headers: ApiConfig.authHeaders(token),
+        body: jsonEncode({
+          if (firstName != null) 'firstName': firstName,
+          if (lastName != null) 'lastName': lastName,
+          if (fullName != null) 'fullName': fullName,
+          if (phone != null) 'phone': phone,
+          if (officePhone != null) 'officePhone': officePhone,
+          if (gender != null) 'gender': gender,
+          if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
+        }),
       ),
       parser: (json) => (json['data'] as Map<String, dynamic>?) ?? {},
     );
