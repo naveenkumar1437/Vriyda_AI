@@ -335,23 +335,6 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
             ],
           ),
         ),
-        const SizedBox(height: 10),
-
-        // Subtitle
-        RichText(
-          text: TextSpan(
-            style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
-            children: [
-              const TextSpan(
-                text: 'Finance & fees ',
-                style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
-              ),
-              TextSpan(
-                text: '• $_period Group P&L, unit economics, collection & receivables',
-              ),
-            ],
-          ),
-        ),
         const SizedBox(height: 14),
 
         // 2. Primary 6 Financial KPI Cards (3 columns x 2 rows)

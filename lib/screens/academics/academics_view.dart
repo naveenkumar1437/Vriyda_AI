@@ -183,44 +183,15 @@ class _AcademicsViewState extends State<AcademicsView> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFF7C3AED).withValues(alpha: 0.18),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Text(
-                    'SAI RAVINDRA',
-                    style: TextStyle(
-                      color: Color(0xFF7C3AED),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    '•',
-                    style: TextStyle(color: Color(0xFF7C3AED), fontSize: 10),
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    'ACADEMIC SUITE',
-                    style: TextStyle(
-                      color: Color(0xFF6D28D9),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ],
+            const Text(
+              'Exam schedules',
+              style: TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.4,
               ),
             ),
             // Live Real-Time API Badge & Tap to refresh
@@ -268,25 +239,6 @@ class _AcademicsViewState extends State<AcademicsView> {
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Exam schedules',
-          style: TextStyle(
-            color: Color(0xFF0F172A),
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.4,
-          ),
-        ),
-        const SizedBox(height: 2),
-        const Text(
-          'Every branch\'s exam timetables — click one for its paper-by-paper schedule',
-          style: TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 11.5,
-            fontWeight: FontWeight.w500,
-          ),
         ),
       ],
     );
