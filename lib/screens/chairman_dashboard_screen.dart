@@ -10,11 +10,11 @@ import '../services/auth_service.dart';
 import '../services/branch_service.dart';
 import 'people_ops_view.dart';
 import 'student_lookup_view.dart';
+import 'views/finance_fees_view.dart';
 import '../widgets/notifications_overlay.dart';
 import '../services/session_manager.dart';
 import '../widgets/radial_arc_menu.dart';
 import 'academics/academics_view.dart';
-import 'views/finance_fees_view.dart';
 import 'vriyda_login_screen.dart';
 
 /// Comprehensive Chairman Dashboard matching Stitch code.html and DESIGN.md:
@@ -36,8 +36,7 @@ class ChairmanDashboardScreen extends StatefulWidget {
 class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   bool _isLoading = false;
   String? _errorMessage;
-  Map<String, dynamic>? _dashboardData =
-      jsonDecode(jsonEncode(kDefaultLiveDashboardData));
+  Map<String, dynamic>? _dashboardData = kDefaultLiveDashboardData;
   String _activeView = 'view-overview';
   bool _isArcMenuOpen = false;
 
@@ -2351,13 +2350,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     }
   }
 
-  Future<void> _fetchBranchTree({String? period}) async {
-    final activePeriod = period ?? _branchPeriod;
+  Future<void> _fetchBranchTree() async {
     setState(() => _isBranchTreeLoading = true);
     try {
       final tree = await BranchService.fetchBranchTree(
         orgName: _dashboardData?['orgName'] ?? widget.user.organizationName,
-        period: activePeriod,
       );
       if (mounted) {
         setState(() {
@@ -3716,17 +3713,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Expanded(
-                      child: Text(
-                        'CASH TRAJECTORY (₹ LAKHS)',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Color(0xFF1E293B),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                        ),
+                    const Text(
+                      'CASH TRAJECTORY (₹ LAKHS)',
+                      style: TextStyle(
+                        color: Color(0xFF1E293B),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
                       ),
                     ),
                     Row(
@@ -4184,19 +4177,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
-                child: Text(
-                  'Branch Performance Benchmark',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                  ),
+              const Text(
+                'Branch Performance Benchmark',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(width: 8),
               GestureDetector(
                 onTap: () => _switchView('view-branches'),
                 child: Container(
@@ -4294,31 +4282,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w800,
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: const TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
                 ),
-                const SizedBox(height: 1),
-                Text(
-                  sub,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                sub,
+                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -4402,31 +4383,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Performance quadrant',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                      ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Performance quadrant',
+                    style: TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                     ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Collection × attendance · bubble = enrolment',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
-                    ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Collection × attendance · bubble = enrolment',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 7,
@@ -5525,7 +5499,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ),
               ),
               TextSpan(
-                text: '• roll-ups aggregate every child · ',
+                text:
+                    'Group → region → branch · roll-ups aggregate every child · ',
                 style: TextStyle(
                   color: Color(0xFF64748B),
                   fontWeight: FontWeight.w500,
@@ -5709,8 +5684,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 9),
                         child: Row(
-                          children: [
-                            const SizedBox(
+                          children: const [
+                            SizedBox(
                               width: 175,
                               child: Text(
                                 'BRANCH',
@@ -5722,7 +5697,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(
+                            SizedBox(
                               width: 65,
                               child: Text(
                                 'STUDENTS',
@@ -5735,7 +5710,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(
+                            SizedBox(
                               width: 75,
                               child: Text(
                                 'CAPACITY',
@@ -5751,10 +5726,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                             SizedBox(
                               width: 95,
                               child: Text(
-                                'COLLECTION',
+                                'COLLECTION %',
                                 textAlign: TextAlign.right,
-                                style: const TextStyle(
-                                  color: Color(0xFF7C3AED),
+                                style: TextStyle(
+                                  color: Color(0xFF94A3B8),
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.5,
@@ -5872,7 +5847,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               SizedBox(
                                 width: 95,
                                 child: Text(
-                                  '${treeData.getCollectionPctForPeriod(_branchPeriod).toStringAsFixed(treeData.getCollectionPctForPeriod(_branchPeriod) % 1 == 0 ? 0 : 1)}%',
+                                  '${treeData.collectionPct.toStringAsFixed(treeData.collectionPct % 1 == 0 ? 0 : 1)}%',
                                   textAlign: TextAlign.right,
                                   style: const TextStyle(
                                     color: Color(0xFF334155),
@@ -6075,7 +6050,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                     SizedBox(
                                       width: 95,
                                       child: Text(
-                                        '${branch.getCollectionPctForPeriod(_branchPeriod).toStringAsFixed(branch.getCollectionPctForPeriod(_branchPeriod) % 1 == 0 ? 0 : 1)}%',
+                                        '${branch.collectionPct.toStringAsFixed(branch.collectionPct % 1 == 0 ? 0 : 1)}%',
                                         textAlign: TextAlign.right,
                                         style: const TextStyle(
                                           color: Color(0xFF334155),
