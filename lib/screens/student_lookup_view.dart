@@ -59,19 +59,6 @@ class _StudentLookupViewState extends State<StudentLookupView> {
       _applyFilters();
       _isLoadingRoster = false;
     });
-
-    // Auto-select Jatin kalidindi by default if available to match initial screen
-    final defaultStudent = _allStudents.firstWhere(
-      (s) => s.name.toLowerCase().contains('jatin'),
-      orElse: () => _allStudents.isNotEmpty ? _allStudents.first : const StudentLookupItem(
-        id: 'EDU-STU-2026-00012',
-        name: 'Jatin kalidindi',
-        branch: 'Steel Plant Branch',
-        klass: 'Class - 1',
-        section: 'Section-A',
-      ),
-    );
-    _onStudentSelected(defaultStudent);
   }
 
   void _applyFilters() {
@@ -193,8 +180,69 @@ class _StudentLookupViewState extends State<StudentLookupView> {
             ),
           )
         else if (_studentSnippet != null)
-          _buildStudentGarudaCard(_studentSnippet!),
+          _buildStudentGarudaCard(_studentSnippet!)
+        else
+          _buildEmptySelectionCard(),
       ],
+    );
+  }
+
+  Widget _buildEmptySelectionCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF5FF),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFE9D5FF)),
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.search_rounded,
+                color: Color(0xFF7C3AED),
+                size: 24,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'No student selected',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 14.5,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Search or choose a student above to inspect their attendance, grades, and Garuda AI summary.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -389,7 +437,11 @@ class _StudentLookupViewState extends State<StudentLookupView> {
                           icon: const Icon(Icons.clear, size: 16, color: Color(0xFF94A3B8)),
                           onPressed: () {
                             _searchController.clear();
-                            setState(() => _showSuggestions = false);
+                            setState(() {
+                              _selectedStudent = null;
+                              _studentSnippet = null;
+                              _showSuggestions = false;
+                            });
                           },
                         ),
                       IconButton(
