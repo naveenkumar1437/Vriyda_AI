@@ -199,38 +199,14 @@ class _StudentLookupViewState extends State<StudentLookupView> {
   }
 
   Widget _buildSectionHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text(
-          'SAI RAVINDRA SCHOOL · STUDENT LOOKUP · GARUDA AI',
-          style: TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 10.5,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
-          ),
-        ),
-        SizedBox(height: 3),
-        Text(
-          'Student Lookup',
-          style: TextStyle(
-            color: Color(0xFF0F172A),
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.4,
-          ),
-        ),
-        SizedBox(height: 2),
-        Text(
-          'Look up any student — branch → class → section — for an instant Garuda AI snapshot',
-          style: TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 11.5,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+    return const Text(
+      'Student Lookup',
+      style: TextStyle(
+        color: Color(0xFF0F172A),
+        fontSize: 20,
+        fontWeight: FontWeight.w900,
+        letterSpacing: -0.4,
+      ),
     );
   }
 
