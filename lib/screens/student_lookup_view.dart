@@ -236,15 +236,6 @@ class _StudentLookupViewState extends State<StudentLookupView> {
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 2),
-          const Text(
-            'Filter down, then pick a student to see a 4–5 point snapshot',
-            style: TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
           const SizedBox(height: 14),
 
           // Filters Row 1: Branch, Class, Section (Mobile responsive flex)
