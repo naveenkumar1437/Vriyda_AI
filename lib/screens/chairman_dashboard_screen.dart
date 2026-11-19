@@ -2771,7 +2771,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildUserAvatar() {
-    final displayName = widget.user.name.isNotEmpty ? widget.user.name : 'Charan Makkuva';
+    final displayName = widget.user.name.isNotEmpty
+        ? widget.user.name
+        : 'Charan Makkuva';
     final orgName = widget.user.organizationName ?? 'Sai Ravindra School';
     final roleName = widget.user.role.isNotEmpty
         ? widget.user.role[0].toUpperCase() + widget.user.role.substring(1)
@@ -2826,7 +2828,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     );
   }
 
-  void _showProfileDropdown(String displayName, String orgName, String roleName) {
+  void _showProfileDropdown(
+    String displayName,
+    String orgName,
+    String roleName,
+  ) {
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.15),
@@ -2866,7 +2872,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                                width: 1.5,
+                              ),
                             ),
                             child: const Center(
                               child: Column(
@@ -2993,13 +3002,17 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             Icon(
               icon,
               size: 16,
-              color: isDestructive ? const Color(0xFFEF4444) : const Color(0xFF64748B),
+              color: isDestructive
+                  ? const Color(0xFFEF4444)
+                  : const Color(0xFF64748B),
             ),
             const SizedBox(width: 10),
             Text(
               title,
               style: TextStyle(
-                color: isDestructive ? const Color(0xFFEF4444) : const Color(0xFF334155),
+                color: isDestructive
+                    ? const Color(0xFFEF4444)
+                    : const Color(0xFF334155),
                 fontSize: 12,
                 fontWeight: isDestructive ? FontWeight.w700 : FontWeight.w600,
               ),
@@ -6316,9 +6329,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (modalCtx, _) {
-            final periodColPct = branch.getCollectionPctForPeriod(_branchPeriod);
+            final periodColPct = branch.getCollectionPctForPeriod(
+              _branchPeriod,
+            );
             final periodRev = branch.getRevenueForPeriod(_branchPeriod);
-            final periodOutstanding = branch.getOutstandingForPeriod(_branchPeriod);
+            final periodOutstanding = branch.getOutstandingForPeriod(
+              _branchPeriod,
+            );
             return Container(
               padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
               decoration: const BoxDecoration(
@@ -6583,6 +6600,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       onBranchChanged: (b) => setState(() => _financeBranch = b),
     );
   }
+
   Widget _buildGrowthView() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -6751,8 +6769,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final initial = _selectedAttendanceDate.isAfter(today)
         ? today
         : (_selectedAttendanceDate.isBefore(DateTime(2024, 1, 1))
-            ? today
-            : _selectedAttendanceDate);
+              ? today
+              : _selectedAttendanceDate);
 
     final picked = await showDatePicker(
       context: context,
@@ -11215,19 +11233,14 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   // --- Users Component 1: Header Context ---
   Widget _buildUsersHeaderContext() {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Users directory',
-          style: TextStyle(
-            color: Color(0xFF0F172A),
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.3,
-          ),
-        ),
-      ],
+    return const Text(
+      'Users directory',
+      style: TextStyle(
+        color: Color(0xFF0F172A),
+        fontSize: 16,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.3,
+      ),
     );
   }
 
