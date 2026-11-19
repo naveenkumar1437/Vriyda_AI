@@ -2595,12 +2595,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildHeaderIconBtn(
-                  Icons.settings_outlined,
-                  const Color(0xFFF59E0B),
-                  _fetchDashboard,
-                ),
-                const SizedBox(width: 6),
                 _buildNotificationBell(alerts, approvals, branches),
                 const SizedBox(width: 6),
                 _buildUserAvatar(),
@@ -2768,28 +2762,6 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           },
         );
       },
-    );
-  }
-
-  Widget _buildHeaderIconBtn(IconData icon, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 4,
-            ),
-          ],
-        ),
-        child: Icon(icon, color: color, size: 16),
-      ),
     );
   }
 
