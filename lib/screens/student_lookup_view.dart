@@ -645,7 +645,7 @@ class _StudentLookupViewState extends State<StudentLookupView> {
     final branch = data.branch.isNotEmpty ? data.branch : 'Steel Plant Branch';
     final hierarchyText = '${klass.toUpperCase()} · ${section.toUpperCase()} · ${branch.toUpperCase()}';
 
-    final dueText = data.due > 0 ? 'Due ₹${_formatAmount(data.due)}' : 'Fees Cleared';
+    final dueText = data.due > 0 ? 'Overdue ₹${_formatAmount(data.due)}' : 'Fees Cleared';
     final standingText = data.passed ? 'Passing' : 'Needs support';
 
     return Container(
@@ -808,7 +808,7 @@ class _StudentLookupViewState extends State<StudentLookupView> {
 
   Widget _buildMetricPill(String text, {Color? textColor, Color? bgColor}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
       decoration: BoxDecoration(
         color: bgColor ?? const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(16),
@@ -817,8 +817,8 @@ class _StudentLookupViewState extends State<StudentLookupView> {
         text,
         style: TextStyle(
           color: textColor ?? const Color(0xFF1E293B),
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
