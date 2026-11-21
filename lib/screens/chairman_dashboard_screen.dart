@@ -48,6 +48,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   Timer? _kpiTimer;
   late final PageController _kpiPageController;
   final Set<String> _approvedItemIds = {};
+  final Set<String> _rejectedItemIds = {};
   final Set<String> _acknowledgedAlertIds = {};
 
   // Interactive state for Finance & Fees
@@ -763,7 +764,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             setState(() {
               if (decision == 'approved') {
                 _approvedItemIds.add(id);
+                _rejectedItemIds.remove(id);
               } else {
+                _rejectedItemIds.add(id);
                 _approvedItemIds.remove(id);
               }
             });
@@ -3230,7 +3233,15 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   ? '₹${(amt / 100000).toStringAsFixed(1)} L'
                   : '₹${amt.toInt()}';
             }
-            return {'id': id, 'title': title, 'meta': meta, 'amount': amtStr};
+            final status = (m['status']?.toString() ?? 'pending').toLowerCase();
+            return {
+              'id': id,
+              'title': title,
+              'meta': meta,
+              'amount': amtStr,
+              'status': status,
+              'raw': m,
+            };
           }).toList()
         : const <Map<String, dynamic>>[];
 
@@ -3289,101 +3300,106 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           else
             ...approvals.map((ap) {
               final id = ap['id'] as String;
-              final isApproved = _approvedItemIds.contains(id);
+              final apiStatus = (ap['status'] as String?) ?? 'pending';
+              final isApproved =
+                  apiStatus == 'approved' || _approvedItemIds.contains(id);
+              final isRejected =
+                  apiStatus == 'rejected' || _rejectedItemIds.contains(id);
+              final isPending = !isApproved && !isRejected;
+              final rawMap = (ap['raw'] as Map<String, dynamic>?) ?? ap;
 
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: isApproved
-                      ? const Color(0xFFF0FDF4)
-                      : const Color(0x80F8FAFC),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
+              return InkWell(
+                onTap: isPending
+                    ? () {
+                        HapticFeedback.selectionClick();
+                        _openApprovalDialog(rawMap);
+                      }
+                    : null,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
                     color: isApproved
-                        ? const Color(0xFFBBF7D0)
-                        : const Color(0xFFF1F5F9),
+                        ? const Color(0xFFF0FDF4)
+                        : (isRejected
+                            ? const Color(0xFFFEF2F2)
+                            : const Color(0x80F8FAFC)),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isApproved
+                          ? const Color(0xFFBBF7D0)
+                          : (isRejected
+                              ? const Color(0xFFFECACA)
+                              : const Color(0xFFF1F5F9)),
+                    ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: isApproved
-                            ? const Color(0xFFDCFCE7)
-                            : const Color(0xFFFAF5FF),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        isApproved
-                            ? Icons.check_circle_rounded
-                            : Icons.description_outlined,
-                        color: isApproved
-                            ? const Color(0xFF15803D)
-                            : const Color(0xFF7C3AED),
-                        size: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ap['title'] as String,
-                            style: const TextStyle(
-                              color: Color(0xFF0F172A),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            ap['meta'] as String,
-                            style: const TextStyle(
-                              color: Color(0xFF94A3B8),
-                              fontSize: 9,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if ((ap['amount'] as String).isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        ap['amount'] as String,
-                        style: const TextStyle(
-                          color: Color(0xFF0F172A),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: isApproved
+                              ? const Color(0xFFDCFCE7)
+                              : (isRejected
+                                  ? const Color(0xFFFEE2E2)
+                                  : const Color(0xFFFAF5FF)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          isApproved
+                              ? Icons.check_circle_rounded
+                              : (isRejected
+                                  ? Icons.cancel_rounded
+                                  : Icons.description_outlined),
+                          color: isApproved
+                              ? const Color(0xFF15803D)
+                              : (isRejected
+                                  ? const Color(0xFFDC2626)
+                                  : const Color(0xFF7C3AED)),
+                          size: 16,
                         ),
                       ),
-                    ],
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        final userKey = widget.user.id.isNotEmpty
-                            ? widget.user.id
-                            : widget.user.email;
-                        setState(() {
-                          if (isApproved) {
-                            _approvedItemIds.remove(id);
-                          } else {
-                            _approvedItemIds.add(id);
-                          }
-                        });
-                        if (isApproved) {
-                          SessionManager.removeApprovedItemId(id, userId: userKey);
-                        } else {
-                          SessionManager.saveApprovedItemId(id, userId: userKey);
-                        }
-                      },
-                      child: Container(
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ap['title'] as String,
+                              style: const TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              ap['meta'] as String,
+                              style: const TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 9,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if ((ap['amount'] as String).isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          ap['amount'] as String,
+                          style: const TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 8),
+                      Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 3.5,
@@ -3391,27 +3407,35 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         decoration: BoxDecoration(
                           color: isApproved
                               ? const Color(0xFFDCFCE7)
-                              : const Color(0xFFFAF5FF),
+                              : (isRejected
+                                  ? const Color(0xFFFEE2E2)
+                                  : const Color(0xFFFAF5FF)),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                             color: isApproved
                                 ? const Color(0xFFA7F3D0)
-                                : const Color(0xFFEDE9FE),
+                                : (isRejected
+                                    ? const Color(0xFFFECACA)
+                                    : const Color(0xFFEDE9FE)),
                           ),
                         ),
                         child: Text(
-                          isApproved ? 'Approved' : 'Review',
+                          isApproved
+                              ? 'Approved'
+                              : (isRejected ? 'Rejected' : 'Review'),
                           style: TextStyle(
                             color: isApproved
                                 ? const Color(0xFF15803D)
-                                : const Color(0xFF7C3AED),
+                                : (isRejected
+                                    ? const Color(0xFFDC2626)
+                                    : const Color(0xFF7C3AED)),
                             fontSize: 9.5,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             }),
