@@ -93,6 +93,94 @@ class SessionManager {
   static const String _keyUserSession = 'vriyda_user_session';
   static const String _keyRememberMe = 'vriyda_remember_me';
   static const String _keyProfileDetails = 'vriyda_profile_details';
+  static const String _keyAcknowledgedAlerts = 'vriyda_acknowledged_alerts';
+  static const String _keyApprovedItems = 'vriyda_approved_items';
+
+  /// Load acknowledged alert IDs for current user and globally
+  static Future<Set<String>> getAcknowledgedAlertIds({String? userId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = (userId != null && userId.isNotEmpty)
+        ? '${_keyAcknowledgedAlerts}_$userId'
+        : _keyAcknowledgedAlerts;
+    final userList = prefs.getStringList(userKey) ?? [];
+    final globalList = prefs.getStringList(_keyAcknowledgedAlerts) ?? [];
+    return {...userList, ...globalList};
+  }
+
+  /// Persist an acknowledged alert ID
+  static Future<void> saveAcknowledgedAlertId(String id, {String? userId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = (userId != null && userId.isNotEmpty)
+        ? '${_keyAcknowledgedAlerts}_$userId'
+        : _keyAcknowledgedAlerts;
+
+    final userSet = (prefs.getStringList(userKey) ?? <String>[]).toSet();
+    userSet.add(id);
+    await prefs.setStringList(userKey, userSet.toList());
+
+    final globalSet = (prefs.getStringList(_keyAcknowledgedAlerts) ?? <String>[]).toSet();
+    globalSet.add(id);
+    await prefs.setStringList(_keyAcknowledgedAlerts, globalSet.toList());
+  }
+
+  /// Remove an acknowledged alert ID
+  static Future<void> removeAcknowledgedAlertId(String id, {String? userId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = (userId != null && userId.isNotEmpty)
+        ? '${_keyAcknowledgedAlerts}_$userId'
+        : _keyAcknowledgedAlerts;
+
+    final userSet = (prefs.getStringList(userKey) ?? <String>[]).toSet();
+    userSet.remove(id);
+    await prefs.setStringList(userKey, userSet.toList());
+
+    final globalSet = (prefs.getStringList(_keyAcknowledgedAlerts) ?? <String>[]).toSet();
+    globalSet.remove(id);
+    await prefs.setStringList(_keyAcknowledgedAlerts, globalSet.toList());
+  }
+
+  /// Load approved item IDs
+  static Future<Set<String>> getApprovedItemIds({String? userId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = (userId != null && userId.isNotEmpty)
+        ? '${_keyApprovedItems}_$userId'
+        : _keyApprovedItems;
+    final userList = prefs.getStringList(userKey) ?? [];
+    final globalList = prefs.getStringList(_keyApprovedItems) ?? [];
+    return {...userList, ...globalList};
+  }
+
+  /// Persist an approved item ID
+  static Future<void> saveApprovedItemId(String id, {String? userId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = (userId != null && userId.isNotEmpty)
+        ? '${_keyApprovedItems}_$userId'
+        : _keyApprovedItems;
+
+    final userSet = (prefs.getStringList(userKey) ?? <String>[]).toSet();
+    userSet.add(id);
+    await prefs.setStringList(userKey, userSet.toList());
+
+    final globalSet = (prefs.getStringList(_keyApprovedItems) ?? <String>[]).toSet();
+    globalSet.add(id);
+    await prefs.setStringList(_keyApprovedItems, globalSet.toList());
+  }
+
+  /// Remove an approved item ID
+  static Future<void> removeApprovedItemId(String id, {String? userId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userKey = (userId != null && userId.isNotEmpty)
+        ? '${_keyApprovedItems}_$userId'
+        : _keyApprovedItems;
+
+    final userSet = (prefs.getStringList(userKey) ?? <String>[]).toSet();
+    userSet.remove(id);
+    await prefs.setStringList(userKey, userSet.toList());
+
+    final globalSet = (prefs.getStringList(_keyApprovedItems) ?? <String>[]).toSet();
+    globalSet.remove(id);
+    await prefs.setStringList(_keyApprovedItems, globalSet.toList());
+  }
 
   static Future<void> saveProfileDetails(Map<String, dynamic> details) async {
     final prefs = await SharedPreferences.getInstance();

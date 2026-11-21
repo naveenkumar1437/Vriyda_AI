@@ -230,6 +230,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         });
       }
     });
+    _loadPersistedAlertsAndApprovals();
     _fetchDashboard();
     _fetchBranchTree();
     _fetchUsersDirectory();
@@ -275,7 +276,22 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     _startKpiTimer();
   }
 
+  Future<void> _loadPersistedAlertsAndApprovals() async {
+    try {
+      final userKey = widget.user.id.isNotEmpty ? widget.user.id : widget.user.email;
+      final savedAlerts = await SessionManager.getAcknowledgedAlertIds(userId: userKey);
+      final savedApprovals = await SessionManager.getApprovedItemIds(userId: userKey);
+      if (mounted) {
+        setState(() {
+          _acknowledgedAlertIds.addAll(savedAlerts);
+          _approvedItemIds.addAll(savedApprovals);
+        });
+      }
+    } catch (_) {}
+  }
+
   Future<void> _fetchDashboard() async {
+    _loadPersistedAlertsAndApprovals();
     if (_dashboardData == null) {
       setState(() {
         _isLoading = true;
@@ -741,6 +757,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           onClose: () => Navigator.of(ctx).pop(),
           onDecision: (decision, note) {
             final id = ap['id']?.toString() ?? '';
+            final userKey = widget.user.id.isNotEmpty
+                ? widget.user.id
+                : widget.user.email;
             setState(() {
               if (decision == 'approved') {
                 _approvedItemIds.add(id);
@@ -748,6 +767,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 _approvedItemIds.remove(id);
               }
             });
+            if (decision == 'approved') {
+              SessionManager.saveApprovedItemId(id, userId: userKey);
+            } else {
+              SessionManager.removeApprovedItemId(id, userId: userKey);
+            }
             _fetchDashboard();
           },
         );
@@ -2965,23 +2989,32 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         ? alerts
         : (_dashboardData?['alerts'] as List<dynamic>? ?? []));
     final alertItems = alertList.take(6).map((al) {
-      final m = al as Map<String, dynamic>;
-      final id =
-          m['id']?.toString() ??
-          'alt-${m['branch']}-${m['text'] ?? m['title']}';
+      final m = Map<String, dynamic>.from(al as Map);
+      final rawId = m['id']?.toString() ?? m['_id']?.toString();
+      final branch = (m['branch'] ?? '').toString().trim();
+      final title = (m['text'] ?? m['title'] ?? m['message'] ?? '').toString().trim();
       final type = (m['type']?.toString() ?? 'ALERT').toUpperCase();
       final time = m['time']?.toString() ?? 'today';
-      final title = m['text']?.toString() ?? m['title']?.toString() ?? '';
-      final branch = m['branch']?.toString() ?? '';
       final level = (m['level'] ?? m['severity'])?.toString().toLowerCase();
       final isRose = level == 'critical' || level == 'danger';
+      final isServerAck = m['status']?.toString().toLowerCase() == 'acknowledged' ||
+          m['acknowledged'] == true ||
+          m['isAcknowledged'] == true;
+
+      final id = (rawId != null && rawId.isNotEmpty)
+          ? rawId
+          : 'alt-$branch-$type-$title';
+      final legacyId = 'alt-$branch-$title';
+
       return {
         'id': id,
+        'legacyId': legacyId,
         'tag': type,
         'time': time,
         'title': title,
         'branch': branch,
         'isRose': isRose,
+        'serverAck': isServerAck,
       };
     }).toList();
 
@@ -3036,7 +3069,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           else
             ...alertItems.map((al) {
               final id = al['id'] as String;
-              final isAck = _acknowledgedAlertIds.contains(id);
+              final legacyId = al['legacyId'] as String;
+              final isAck = al['serverAck'] == true ||
+                  _acknowledgedAlertIds.contains(id) ||
+                  _acknowledgedAlertIds.contains(legacyId);
               final isRose = al['isRose'] as bool;
               final borderColor = isAck
                   ? const Color(0xFFCBD5E1)
@@ -3099,7 +3135,21 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                               GestureDetector(
                                 onTap: () {
                                   HapticFeedback.selectionClick();
-                                  setState(() => _acknowledgedAlertIds.add(id));
+                                  final userKey = widget.user.id.isNotEmpty
+                                      ? widget.user.id
+                                      : widget.user.email;
+                                  setState(() {
+                                    _acknowledgedAlertIds.add(id);
+                                    _acknowledgedAlertIds.add(legacyId);
+                                  });
+                                  SessionManager.saveAcknowledgedAlertId(
+                                    id,
+                                    userId: userKey,
+                                  );
+                                  SessionManager.saveAcknowledgedAlertId(
+                                    legacyId,
+                                    userId: userKey,
+                                  );
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
@@ -3317,6 +3367,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
+                        final userKey = widget.user.id.isNotEmpty
+                            ? widget.user.id
+                            : widget.user.email;
                         setState(() {
                           if (isApproved) {
                             _approvedItemIds.remove(id);
@@ -3324,6 +3377,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                             _approvedItemIds.add(id);
                           }
                         });
+                        if (isApproved) {
+                          SessionManager.removeApprovedItemId(id, userId: userKey);
+                        } else {
+                          SessionManager.saveApprovedItemId(id, userId: userKey);
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -4101,7 +4159,8 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                                   const SizedBox(height: 10),
                                   GestureDetector(
                                     onTap: () {
-                                      _fetchDashboard();
+                                      _loadPersistedAlertsAndApprovals();
+    _fetchDashboard();
                                       _fetchBranchTree();
                                     },
                                     child: Container(
