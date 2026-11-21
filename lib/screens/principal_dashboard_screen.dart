@@ -4,6 +4,18 @@ import '../services/session_manager.dart';
 import '../widgets/notifications_overlay.dart';
 import '../widgets/radial_arc_menu.dart';
 import 'vriyda_login_screen.dart';
+import 'principal/principal_insights_view.dart';
+import 'principal/principal_attendance_view.dart';
+import 'principal/principal_front_office_view.dart';
+import 'principal/principal_timetable_view.dart';
+import 'principal/principal_examinations_view.dart';
+import 'principal/principal_fees_view.dart';
+import 'principal/principal_payroll_view.dart';
+import 'principal/principal_leaves_view.dart';
+import 'principal/principal_overheads_view.dart';
+import 'principal/principal_events_view.dart';
+import 'principal/principal_concessions_view.dart';
+import 'principal/principal_announcements_view.dart';
 
 /// Comprehensive Principal Dashboard matching the Vriyda Principal Web Portal:
 /// - Principal Header: Hello {Employee Name}, Designation, Employee ID, Branch & Date, Avatar VK
@@ -64,7 +76,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
   // Attendance slider/threshold
   final double _attendanceThreshold = 75.0;
 
-  // 15 Modules for Principal Arc Menu
+  // 16 Modules for Principal Arc Menu
   static const List<ArcMenuItem> _principalArcItems = [
     ArcMenuItem(
       id: 'view-overview',
@@ -73,6 +85,13 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
       primaryColor: Color(0xFF7C3AED),
       secondaryColor: Color(0xFF6D28D9),
       isFilled: true,
+    ),
+    ArcMenuItem(
+      id: 'view-insights',
+      label: 'Insights',
+      icon: Icons.insights_rounded,
+      primaryColor: Color(0xFF0D9488),
+      secondaryColor: Color(0xFF0F766E),
     ),
     ArcMenuItem(
       id: 'view-approvals',
@@ -177,6 +196,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
   // Top Nav Items
   final List<Map<String, dynamic>> _navTabs = const [
     {'id': 'view-overview', 'label': 'Overview', 'icon': Icons.dashboard_rounded},
+    {'id': 'view-insights', 'label': 'Insights', 'icon': Icons.insights_rounded},
     {'id': 'view-approvals', 'label': 'Approvals', 'icon': Icons.fact_check_rounded, 'badge': '16'},
     {'id': 'view-students', 'label': 'Students', 'icon': Icons.school_rounded},
     {'id': 'view-staff', 'label': 'Staff', 'icon': Icons.badge_rounded},
@@ -189,7 +209,7 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
     {'id': 'view-overheads', 'label': 'Office Overheads', 'icon': Icons.inventory_2_rounded},
     {'id': 'view-events', 'label': 'Events', 'icon': Icons.celebration_rounded},
     {'id': 'view-concessions', 'label': 'Fee Concession', 'icon': Icons.loyalty_rounded},
-    {'id': 'view-front-office', 'label': 'Front Office', 'icon': Icons.desk_rounded},
+    {'id': 'view-front-office', 'label': 'Front Office', 'icon': Icons.desk_rounded, 'badge': '2'},
     {'id': 'view-announcements', 'label': 'Announcements', 'icon': Icons.campaign_rounded},
   ];
 
@@ -716,6 +736,10 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
     switch (_activeView) {
       case 'view-overview':
         return _buildOverviewView();
+      case 'view-insights':
+        return PrincipalInsightsView(
+          onNavigate: (routeId) => setState(() => _activeView = routeId),
+        );
       case 'view-approvals':
         return _buildApprovalsView();
       case 'view-students':
@@ -723,82 +747,27 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
       case 'view-staff':
         return _buildStaffView();
       case 'view-attendance':
-        return _buildModulePlaceholder('Attendance', Icons.how_to_reg_rounded, [
-          {'label': 'Student Attendance', 'val': '0/43', 'sub': 'Not marked'},
-          {'label': 'Staff Attendance', 'val': '0/25', 'sub': 'Not marked'},
-          {'label': 'Absent Students', 'val': '43', 'sub': '100%'},
-          {'label': 'Absent Staff', 'val': '25', 'sub': '100%'},
-        ]);
+        return const PrincipalAttendanceView();
       case 'view-timetable':
-        return _buildModulePlaceholder('Time Table', Icons.calendar_month_rounded, [
-          {'label': 'Total Periods', 'val': '8', 'sub': 'Per day'},
-          {'label': 'Covered Today', 'val': '8/8', 'sub': '100%'},
-          {'label': 'Substitutions', 'val': '0', 'sub': 'All regular'},
-          {'label': 'Open Slots', 'val': '0', 'sub': 'None'},
-        ]);
+        return const PrincipalTimeTableView();
       case 'view-examinations':
-        return _buildModulePlaceholder('Exam Time Table', Icons.assignment_turned_in_rounded, [
-          {'label': 'Upcoming Exams', 'val': '2', 'sub': 'Term 2 Finals'},
-          {'label': 'Schedules Made', 'val': '7', 'sub': 'Classes 1-7'},
-          {'label': 'Papers Printed', 'val': '100%', 'sub': 'Ready'},
-          {'label': 'Invigilators', 'val': '11', 'sub': 'Assigned'},
-        ]);
+        return const PrincipalExaminationsView();
       case 'view-fees':
-        return _buildModulePlaceholder('Fee Particulars', Icons.payments_rounded, [
-          {'label': 'Collected', 'val': '₹14.1 L', 'sub': '51.6%'},
-          {'label': 'Outstanding', 'val': '₹13.2 L', 'sub': '48.4%'},
-          {'label': 'Due Today', 'val': '₹2.4 L', 'sub': 'Overdue'},
-          {'label': 'Projected (Next Mo)', 'val': '₹18.0 L', 'sub': 'Term 3'},
-        ]);
+        return const PrincipalFeesView();
       case 'view-payroll':
-        return _buildModulePlaceholder('Payroll', Icons.account_balance_wallet_rounded, [
-          {'label': 'Gross Staff Pay', 'val': '₹8.4 L', 'sub': '25 staff'},
-          {'label': 'Deductions', 'val': '₹42,000', 'sub': 'PF + TDS'},
-          {'label': 'Net Disbursed', 'val': '₹7.98 L', 'sub': 'Disbursed'},
-          {'label': 'Staff Paid', 'val': '25/25', 'sub': '100%'},
-        ]);
+        return const PrincipalPayrollView();
       case 'view-leaves':
-        return _buildModulePlaceholder('Leaves & Permissions', Icons.event_busy_rounded, [
-          {'label': 'Pending Requests', 'val': '6', 'sub': 'Action needed'},
-          {'label': 'Approved Today', 'val': '0', 'sub': 'None'},
-          {'label': 'Team Balance', 'val': '84 days', 'sub': 'Available'},
-          {'label': 'Half Days', 'val': '1', 'sub': 'This month'},
-        ]);
+        return const PrincipalLeavesView();
       case 'view-overheads':
-        return _buildModulePlaceholder('Office Overheads', Icons.inventory_2_rounded, [
-          {'label': 'Total Overheads', 'val': '₹1.85 L', 'sub': 'MTD'},
-          {'label': 'Inventory Used', 'val': '₹45,000', 'sub': 'Stationery'},
-          {'label': 'Office Expense', 'val': '₹1.40 L', 'sub': 'Utilities'},
-          {'label': 'Last Month', 'val': '₹1.92 L', 'sub': '▲ 3.6% lower'},
-        ]);
+        return const PrincipalOverheadsView();
       case 'view-events':
-        return _buildModulePlaceholder('Events & Calendar', Icons.celebration_rounded, [
-          {'label': 'Upcoming Events', 'val': '3', 'sub': 'Annual Day'},
-          {'label': 'Awaiting Approval', 'val': '1', 'sub': 'Sports Meet'},
-          {'label': 'Drafts', 'val': '2', 'sub': 'Science Fair'},
-          {'label': 'Event Budget', 'val': '₹1.2 L', 'sub': 'Approved'},
-        ]);
+        return const PrincipalEventsView();
       case 'view-concessions':
-        return _buildModulePlaceholder('Fee Concession', Icons.loyalty_rounded, [
-          {'label': 'Approved', 'val': '8', 'sub': 'Scholarships'},
-          {'label': 'Pending', 'val': '2', 'sub': 'Needs review'},
-          {'label': 'Rejected', 'val': '3', 'sub': 'Non-eligible'},
-          {'label': 'Approved Value', 'val': '₹85,000', 'sub': 'Total relief'},
-        ]);
+        return const PrincipalConcessionsView();
       case 'view-front-office':
-        return _buildModulePlaceholder('Front Office', Icons.desk_rounded, [
-          {'label': 'Today Appointments', 'val': '4', 'sub': 'Parents'},
-          {'label': 'Visitor Passes', 'val': '12', 'sub': 'Issued'},
-          {'label': 'Open Inquiries', 'val': '3', 'sub': 'Admissions'},
-          {'label': 'Call Logs', 'val': '28', 'sub': 'Logged'},
-        ]);
+        return const PrincipalFrontOfficeView();
       case 'view-announcements':
-        return _buildModulePlaceholder('Announcements', Icons.campaign_rounded, [
-          {'label': 'Active Circulars', 'val': '4', 'sub': 'Campus-wide'},
-          {'label': 'Sent This Week', 'val': '2', 'sub': 'SMS + App'},
-          {'label': 'Parent Read Rate', 'val': '89%', 'sub': 'Engaged'},
-          {'label': 'Drafts', 'val': '1', 'sub': 'Holiday notice'},
-        ]);
+        return const PrincipalAnnouncementsView();
       default:
         return _buildOverviewView();
     }
@@ -948,43 +917,302 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
 
         const SizedBox(height: 24),
 
-        // SECTION 4: FEES (3 KPI cards)
-        _buildSectionTitle('FEES OVERVIEW'),
+        // SECTION 4: THIS TERM
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildSectionTitle('THIS TERM'),
+            InkWell(
+              onTap: () => setState(() => _activeView = 'view-examinations'),
+              child: const Text(
+                'Exams →',
+                style: TextStyle(
+                  color: Color(0xFF059669),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Urbanist',
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _buildThisTermCard(),
+
+        const SizedBox(height: 24),
+
+        // SECTION 5: FEES (4 KPI cards matching web screenshot 3)
+        _buildSectionTitle('FEES', count: 'read-only'),
         const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
               child: _buildFeeKpiCard(
                 title: 'Collected',
-                value: '₹14.1 L',
-                sub: '51.6% of billed',
+                value: '88%',
+                sub: 'of billed',
                 color: const Color(0xFF10B981),
                 icon: Icons.check_circle_outline_rounded,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: _buildFeeKpiCard(
                 title: 'Outstanding',
-                value: '₹13.2 L',
-                sub: 'Current dues',
-                color: const Color(0xFFEF4444),
-                icon: Icons.pending_actions_rounded,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildFeeKpiCard(
-                title: 'Online Pay',
-                value: '68.2%',
-                sub: 'UPI & Portal',
-                color: const Color(0xFF6366F1),
-                icon: Icons.credit_card_rounded,
+                value: '₹3,21,300',
+                sub: 'to collect',
+                color: const Color(0xFFD97706),
+                icon: Icons.currency_rupee_rounded,
               ),
             ),
           ],
         ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildFeeKpiCard(
+                title: 'Collected YTD',
+                value: '₹23,90,620',
+                sub: 'Total academic',
+                color: const Color(0xFF059669),
+                icon: Icons.trending_up_rounded,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildFeeKpiCard(
+                title: 'Online',
+                value: '0%',
+                sub: 'of payments',
+                color: const Color(0xFF06B6D4),
+                icon: Icons.payments_outlined,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // SECTION 6: QUICK ACTIONS (6 grid items matching web screenshot 3)
+        _buildSectionTitle('QUICK ACTIONS'),
+        const SizedBox(height: 10),
+        _buildQuickActionsGrid(),
       ],
+    );
+  }
+
+  Widget _buildThisTermCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Upcoming exams
+          const Text(
+            'Upcoming exams',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 13.5,
+              fontWeight: FontWeight.w800,
+              fontFamily: 'Urbanist',
+            ),
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            'Scheduled windows across the branch',
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontFamily: 'Urbanist'),
+          ),
+          const SizedBox(height: 10),
+
+          _buildExamItem(
+            title: 'Unit Test - 2 · Half-Yearly',
+            detail: 'Grade 10 · Class 10 · Mathematics',
+            status: 'Published',
+          ),
+          const SizedBox(height: 8),
+          _buildExamItem(
+            title: 'Unit Test-1 · Unit Test',
+            detail: 'Class - 1 · Class 1-A',
+            status: 'Published',
+          ),
+
+          const Divider(height: 26, color: Color(0xFFF1F5F9)),
+
+          // Latest results
+          const Text(
+            'Latest results',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 13.5,
+              fontWeight: FontWeight.w800,
+              fontFamily: 'Urbanist',
+            ),
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            'Class averages · graded assessments',
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontFamily: 'Urbanist'),
+          ),
+          const SizedBox(height: 10),
+
+          _buildResultItem('Term 1 - Steel Plant Branch', 'avg 78% · pass 92% · 25 graded', 'Ananya Iyer', '78%'),
+          const SizedBox(height: 8),
+          _buildResultItem('Class-1 Unit Test-1 Hindi', 'avg 80% · pass 100% · 2 graded', 'Jonah B', '80%'),
+          const SizedBox(height: 8),
+          _buildResultItem('Class-1 Unit Test-1 Mathematics', 'avg 80% · pass 100% · 1 graded', 'Jatin kalidindi', '80%'),
+          const SizedBox(height: 8),
+          _buildResultItem('Class-1 Unit Test-1 English', 'avg 60% · pass 100% · 1 graded', 'Jatin kalidindi', '60%'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExamItem({required String title, required String detail, required String status}) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.description_outlined, color: Color(0xFF0EA5E9), size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Color(0xFF0F172A))),
+                Text(detail, style: const TextStyle(color: Color(0xFF64748B), fontSize: 10.5)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(6)),
+            child: Text(status, style: const TextStyle(color: Color(0xFF15803D), fontSize: 9.5, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResultItem(String title, String sub, String topper, String score) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.analytics_outlined, color: Color(0xFF059669), size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Color(0xFF0F172A))),
+                const SizedBox(height: 1),
+                Row(
+                  children: [
+                    Text(sub, style: const TextStyle(color: Color(0xFF64748B), fontSize: 10)),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.emoji_events_outlined, size: 12, color: Color(0xFFD97706)),
+                    const SizedBox(width: 2),
+                    Text(topper, style: const TextStyle(color: Color(0xFFD97706), fontSize: 10, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Text(score, style: const TextStyle(color: Color(0xFF059669), fontSize: 13, fontWeight: FontWeight.w800)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionsGrid() {
+    final actions = [
+      {'title': 'AI Timetable', 'sub': 'Generate or revise', 'icon': Icons.calendar_month_rounded, 'view': 'view-timetable', 'col': const Color(0xFF10B981)},
+      {'title': 'Post announcement', 'sub': 'Targeted to any audience', 'icon': Icons.campaign_rounded, 'view': 'view-announcements', 'col': const Color(0xFF059669)},
+      {'title': 'Recognition', 'sub': 'Toppers & badges', 'icon': Icons.emoji_events_outlined, 'view': 'view-examinations', 'col': const Color(0xFFD97706)},
+      {'title': 'Reports & Certificates', 'sub': 'TC, Bonafide, progress cards', 'icon': Icons.description_outlined, 'view': 'view-front-office', 'col': const Color(0xFF0EA5E9)},
+      {'title': 'Staff', 'sub': 'Directory & assignments', 'icon': Icons.school_outlined, 'view': 'view-staff', 'col': const Color(0xFF6366F1)},
+      {'title': 'Students', 'sub': 'Directory & profiles', 'icon': Icons.people_outline_rounded, 'view': 'view-students', 'col': const Color(0xFF14B8A6)},
+    ];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: actions.map((act) {
+        final screenWidth = MediaQuery.of(context).size.width - 32;
+        final itemWidth = (screenWidth - 8) / 2;
+
+        return InkWell(
+          onTap: () => setState(() => _activeView = act['view'] as String),
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            width: itemWidth,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (act['col'] as Color).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(act['icon'] as IconData, size: 18, color: act['col'] as Color),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        act['title'] as String,
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'Urbanist',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        act['sub'] as String,
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 10,
+                          fontFamily: 'Urbanist',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -2508,111 +2736,5 @@ class _PrincipalDashboardScreenState extends State<PrincipalDashboardScreen> {
     );
   }
 
-  // ==========================================
-  // PLACEHOLDER VIEWS (MODULES 5 - 15)
-  // ==========================================
-  Widget _buildModulePlaceholder(String title, IconData icon, List<Map<String, String>> kpis) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF6366F1).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: const Color(0xFF6366F1), size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Color(0xFF0F172A),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      fontFamily: 'Urbanist',
-                    ),
-                  ),
-                  const Text(
-                    'Steel Plant Branch · Live sync',
-                    style: TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
 
-        // KPI Grid
-        Row(
-          children: [
-            Expanded(child: _buildStudentKpi(kpis[0]['label']!, kpis[0]['val']!, kpis[0]['sub']!, const Color(0xFF10B981))),
-            const SizedBox(width: 8),
-            Expanded(child: _buildStudentKpi(kpis[1]['label']!, kpis[1]['val']!, kpis[1]['sub']!, const Color(0xFF6366F1))),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(child: _buildStudentKpi(kpis[2]['label']!, kpis[2]['val']!, kpis[2]['sub']!, const Color(0xFF0EA5E9))),
-            const SizedBox(width: 8),
-            Expanded(child: _buildStudentKpi(kpis[3]['label']!, kpis[3]['val']!, kpis[3]['sub']!, const Color(0xFFF59E0B))),
-          ],
-        ),
-
-        const SizedBox(height: 20),
-
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: const Color(0xFF6366F1), size: 24),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                '$title Module Active',
-                style: const TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  fontFamily: 'Urbanist',
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Complete mobile layout loaded. Connected to Steel Plant Branch API.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 12,
-                  height: 1.4,
-                  fontFamily: 'Urbanist',
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 }

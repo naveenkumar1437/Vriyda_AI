@@ -95,5 +95,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Total staff'), findsWidgets);
+
+    // Tap Insights tab
+    await tester.tap(find.text('Insights').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Key insights & recommendations'), findsOneWidget);
+    expect(find.text('Student attendance trend'), findsOneWidget);
+
+    // Scroll to and tap Attendance tab
+    await tester.ensureVisible(find.text('Attendance').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Attendance').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Attendance for today'), findsOneWidget);
+    expect(find.text('Students absent · 0'), findsOneWidget);
+
+    // Scroll to and tap Front Office tab
+    await tester.ensureVisible(find.text('Front Office').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Front Office').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Admission queries'), findsOneWidget);
+    expect(find.text('Appointments'), findsOneWidget);
+    expect(find.text('My availability'), findsOneWidget);
   });
 }
