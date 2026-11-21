@@ -44,42 +44,150 @@ class FinanceKpis {
     );
   }
 
+  /// Computes the exact period factor matching web Vriyda owner-cc-bundle.js:
+  /// Derived from the real 12-month series:
+  /// MTD = current (last) month / total
+  /// QTD = last 3 months / total
+  /// FY = 1.08 (+8% full-year forecast)
+  /// YTD = 1.0
+  static double computePeriodFactor(
+    String period, {
+    List<dynamic>? revenueSeries,
+  }) {
+    if (period == 'YTD') return 1.0;
+    if (period == 'FY') return 1.08;
+
+    if (revenueSeries != null && revenueSeries.isNotEmpty) {
+      double total = 0.0;
+      final List<double> revs = [];
+      for (final item in revenueSeries) {
+        if (item is Map) {
+          final r = (item['revenue'] as num?)?.toDouble() ?? 0.0;
+          revs.add(r);
+          total += r;
+        }
+      }
+
+      if (total > 0 && revs.isNotEmpty) {
+        if (period == 'MTD') {
+          final double tail1 = revs.last;
+          return tail1 / total;
+        } else if (period == 'QTD') {
+          final int start = revs.length >= 3 ? revs.length - 3 : 0;
+          double tail3 = 0.0;
+          for (int i = start; i < revs.length; i++) {
+            tail3 += revs[i];
+          }
+          return tail3 / total;
+        }
+      }
+    }
+
+    // Default fallbacks matching web owner-cc-bundle.js:
+    // { MTD: 0.088, QTD: 0.25, YTD: 1, FY: 1.08 }
+    switch (period) {
+      case 'MTD':
+        return 0.088;
+      case 'QTD':
+        return 0.25;
+      case 'FY':
+        return 1.08;
+      case 'YTD':
+      default:
+        return 1.0;
+    }
+  }
+
   factory FinanceKpis.fromJson(
     Map<String, dynamic>? group, {
     String period = 'YTD',
+    List<dynamic>? revenueSeries,
+    List<dynamic>? branches,
   }) {
-    if (group == null || group.isEmpty) {
+    if ((group == null || group.isEmpty) && (branches == null || branches.isEmpty)) {
       return FinanceKpis.empty();
     }
 
-    final double rawRevenue = (group['revenueYTD'] as num?)?.toDouble() ??
-        (group['revenue'] as num?)?.toDouble() ?? 0.0;
-    final double rawTarget = (group['revenueTarget'] as num?)?.toDouble() ?? rawRevenue;
-    final double rawCollectedYtd = (group['collectedYTD'] as num?)?.toDouble() ?? 0.0;
-    final double rawCollectedMtd = (group['collectedMTD'] as num?)?.toDouble() ?? 0.0;
-    final double rawOutstanding = (group['outstanding'] as num?)?.toDouble() ?? 0.0;
+    double fullRevenue = (group?['revenueYTD'] as num?)?.toDouble() ??
+        (group?['revenue'] as num?)?.toDouble() ?? 0.0;
+    double fullOutstanding = (group?['outstanding'] as num?)?.toDouble() ?? 0.0;
 
-    double rev = rawRevenue;
-    double target = rawTarget;
-    double col = (period == 'MTD' && rawCollectedMtd > 0) ? rawCollectedMtd : rawCollectedYtd;
-    double out = rawOutstanding;
+    if (fullRevenue <= 0 && branches != null && branches.isNotEmpty) {
+      for (final b in branches) {
+        if (b is Map<String, dynamic>) {
+          fullRevenue += (b['revenue'] as num?)?.toDouble() ?? 0.0;
+          fullOutstanding += (b['outstanding'] as num?)?.toDouble() ?? 0.0;
+        }
+      }
+    }
 
-    final double colPct = (group['collectionPct'] as num?)?.toDouble() ??
-        (rev > 0 ? double.parse(((col / rev) * 100).toStringAsFixed(1)) : 0.0);
-    final double outPct = (group['outstandingPct'] as num?)?.toDouble() ??
-        (rev > 0 ? double.parse(((out / rev) * 100).toStringAsFixed(1)) : 0.0);
-    final double ebitda = (group['ebitdaMargin'] as num?)?.toDouble() ?? 0.0;
-    final double payroll = (group['payrollPct'] as num?)?.toDouble() ?? 0.0;
-    final double online = (group['onlinePayPct'] as num?)?.toDouble() ?? 0.0;
-    final double delta = (group['revenueDelta'] as num?)?.toDouble() ?? 0.0;
+    final double rawTarget = (group?['revenueTarget'] as num?)?.toDouble() ?? fullRevenue;
+    final double baseColl = fullRevenue > 0
+        ? (fullRevenue - fullOutstanding) / fullRevenue
+        : 0.0;
+
+    final double pf = computePeriodFactor(period, revenueSeries: revenueSeries);
+    final double revenue = (fullRevenue * pf).roundToDouble();
+    final double collected = (revenue * baseColl).roundToDouble();
+    final double outstanding = revenue - collected;
+
+    final double colPct = (group?['collectionPct'] as num?)?.toDouble() ??
+        (revenue > 0 ? double.parse(((collected / revenue) * 100).toStringAsFixed(1)) : 0.0);
+    final double outPct = (group?['outstandingPct'] as num?)?.toDouble() ??
+        (revenue > 0 ? double.parse(((outstanding / revenue) * 100).toStringAsFixed(1)) : 0.0);
+
+    // Student-weighted averages matching web owner-cc-bundle.js wavg()
+    double ebitda = 0.0;
+    double payroll = 0.0;
+    double online = 0.0;
+
+    if (branches != null && branches.isNotEmpty) {
+      double totalStudents = 0.0;
+      double weightedEbitda = 0.0;
+      double weightedPayroll = 0.0;
+      double weightedOnline = 0.0;
+
+      for (final b in branches) {
+        if (b is Map<String, dynamic>) {
+          final double students = (b['students'] as num?)?.toDouble() ?? 0.0;
+          final double m = (b['ebitdaMargin'] as num?)?.toDouble() ?? 0.0;
+          final double p = (b['payrollPct'] as num?)?.toDouble() ?? 0.0;
+          final double o = (b['onlinePayPct'] as num?)?.toDouble() ?? 0.0;
+
+          if (students > 0) {
+            totalStudents += students;
+            weightedEbitda += m * students;
+            weightedPayroll += p * students;
+            weightedOnline += o * students;
+          }
+        }
+      }
+
+      if (totalStudents > 0) {
+        ebitda = double.parse((weightedEbitda / totalStudents).toStringAsFixed(1));
+        payroll = double.parse((weightedPayroll / totalStudents).toStringAsFixed(1));
+        online = double.parse((weightedOnline / totalStudents).toStringAsFixed(1));
+      }
+    }
+
+    if (ebitda <= 0) {
+      ebitda = (group?['ebitdaMargin'] as num?)?.toDouble() ?? 0.0;
+    }
+    if (payroll <= 0) {
+      payroll = (group?['payrollPct'] as num?)?.toDouble() ?? 0.0;
+    }
+    if (online <= 0) {
+      online = (group?['onlinePayPct'] as num?)?.toDouble() ?? 0.0;
+    }
+    final double delta = (group?['revenueDelta'] as num?)?.toDouble() ?? 0.0;
 
     return FinanceKpis(
-      revenue: rev,
-      revenueTarget: target,
+      revenue: revenue,
+      revenueTarget: (rawTarget * pf).roundToDouble(),
       revenueDelta: delta,
-      collected: col,
+      collected: collected,
       collectedPct: colPct,
-      outstanding: out,
+      outstanding: outstanding,
       outstandingPct: outPct,
       ebitdaMargin: ebitda,
       payrollCostPct: payroll,
@@ -90,29 +198,37 @@ class FinanceKpis {
   factory FinanceKpis.fromBranchJson(
     Map<String, dynamic> b, {
     String period = 'YTD',
+    List<dynamic>? revenueSeries,
   }) {
-    final double rawRevenue = (b['revenue'] as num?)?.toDouble() ??
+    final double fullRevenue = (b['revenue'] as num?)?.toDouble() ??
         (b['revenueYTD'] as num?)?.toDouble() ?? 0.0;
-    final double rawTarget = (b['revenueTarget'] as num?)?.toDouble() ?? rawRevenue;
-    final double rawOutstanding = (b['outstanding'] as num?)?.toDouble() ?? 0.0;
-    final double rawCollected = (b['collected'] as num?)?.toDouble() ??
-        (rawRevenue >= rawOutstanding ? (rawRevenue - rawOutstanding) : 0.0);
+    final double fullOutstanding = (b['outstanding'] as num?)?.toDouble() ?? 0.0;
+    final double rawTarget = (b['revenueTarget'] as num?)?.toDouble() ?? fullRevenue;
+    final double baseColl = fullRevenue > 0
+        ? (fullRevenue - fullOutstanding) / fullRevenue
+        : 0.0;
+
+    final double pf = computePeriodFactor(period, revenueSeries: revenueSeries);
+    final double revenue = (fullRevenue * pf).roundToDouble();
+    final double collected = (revenue * baseColl).roundToDouble();
+    final double outstanding = revenue - collected;
+
     final double colPct = (b['collectionPct'] as num?)?.toDouble() ??
-        (rawRevenue > 0 ? double.parse(((rawCollected / rawRevenue) * 100).toStringAsFixed(1)) : 0.0);
+        (revenue > 0 ? double.parse(((collected / revenue) * 100).toStringAsFixed(1)) : 0.0);
     final double outPct = (b['outstandingPct'] as num?)?.toDouble() ??
-        (rawRevenue > 0 ? double.parse(((rawOutstanding / rawRevenue) * 100).toStringAsFixed(1)) : 0.0);
+        (revenue > 0 ? double.parse(((outstanding / revenue) * 100).toStringAsFixed(1)) : 0.0);
     final double ebitda = (b['ebitdaMargin'] as num?)?.toDouble() ?? 0.0;
     final double payroll = (b['payrollPct'] as num?)?.toDouble() ?? 0.0;
     final double online = (b['onlinePayPct'] as num?)?.toDouble() ?? 0.0;
     final double delta = (b['revenueDelta'] as num?)?.toDouble() ?? 0.0;
 
     return FinanceKpis(
-      revenue: rawRevenue,
-      revenueTarget: rawTarget,
+      revenue: revenue,
+      revenueTarget: (rawTarget * pf).roundToDouble(),
       revenueDelta: delta,
-      collected: rawCollected,
+      collected: collected,
       collectedPct: colPct,
-      outstanding: rawOutstanding,
+      outstanding: outstanding,
       outstandingPct: outPct,
       ebitdaMargin: ebitda,
       payrollCostPct: payroll,
@@ -184,41 +300,26 @@ class ExpenseKpis {
       return ExpenseKpis.empty();
     }
 
-    final bool isMtd = period == 'MTD';
-    final double total = isMtd
-        ? ((expensesJson['totalMTD'] as num?)?.toDouble() ??
-            (expensesJson['totalYTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expensesJson['totalYTD'] as num?)?.toDouble() ?? 0.0);
-
-    final double payroll = isMtd
-        ? ((expensesJson['payrollMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expensesJson['payrollYTD'] as num?)?.toDouble() ?? 0.0);
-
+    final double totalYtd = (expensesJson['totalYTD'] as num?)?.toDouble() ?? 0.0;
+    final double payrollYtd = (expensesJson['payrollYTD'] as num?)?.toDouble() ?? 0.0;
+    final double fuelYtd = ((expensesJson['fuelYTD'] as num?)?.toDouble() ?? 0.0) +
+        ((expensesJson['maintenanceYTD'] as num?)?.toDouble() ?? 0.0);
+    final double purchasesYtd = (expensesJson['purchasesYTD'] as num?)?.toDouble() ?? 0.0;
+    final double claimsYtd = (expensesJson['claimsYTD'] as num?)?.toDouble() ?? 0.0;
     final double? rent = (expensesJson['rentMonthly'] as num?)?.toDouble() ??
         (expensesJson['rentYTD'] as num?)?.toDouble();
 
-    final double fuel = isMtd
-        ? ((expensesJson['fuelMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expensesJson['fuelYTD'] as num?)?.toDouble() ?? 0.0);
-
-    final double purchases = isMtd
-        ? ((expensesJson['purchasesMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expensesJson['purchasesYTD'] as num?)?.toDouble() ?? 0.0);
-
-    final double claims = isMtd
-        ? ((expensesJson['claimsMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expensesJson['claimsYTD'] as num?)?.toDouble() ?? 0.0);
-
     final rawPurchaseLines = expensesJson['purchaseLines'] as List<dynamic>?;
-    final int purchaseCount = rawPurchaseLines?.length ?? 0;
+    final int purchaseCount = (expensesJson['purchaseLineCount'] as num?)?.toInt() ??
+        rawPurchaseLines?.length ?? 0;
 
     return ExpenseKpis(
-      totalSpend: total,
-      payroll: payroll,
+      totalSpend: totalYtd,
+      payroll: payrollYtd,
       rentMonthly: rent != null && rent > 0 ? rent : null,
-      fuelAndFleet: fuel,
-      purchases: purchases,
-      staffClaims: claims,
+      fuelAndFleet: fuelYtd,
+      purchases: purchasesYtd,
+      staffClaims: claimsYtd,
       purchaseLinesCount: purchaseCount,
     );
   }
@@ -233,33 +334,22 @@ class ExpenseKpis {
       return ExpenseKpis.empty();
     }
     final expMap = exp ?? {};
-    final bool isMtd = period == 'MTD';
-
-    final double total = isMtd
-        ? ((expMap['totalMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expMap['totalYTD'] as num?)?.toDouble() ?? 0.0);
-    final double payroll = isMtd
-        ? ((expMap['payrollMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expMap['payrollYTD'] as num?)?.toDouble() ?? 0.0);
+    final double totalYtd = (expMap['totalYTD'] as num?)?.toDouble() ?? 0.0;
+    final double payrollYtd = (expMap['payrollYTD'] as num?)?.toDouble() ?? 0.0;
+    final double fuelYtd = ((expMap['fuelYTD'] as num?)?.toDouble() ?? 0.0) +
+        ((expMap['maintenanceYTD'] as num?)?.toDouble() ?? 0.0);
+    final double purchasesYtd = (expMap['purchasesYTD'] as num?)?.toDouble() ?? 0.0;
+    final double claimsYtd = (expMap['claimsYTD'] as num?)?.toDouble() ?? 0.0;
     final double? rent = (expMap['rentMonthly'] as num?)?.toDouble() ??
         (res != null ? (res['rentMonthly'] as num?)?.toDouble() : null);
-    final double fuel = isMtd
-        ? ((expMap['fuelMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expMap['fuelYTD'] as num?)?.toDouble() ?? 0.0);
-    final double purchases = isMtd
-        ? ((expMap['purchasesMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expMap['purchasesYTD'] as num?)?.toDouble() ?? 0.0);
-    final double claims = isMtd
-        ? ((expMap['claimsMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((expMap['claimsYTD'] as num?)?.toDouble() ?? 0.0);
 
     return ExpenseKpis(
-      totalSpend: total,
-      payroll: payroll,
+      totalSpend: totalYtd,
+      payroll: payrollYtd,
       rentMonthly: rent != null && rent > 0 ? rent : null,
-      fuelAndFleet: fuel,
-      purchases: purchases,
-      staffClaims: claims,
+      fuelAndFleet: fuelYtd,
+      purchases: purchasesYtd,
+      staffClaims: claimsYtd,
       purchaseLinesCount: purchaseLinesCount,
     );
   }
@@ -304,19 +394,57 @@ class FeeCollectionData {
     Map<String, dynamic>? collectionMap,
     Map<String, dynamic>? group, {
     String period = 'YTD',
+    List<dynamic>? revenueSeries,
+    double? overrideRevenue,
+    double? overrideOutstanding,
+    double? overrideCollected,
+    double? overridePct,
   }) {
-    if (collectionMap == null && group == null) {
+    if (collectionMap == null && group == null && overrideRevenue == null) {
       return FeeCollectionData.empty();
     }
 
-    double billed = (group?['revenueYTD'] as num?)?.toDouble() ?? 0.0;
-    double collected = (collectionMap?['collected'] as num?)?.toDouble() ??
-        (group?['collectedYTD'] as num?)?.toDouble() ?? 0.0;
-    if (period == 'MTD' && group?['collectedMTD'] != null && (group!['collectedMTD'] as num) > 0) {
-      collected = (group['collectedMTD'] as num).toDouble();
+    if (overrideRevenue != null && overrideOutstanding != null && overrideCollected != null) {
+      double due;
+      double overdue;
+      if (period == 'YTD' && collectionMap != null && collectionMap['due'] != null) {
+        due = (collectionMap['due'] as num).toDouble();
+        overdue = (collectionMap['overdue'] as num?)?.toDouble() ?? (overrideOutstanding - due);
+      } else {
+        due = (overrideOutstanding * 0.58).roundToDouble();
+        overdue = (overrideOutstanding * 0.42).roundToDouble();
+      }
+
+      return FeeCollectionData(
+        billed: overrideRevenue,
+        collected: overrideCollected,
+        due: due,
+        overdue: overdue,
+        collectionPct: overridePct ??
+            (overrideRevenue > 0
+                ? double.parse(((overrideCollected / overrideRevenue) * 100).toStringAsFixed(1))
+                : 0.0),
+      );
     }
-    double due = (collectionMap?['due'] as num?)?.toDouble() ?? 0.0;
-    double overdue = (collectionMap?['overdue'] as num?)?.toDouble() ?? 0.0;
+
+    final double fullRevenue = (group?['revenueYTD'] as num?)?.toDouble() ?? 0.0;
+    final double fullOutstanding = (group?['outstanding'] as num?)?.toDouble() ?? 0.0;
+    final double baseColl = fullRevenue > 0 ? (fullRevenue - fullOutstanding) / fullRevenue : 0.0;
+
+    final double pf = FinanceKpis.computePeriodFactor(period, revenueSeries: revenueSeries);
+    final double billed = (fullRevenue * pf).roundToDouble();
+    final double collected = (billed * baseColl).roundToDouble();
+    final double out = billed - collected;
+
+    double due;
+    double overdue;
+    if (period == 'YTD' && collectionMap != null && collectionMap['due'] != null) {
+      due = (collectionMap['due'] as num).toDouble();
+      overdue = (collectionMap['overdue'] as num?)?.toDouble() ?? (out - due);
+    } else {
+      due = (out * 0.58).roundToDouble();
+      overdue = (out * 0.42).roundToDouble();
+    }
 
     final double pct = (group?['collectionPct'] as num?)?.toDouble() ??
         (billed > 0 ? double.parse(((collected / billed) * 100).toStringAsFixed(1)) : 0.0);
@@ -335,20 +463,57 @@ class FeeCollectionData {
     Map<String, dynamic>? collectionMap,
     Map<String, dynamic>? group, {
     String period = 'YTD',
+    List<dynamic>? revenueSeries,
+    double? overrideRevenue,
+    double? overrideOutstanding,
+    double? overrideCollected,
+    double? overridePct,
   }) {
-    final double billed = (b['revenue'] as num?)?.toDouble() ??
+    if (overrideRevenue != null && overrideOutstanding != null && overrideCollected != null) {
+      double due;
+      double overdue;
+      if (period == 'YTD' && collectionMap != null && collectionMap['due'] != null) {
+        due = (collectionMap['due'] as num).toDouble();
+        overdue = (collectionMap['overdue'] as num?)?.toDouble() ?? (overrideOutstanding - due);
+      } else {
+        due = (overrideOutstanding * 0.58).roundToDouble();
+        overdue = (overrideOutstanding * 0.42).roundToDouble();
+      }
+
+      return FeeCollectionData(
+        billed: overrideRevenue,
+        collected: overrideCollected,
+        due: due,
+        overdue: overdue,
+        collectionPct: overridePct ??
+            (overrideRevenue > 0
+                ? double.parse(((overrideCollected / overrideRevenue) * 100).toStringAsFixed(1))
+                : 0.0),
+      );
+    }
+
+    final double rawBilled = (b['revenue'] as num?)?.toDouble() ??
         (b['revenueYTD'] as num?)?.toDouble() ?? 0.0;
     final double rawOutstanding = (b['outstanding'] as num?)?.toDouble() ?? 0.0;
-    final double collected = (b['collected'] as num?)?.toDouble() ??
-        (billed >= rawOutstanding ? (billed - rawOutstanding) : 0.0);
+    final double baseColl = rawBilled > 0 ? (rawBilled - rawOutstanding) / rawBilled : 0.0;
+
+    final double pf = FinanceKpis.computePeriodFactor(period, revenueSeries: revenueSeries);
+    final double billed = (rawBilled * pf).roundToDouble();
+    final double collected = (billed * baseColl).roundToDouble();
+    final double out = billed - collected;
+
+    double due;
+    double overdue;
+    if (period == 'YTD' && collectionMap != null && collectionMap['due'] != null) {
+      due = (collectionMap['due'] as num).toDouble();
+      overdue = (collectionMap['overdue'] as num?)?.toDouble() ?? (out - due);
+    } else {
+      due = (out * 0.58).roundToDouble();
+      overdue = (out * 0.42).roundToDouble();
+    }
+
     final double pct = (b['collectionPct'] as num?)?.toDouble() ??
         (billed > 0 ? double.parse(((collected / billed) * 100).toStringAsFixed(1)) : 0.0);
-
-    final double groupDue = (collectionMap?['due'] as num?)?.toDouble() ?? 0.0;
-    final double groupOut = (group?['outstanding'] as num?)?.toDouble() ?? (groupDue > 0 ? groupDue : 1.0);
-    final double dueRatio = groupOut > 0 ? (groupDue / groupOut).clamp(0.0, 1.0) : 0.58;
-    final double due = rawOutstanding * dueRatio;
-    final double overdue = rawOutstanding >= due ? (rawOutstanding - due) : 0.0;
 
     return FeeCollectionData(
       billed: billed,
@@ -396,12 +561,15 @@ class UnitEconomicsData {
     );
   }
 
-  factory UnitEconomicsData.fromJson(Map<String, dynamic>? data) {
+  factory UnitEconomicsData.fromJson(
+    Map<String, dynamic>? data, {
+    double? ebitdaMarginOverride,
+  }) {
     if (data == null) return UnitEconomicsData.empty();
     final rev = (data['revPerStudent'] as num?)?.toDouble() ?? 0.0;
     final cost = (data['costPerStudent'] as num?)?.toDouble() ?? 0.0;
     final contr = rev > cost ? rev - cost : 0.0;
-    final ebitda = (data['ebitdaMargin'] as num?)?.toDouble() ?? 0.0;
+    final ebitda = ebitdaMarginOverride ?? ((data['ebitdaMargin'] as num?)?.toDouble() ?? 0.0);
 
     return UnitEconomicsData(
       revPerStudent: rev,
@@ -489,25 +657,19 @@ class SpendByBranchItem {
     final String id = b['id']?.toString() ?? '$index';
     final exp = b['expenses'] as Map<String, dynamic>? ?? {};
 
-    final bool isMtd = period == 'MTD';
-    final double p = isMtd
-        ? ((exp['payrollMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((exp['payrollYTD'] as num?)?.toDouble() ?? 0.0);
-
+    final double pYtd = (exp['payrollYTD'] as num?)?.toDouble() ?? 0.0;
+    final double fYtd = (exp['fuelYTD'] as num?)?.toDouble() ?? 0.0;
+    final double purYtd = (exp['purchasesYTD'] as num?)?.toDouble() ??
+        (b['inventorySpendMTD'] as num?)?.toDouble() ??
+        0.0;
+    final double totalYtd = (exp['totalYTD'] as num?)?.toDouble() ?? 0.0;
     final double? r = (exp['rentMonthly'] as num?)?.toDouble() ??
         (b['resources'] is Map ? (b['resources']['rentMonthly'] as num?)?.toDouble() : null);
 
-    final double f = isMtd
-        ? ((exp['fuelMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((exp['fuelYTD'] as num?)?.toDouble() ?? 0.0);
-
-    final double pur = isMtd
-        ? ((exp['purchasesMTD'] as num?)?.toDouble() ?? (b['inventorySpendMTD'] as num?)?.toDouble() ?? 0.0)
-        : ((exp['purchasesYTD'] as num?)?.toDouble() ?? (b['inventorySpendMTD'] as num?)?.toDouble() ?? 0.0);
-
-    final double total = isMtd
-        ? ((exp['totalMTD'] as num?)?.toDouble() ?? (p + (r ?? 0.0) + f + pur))
-        : ((exp['totalYTD'] as num?)?.toDouble() ?? (p + (r ?? 0.0) + f + pur));
+    double p = pYtd;
+    double f = fYtd;
+    double pur = purYtd;
+    double total = totalYtd > 0 ? totalYtd : (p + (r ?? 0.0) + f + pur);
 
     final colors = [
       const Color(0xFF10B981), // Emerald
@@ -753,8 +915,17 @@ class FinanceFeeData {
 
     // KPIs: branch-level if selected, else group-level
     final kpis = selectedBranchMap != null
-        ? FinanceKpis.fromBranchJson(selectedBranchMap!, period: period)
-        : FinanceKpis.fromJson(group, period: period);
+        ? FinanceKpis.fromBranchJson(
+            selectedBranchMap!,
+            period: period,
+            revenueSeries: rawRevenueSeries,
+          )
+        : FinanceKpis.fromJson(
+            group,
+            period: period,
+            revenueSeries: rawRevenueSeries,
+            branches: rawBranches,
+          );
 
     // Expenses: branch-level if selected, else group-level
     final expenses = selectedBranchMap != null
@@ -773,8 +944,22 @@ class FinanceFeeData {
             collectionMap,
             group,
             period: period,
+            revenueSeries: rawRevenueSeries,
+            overrideRevenue: kpis.revenue,
+            overrideOutstanding: kpis.outstanding,
+            overrideCollected: kpis.collected,
+            overridePct: kpis.collectedPct,
           )
-        : FeeCollectionData.fromJson(collectionMap, group, period: period);
+        : FeeCollectionData.fromJson(
+            collectionMap,
+            group,
+            period: period,
+            revenueSeries: rawRevenueSeries,
+            overrideRevenue: kpis.revenue,
+            overrideOutstanding: kpis.outstanding,
+            overrideCollected: kpis.collected,
+            overridePct: kpis.collectedPct,
+          );
 
     // Aging breakdown items
     final agingColors = [
@@ -784,10 +969,7 @@ class FinanceFeeData {
       const Color(0xFFEF4444), // 90+ d: Rose Red
     ];
     final double groupOut = (group?['outstanding'] as num?)?.toDouble() ?? 0.0;
-    final double branchOut = selectedBranchMap != null
-        ? ((selectedBranchMap!['outstanding'] as num?)?.toDouble() ?? 0.0)
-        : groupOut;
-    final double agingRatio = (groupOut > 0 && selectedBranchMap != null) ? (branchOut / groupOut) : 1.0;
+    final double agingRatio = groupOut > 0 ? (kpis.outstanding / groupOut) : 1.0;
 
     final List<ReceivablesAgingItem> agingItems = [];
     for (int i = 0; i < rawAging.length; i++) {
@@ -796,14 +978,17 @@ class FinanceFeeData {
         final rawAmt = (a['amount'] as num?)?.toDouble() ?? 0.0;
         agingItems.add(ReceivablesAgingItem(
           bucket: a['bucket']?.toString() ?? '',
-          amount: rawAmt * agingRatio,
+          amount: (rawAmt * agingRatio).roundToDouble(),
           color: agingColors[i % agingColors.length],
         ));
       }
     }
 
     // Unit economics (per student)
-    final unitEconomics = UnitEconomicsData.fromJson(selectedBranchMap ?? group);
+    final unitEconomics = UnitEconomicsData.fromJson(
+      selectedBranchMap ?? group,
+      ebitdaMarginOverride: kpis.ebitdaMargin,
+    );
 
     // Payment mix
     final List<PaymentMixItem> paymentItems = [];
@@ -886,23 +1071,31 @@ class FinanceFeeData {
     }
 
     // Fee collection by branch
+    final double pf = FinanceKpis.computePeriodFactor(period, revenueSeries: rawRevenueSeries);
     final List<BranchFeeCollectionItem> branchFeeCollections = [];
     final branchesForFee = selectedBranchMap != null ? [selectedBranchMap!] : rawBranches;
     for (int i = 0; i < branchesForFee.length; i++) {
       final b = branchesForFee[i];
       if (b is Map<String, dynamic>) {
-        final double billed = (b['revenue'] as num?)?.toDouble() ?? 0.0;
-        final double due = (b['outstanding'] as num?)?.toDouble() ?? 0.0;
-        final double collected = billed >= due ? (billed - due) : 0.0;
-        final double pct = (b['collectionPct'] as num?)?.toDouble() ??
-            (billed > 0 ? double.parse(((collected / billed) * 100).toStringAsFixed(1)) : 0.0);
+        final double rawRev = (b['revenue'] as num?)?.toDouble() ?? 0.0;
+        final double rawOut = (b['outstanding'] as num?)?.toDouble() ?? 0.0;
+        final double bPct = (b['collectionPct'] as num?)?.toDouble() ?? 0.0;
+        final double bCollRate = rawRev > 0 && rawOut > 0
+            ? (rawRev - rawOut) / rawRev
+            : (bPct / 100.0);
+
+        final double billed = (rawRev * pf).roundToDouble();
+        final double coll = (billed * bCollRate).roundToDouble();
+        final double due = billed - coll;
 
         branchFeeCollections.add(BranchFeeCollectionItem(
           branchName: b['name']?.toString() ?? 'Branch',
           billed: billed,
-          collected: collected,
+          collected: coll,
           due: due,
-          collectionPct: pct,
+          collectionPct: bPct > 0
+              ? bPct
+              : (billed > 0 ? double.parse(((coll / billed) * 100).toStringAsFixed(1)) : 0.0),
           color: branchPalette[i % branchPalette.length],
         ));
       }
@@ -921,10 +1114,11 @@ class FinanceFeeData {
     final List<ExpenseMixCategory> mix = [];
     if (selectedBranchMap != null) {
       final bExp = selectedBranchMap!['expenses'] as Map<String, dynamic>? ?? {};
-      final bPayroll = (bExp['payrollYTD'] as num?)?.toDouble() ?? 0.0;
-      final bFuel = (bExp['fuelYTD'] as num?)?.toDouble() ?? 0.0;
-      final bPurchases = (bExp['purchasesYTD'] as num?)?.toDouble() ?? 0.0;
-      final bClaims = (bExp['claimsYTD'] as num?)?.toDouble() ?? 0.0;
+      final double bPayroll = (bExp['payrollYTD'] as num?)?.toDouble() ?? 0.0;
+      final double bFuel = ((bExp['fuelYTD'] as num?)?.toDouble() ?? 0.0) +
+          ((bExp['maintenanceYTD'] as num?)?.toDouble() ?? 0.0);
+      final double bPurchases = (bExp['purchasesYTD'] as num?)?.toDouble() ?? 0.0;
+      final double bClaims = (bExp['claimsYTD'] as num?)?.toDouble() ?? 0.0;
       final double bTotal = expenses.totalSpend;
 
       final categories = [
