@@ -32,14 +32,32 @@ void main() {
       expect(ytd.payrollCostPct, 45.1);
       expect(ytd.onlinePaymentsPct, 70.3);
 
-      // MTD uses collectedMTD from API response
-      final groupDataWithMtd = {
-        ...groupData,
-        'collectedMTD': 784450.0,
-      };
-      final mtd = FinanceKpis.fromJson(groupDataWithMtd, period: 'MTD');
-      expect(mtd.collected, 784450.0);
-      expect(mtd.revenue, 14155020.0);
+      // MTD scaling matching web periodFactor: default 0.088
+      final mtd = FinanceKpis.fromJson(groupData, period: 'MTD');
+      expect(mtd.revenue, (14155020.0 * 0.088).roundToDouble());
+      expect(mtd.collected, (mtd.revenue * (9658180.0 / 14155020.0)).roundToDouble());
+      expect(mtd.outstanding, mtd.revenue - mtd.collected);
+
+      // QTD scaling matching web periodFactor: default 0.25
+      final qtd = FinanceKpis.fromJson(groupData, period: 'QTD');
+      expect(qtd.revenue, (14155020.0 * 0.25).roundToDouble());
+      expect(qtd.collected, (qtd.revenue * (9658180.0 / 14155020.0)).roundToDouble());
+      expect(qtd.outstanding, qtd.revenue - qtd.collected);
+
+      // FY scaling matching web periodFactor: 1.08 (+8% full-year forecast)
+      final fy = FinanceKpis.fromJson(groupData, period: 'FY');
+      expect(fy.revenue, (14155020.0 * 1.08).roundToDouble());
+      expect(fy.collected, (fy.revenue * (9658180.0 / 14155020.0)).roundToDouble());
+      expect(fy.outstanding, fy.revenue - fy.collected);
+
+      // MTD scaling with revenueSeries: tail(1) / total
+      final series = [
+        {'month': 'Jun', 'revenue': 1000000.0},
+        {'month': 'Jul', 'revenue': 1000000.0},
+        {'month': 'Aug', 'revenue': 2000000.0},
+      ];
+      final mtdWithSeries = FinanceKpis.fromJson(groupData, period: 'MTD', revenueSeries: series);
+      expect(mtdWithSeries.revenue, (14155020.0 * 0.5).roundToDouble());
 
       // Branch-level KPIs
       final branchData = {

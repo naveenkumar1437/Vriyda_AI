@@ -19,9 +19,9 @@ class ExpensesKpiGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'EXPENSES · ACADEMIC YEAR TO DATE',
-          style: const TextStyle(
+          style: TextStyle(
             color: Color(0xFF64748B),
             fontSize: 10.5,
             fontWeight: FontWeight.w800,
@@ -35,7 +35,7 @@ class ExpensesKpiGrid extends StatelessWidget {
           children: [
             Expanded(
               child: FinanceMetricCard(
-                label: 'TOTAL SPEND · $period',
+                label: 'TOTAL SPEND · YTD',
                 value: expenses.formattedTotalSpend,
                 subtext: 'all expense lines',
               ),
@@ -43,7 +43,7 @@ class ExpensesKpiGrid extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: FinanceMetricCard(
-                label: 'PAYROLL · $period',
+                label: 'PAYROLL · YTD',
                 value: expenses.formattedPayroll,
                 subtext: 'submitted salary slips',
               ),
@@ -65,7 +65,7 @@ class ExpensesKpiGrid extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: FinanceMetricCard(
-                label: 'FUEL & FLEET · $period',
+                label: 'FUEL & FLEET · YTD',
                 value: expenses.formattedFuelFleet,
                 subtext: expenses.fuelAndFleet > 0 ? 'fleet logs' : 'no fuel logged yet',
               ),
@@ -79,17 +79,17 @@ class ExpensesKpiGrid extends StatelessWidget {
           children: [
             Expanded(
               child: FinanceMetricCard(
-                label: 'PURCHASES · $period',
+                label: 'PURCHASES · YTD',
                 value: expenses.formattedPurchases,
                 subtext: expenses.purchaseLinesCount > 0
                     ? '${expenses.purchaseLinesCount} line items'
-                    : 'invoiced lines',
+                    : 'line items',
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: FinanceMetricCard(
-                label: 'STAFF CLAIMS · $period',
+                label: 'STAFF CLAIMS · YTD',
                 value: expenses.formattedStaffClaims,
                 subtext: 'approved reimbursements',
               ),
