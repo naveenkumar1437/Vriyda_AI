@@ -348,7 +348,14 @@ class NotificationsDropdownSheet extends StatelessWidget {
 
   List<Map<String, dynamic>> _normalizeApprovals(List<dynamic> raw) {
     if (raw.isNotEmpty) {
-      return raw.take(5).map((ap) {
+      final pendingOnly = raw.where((ap) {
+        if (ap is Map) {
+          final status = (ap['status']?.toString() ?? 'pending').toLowerCase();
+          return status == 'pending';
+        }
+        return true;
+      }).toList();
+      return pendingOnly.take(5).map((ap) {
         final m = Map<String, dynamic>.from(ap as Map);
         final rawType = m['type']?.toString() ?? 'Approval';
         final type = rawType.replaceAll('_', ' ').split(' ').map((w) {
