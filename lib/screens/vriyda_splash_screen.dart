@@ -10,7 +10,6 @@ import '../widgets/animated_statistics.dart';
 import '../widgets/animated_footer.dart';
 import '../services/session_manager.dart';
 import 'chairman_dashboard_screen.dart';
-import 'principal_dashboard_screen.dart';
 import 'vriyda_login_screen.dart';
 
 /// Premium Animated Splash Screen for Vriyda Portal.
@@ -88,21 +87,19 @@ class _VriydaSplashScreenState extends State<VriydaSplashScreen>
 
     if (!mounted) return;
 
-    if (isRemembered && user != null && (user.isOwner || user.isPrincipal)) {
-      final Widget targetScreen = user.isPrincipal
-          ? PrincipalDashboardScreen(user: user)
-          : ChairmanDashboardScreen(user: user);
+    if (isRemembered && user != null && user.isOwner) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 600),
-          pageBuilder: (context, animation, secondaryAnimation) => targetScreen,
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              ChairmanDashboardScreen(user: user),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
         ),
       );
     } else {
-      if (user != null && !user.isOwner && !user.isPrincipal) {
+      if (user != null && !user.isOwner) {
         await SessionManager.clear();
       }
       if (!mounted) return;
