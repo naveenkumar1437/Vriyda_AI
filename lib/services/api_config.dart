@@ -7,6 +7,7 @@ class ApiConfig {
   static const String loginMultiOrg = '$baseUrl/public/login-multi-org';
   static const String refreshToken = '$baseUrl/auth/refresh';
   static const String myProfile = '$baseUrl/my-profile';
+  static const String myProfileUploadImage = '$baseUrl/my-profile/upload-image';
   static const String changePassword = '$baseUrl/my-profile/change-password';
   static const String forgotPassword = '$baseUrl/auth/forgot-password';
   static const String verifyOtp = '$baseUrl/auth/verify-otp';
@@ -18,10 +19,14 @@ class ApiConfig {
   static const String ownerBranchTree = '$baseUrl/owner-dashboard/branches';
   static const String ownerBranchHierarchy = '$baseUrl/branches/hierarchy';
   static const String ownerAttendance = '$baseUrl/owner-dashboard/attendance';
+  static const String ownerAttendanceDirectory = '$baseUrl/owner-dashboard/attendance-directory';
   static const String ownerApprovals = '$baseUrl/owner-dashboard/approvals';
   static const String ownerStudents = '$baseUrl/owner-dashboard/students';
   static const String ownerStudentSnippet = '$baseUrl/owner-dashboard/student-snippet';
   static const String ownerStudentAiSnippet = '$baseUrl/owner-dashboard/student-snippet/ai';
+  static const String ownerUsersDirectory = '$baseUrl/owner-dashboard/users-directory';
+  static const String ownerClassPerformance = '$baseUrl/owner-dashboard/class-performance';
+  static const String ownerPayroll = '$baseUrl/owner-dashboard/payroll';
 
   // Headers
   static Map<String, String> publicHeaders() => {

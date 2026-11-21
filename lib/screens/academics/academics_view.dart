@@ -134,11 +134,11 @@ class _AcademicsViewState extends State<AcademicsView> {
     final publishedCount = filteredTimetables.where((tt) => tt.isPublished).length;
     
     // Branches covered calculation (dynamically read from live API if present)
+    final coveredBranches = allTimetables.map((t) => t.branchName).toSet().length;
     final branchesFromApi = activeData?['branches'] as List<dynamic>?;
     final totalBranchesCount = (branchesFromApi != null && branchesFromApi.isNotEmpty)
         ? branchesFromApi.length
-        : 6;
-    final coveredBranches = allTimetables.map((t) => t.branchName).toSet().length;
+        : (allTimetables.isNotEmpty ? coveredBranches : 0);
 
     final branchLabel = _selectedBranch == 'all'
         ? 'all branches'
@@ -1145,7 +1145,7 @@ class _AcademicsViewState extends State<AcademicsView> {
                   ),
                   const SizedBox(height: 6),
 
-                  // Subtitle: Steel Plant Branch · Class - 1 · Class 1-A · 17 Aug 2026 → 19 Aug 2026 · 2026–27
+                  // Subtitle: {Branch} · {Class} · {Section} · {DateRange} · {AcademicYear}
                   Text(
                     '${item.branchName} · ${item.program} · ${item.className} · ${item.dateRange} · ${item.academicYear}',
                     style: const TextStyle(

@@ -137,8 +137,7 @@ class StudentService {
       } catch (_) {}
     }
 
-    // Default institutional roster fallback
-    return _defaultStudentList;
+    return const <StudentLookupItem>[];
   }
 
   /// 2. Fetch standard student snapshot (Fast response)
@@ -158,14 +157,27 @@ class StudentService {
           if (body is Map<String, dynamic>) {
             return StudentSnippetData.fromJson(body);
           }
+        } else if (res.statusCode == 401) {
+          final refreshed = await AuthService.refreshToken();
+          if (refreshed) {
+            final newToken = await SessionManager.getToken();
+            if (newToken != null) {
+              final retryRes = await http.get(
+                Uri.parse(url),
+                headers: ApiConfig.authHeaders(newToken),
+              );
+              if (retryRes.statusCode == 200) {
+                final retryBody = jsonDecode(retryRes.body);
+                if (retryBody is Map<String, dynamic>) {
+                  return StudentSnippetData.fromJson(retryBody);
+                }
+              }
+            }
+          }
         }
       } catch (_) {}
     }
 
-    // Fallback for demo student matching web screen reference
-    if (studentId.toLowerCase().contains('jatin') || studentId == 'EDU-STU-2026-00012') {
-      return _defaultJatinSnapshot;
-    }
     return null;
   }
 
@@ -186,103 +198,27 @@ class StudentService {
           if (body is Map<String, dynamic>) {
             return StudentSnippetData.fromJson(body);
           }
+        } else if (res.statusCode == 401) {
+          final refreshed = await AuthService.refreshToken();
+          if (refreshed) {
+            final newToken = await SessionManager.getToken();
+            if (newToken != null) {
+              final retryRes = await http.get(
+                Uri.parse(url),
+                headers: ApiConfig.authHeaders(newToken),
+              );
+              if (retryRes.statusCode == 200) {
+                final retryBody = jsonDecode(retryRes.body);
+                if (retryBody is Map<String, dynamic>) {
+                  return StudentSnippetData.fromJson(retryBody);
+                }
+              }
+            }
+          }
         }
       } catch (_) {}
     }
 
-    if (studentId.toLowerCase().contains('jatin') || studentId == 'EDU-STU-2026-00012') {
-      return _defaultJatinGarudaAi;
-    }
     return null;
   }
-
-  // --- Verified Institutional Fallback Records ---
-  static const List<StudentLookupItem> _defaultStudentList = [
-    StudentLookupItem(
-      id: 'EDU-STU-2026-00012',
-      name: 'Jatin kalidindi',
-      branch: 'Steel Plant Branch',
-      klass: 'Class - 1',
-      section: 'Section-A',
-    ),
-    StudentLookupItem(
-      id: 'EDU-STU-2026-00018',
-      name: 'Ananya Sharma',
-      branch: 'Gachibowli Campus',
-      klass: 'Class - 6',
-      section: 'Section-A',
-    ),
-    StudentLookupItem(
-      id: 'EDU-STU-2026-00025',
-      name: 'Rohan Varma',
-      branch: 'Maddipalem Branch',
-      klass: 'Class - 10',
-      section: 'Section-B',
-    ),
-    StudentLookupItem(
-      id: 'EDU-STU-2026-00031',
-      name: 'Pooja Reddy',
-      branch: 'Kukatpally Campus',
-      klass: 'Class - 4',
-      section: 'Section-A',
-    ),
-    StudentLookupItem(
-      id: 'EDU-STU-2026-00044',
-      name: 'Sai Teja',
-      branch: 'Kondapur Branch',
-      klass: 'Class - 8',
-      section: 'Section-C',
-    ),
-    StudentLookupItem(
-      id: 'EDU-STU-2026-00052',
-      name: 'Divya Sri',
-      branch: 'Madhapur Branch',
-      klass: 'Class - 2',
-      section: 'Section-A',
-    ),
-  ];
-
-  static const StudentSnippetData _defaultJatinSnapshot = StudentSnippetData(
-    id: 'EDU-STU-2026-00012',
-    name: 'Jatin kalidindi',
-    klass: 'Class - 1',
-    section: 'Section-A (Steel Plant Branch)',
-    branch: 'Steel Plant Branch',
-    gender: 'Male',
-    attendancePct: 92,
-    examAvg: 32,
-    passed: false,
-    billed: 530000,
-    due: 65000,
-    ai: 'snapshot',
-    bullets: [
-      'Academics: Jatin averages 32/100, falling below the 35/100 pass mark and 75% target. Discuss a structured tutoring plan with the parent to address the failing assessment.',
-      'Attendance: Jatin maintains 92% attendance, exceeding the 90% benchmark with 36 of 39 days present. Acknowledge this consistent presence as a strong foundation for academic improvement.',
-      'Fees: The account shows ₹5.3 L billed with ₹65,000 outstanding. Propose a clear payment schedule to the parent to resolve the pending balance promptly.',
-      'Conduct: There are zero disciplinary log entries on file for Jatin. Highlight this exemplary behavior to the parent as a key strength to reinforce.',
-      'Overall: Jatin shows strong attendance and conduct but requires academic support to reach the pass mark. Collaborate with the parent to prioritize academic intervention while celebrating behavioral success.',
-    ],
-  );
-
-  static const StudentSnippetData _defaultJatinGarudaAi = StudentSnippetData(
-    id: 'EDU-STU-2026-00012',
-    name: 'Jatin kalidindi',
-    klass: 'Class - 1',
-    section: 'Section-A (Steel Plant Branch)',
-    branch: 'Steel Plant Branch',
-    gender: 'Male',
-    attendancePct: 92,
-    examAvg: 32,
-    passed: false,
-    billed: 530000,
-    due: 65000,
-    ai: 'garuda',
-    bullets: [
-      'Academics: Jatin averages 32/100, falling below the 35/100 pass mark and 75% target. Discuss a structured tutoring plan with the parent to address the failing assessment.',
-      'Attendance: Jatin maintains 92% attendance, exceeding the 90% benchmark with 36 of 39 days present. Acknowledge this consistent presence as a strong foundation for academic improvement.',
-      'Fees: The account shows ₹5.3 L billed with ₹65,000 outstanding. Propose a clear payment schedule to the parent to resolve the pending balance promptly.',
-      'Conduct: There are zero disciplinary log entries on file for Jatin. Highlight this exemplary behavior to the parent as a key strength to reinforce.',
-      'Overall: Jatin shows strong attendance and conduct but requires academic support to reach the pass mark. Collaborate with the parent to prioritize academic intervention while celebrating behavioral success.',
-    ],
-  );
 }

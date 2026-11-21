@@ -140,9 +140,22 @@ class NotificationsDropdownSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
 
-                        ...alertItems.map((al) {
-                          return _buildAlertRow(context, al);
-                        }),
+                        if (alertItems.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 6),
+                            child: Text(
+                              'No critical alerts',
+                              style: TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 11,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          )
+                        else
+                          ...alertItems.map((al) {
+                            return _buildAlertRow(context, al);
+                          }),
 
                         const SizedBox(height: 18),
 
@@ -158,9 +171,22 @@ class NotificationsDropdownSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
 
-                        ...approvalItems.map((ap) {
-                          return _buildApprovalRow(context, ap);
-                        }),
+                        if (approvalItems.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 6),
+                            child: Text(
+                              'No pending approvals',
+                              style: TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 11,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          )
+                        else
+                          ...approvalItems.map((ap) {
+                            return _buildApprovalRow(context, ap);
+                          }),
                       ],
                     ),
                   ),
@@ -174,9 +200,10 @@ class NotificationsDropdownSheet extends StatelessWidget {
   }
 
   Widget _buildAlertRow(BuildContext context, Map<String, dynamic> al) {
-    final type = al['type']?.toString() ?? 'Finance';
-    final branch = al['branch']?.toString() ?? 'Gachibowli Campus';
-    final time = al['time']?.toString() ?? '2h ago';
+    final type = al['type']?.toString() ?? al['title']?.toString() ?? 'Alert';
+    final branch = al['branch']?.toString() ?? al['campus']?.toString() ?? '';
+    final time = al['time']?.toString() ?? '';
+    final metaText = [branch, time].where((s) => s.isNotEmpty).join(' · ');
 
     return InkWell(
       onTap: () {
@@ -209,14 +236,15 @@ class NotificationsDropdownSheet extends StatelessWidget {
                         color: Color(0xFF0F172A),
                       ),
                     ),
-                    TextSpan(
-                      text: ' $branch · $time',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
+                    if (metaText.isNotEmpty)
+                      TextSpan(
+                        text: ' $metaText',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
-                    ),
                   ],
                 ),
                 maxLines: 1,
@@ -230,10 +258,11 @@ class NotificationsDropdownSheet extends StatelessWidget {
   }
 
   Widget _buildApprovalRow(BuildContext context, Map<String, dynamic> ap) {
-    final type = ap['type']?.toString() ?? 'Fee Waiver';
-    final branch = ap['branch']?.toString() ?? 'Gachibowli Campus';
-    final age = ap['age']?.toString() ?? '166d';
+    final type = ap['type']?.toString() ?? ap['title']?.toString() ?? 'Approval';
+    final branch = ap['branch']?.toString() ?? ap['campus']?.toString() ?? '';
+    final age = ap['age']?.toString() ?? ap['time']?.toString() ?? '';
     final amount = ap['amount']?.toString() ?? '';
+    final metaText = [branch, age].where((s) => s.isNotEmpty).join(' · ');
 
     return InkWell(
       onTap: () {
@@ -266,14 +295,15 @@ class NotificationsDropdownSheet extends StatelessWidget {
                         color: Color(0xFF0F172A),
                       ),
                     ),
-                    TextSpan(
-                      text: ' $branch · $age waiting',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
+                    if (metaText.isNotEmpty)
+                      TextSpan(
+                        text: ' $metaText waiting',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
-                    ),
                   ],
                 ),
                 maxLines: 1,
@@ -299,58 +329,28 @@ class NotificationsDropdownSheet extends StatelessWidget {
     if (raw.isNotEmpty) {
       return raw.take(4).map((al) {
         final m = Map<String, dynamic>.from(al as Map);
-        final rawType = m['type']?.toString() ?? 'Finance';
+        final rawType = m['type']?.toString() ?? 'Alert';
         final capitalizedType = rawType.isNotEmpty
             ? '${rawType[0].toUpperCase()}${rawType.substring(1).toLowerCase()}'
-            : 'Finance';
+            : 'Alert';
         return {
           'id': m['id']?.toString() ?? 'alt-${m['branch']}',
           'type': capitalizedType,
-          'branch': m['branch']?.toString() ?? 'Gachibowli Campus',
-          'time': m['time']?.toString() ?? '2h ago',
+          'branch': m['branch']?.toString() ?? '',
+          'time': m['time']?.toString() ?? '',
           'level': m['level']?.toString() ?? 'critical',
           'raw': m,
         };
       }).toList();
     }
-    // Default 4 Critical Alerts matching Screenshot 1
-    return const [
-      {
-        'id': 'alt-1',
-        'type': 'Finance',
-        'branch': 'Gachibowli Campus',
-        'time': '2h ago',
-        'level': 'critical',
-      },
-      {
-        'id': 'alt-2',
-        'type': 'Finance',
-        'branch': 'Maddipalem',
-        'time': '2h ago',
-        'level': 'critical',
-      },
-      {
-        'id': 'alt-3',
-        'type': 'Complaint',
-        'branch': 'Kondapur Branch',
-        'time': 'open',
-        'level': 'warning',
-      },
-      {
-        'id': 'alt-4',
-        'type': 'Transport',
-        'branch': 'Steel Plant Branch',
-        'time': 'recent',
-        'level': 'warning',
-      },
-    ];
+    return const [];
   }
 
   List<Map<String, dynamic>> _normalizeApprovals(List<dynamic> raw) {
     if (raw.isNotEmpty) {
       return raw.take(5).map((ap) {
         final m = Map<String, dynamic>.from(ap as Map);
-        final rawType = m['type']?.toString() ?? 'Fee Waiver';
+        final rawType = m['type']?.toString() ?? 'Approval';
         final type = rawType.replaceAll('_', ' ').split(' ').map((w) {
           return w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}' : '';
         }).join(' ');
@@ -374,60 +374,21 @@ class NotificationsDropdownSheet extends StatelessWidget {
         if (type.toLowerCase().contains('hiring')) {
           amtStr = 'Review';
         }
+        final branch = m['branch']?.toString() ?? '';
+        final age = m['age']?.toString() ?? '';
+        final title = m['title']?.toString() ?? m['text']?.toString() ?? type;
         return {
           'id': m['id']?.toString() ?? 'apr-${m['branch']}',
-          'type': type.isNotEmpty ? type : 'Fee Waiver',
-          'title': m['title']?.toString() ?? m['text']?.toString() ?? 'Hardship fee waiver — 3 students',
-          'branch': m['branch']?.toString() ?? 'Gachibowli Campus',
-          'age': m['age']?.toString() ?? '166d',
-          'amount': amtStr.isNotEmpty ? amtStr : (m['amount']?.toString() ?? '₹45,000'),
+          'type': type.isNotEmpty ? type : 'Approval',
+          'title': title,
+          'branch': branch,
+          'age': age,
+          'amount': amtStr,
           'raw': m,
         };
       }).toList();
     }
-    // Default Approvals waiting matching Screenshot 1
-    return const [
-      {
-        'id': 'apr-1',
-        'type': 'Fee Waiver',
-        'title': 'Hardship fee waiver — 3 students',
-        'branch': 'Gachibowli Campus',
-        'age': '166d',
-        'amount': '₹45,000',
-      },
-      {
-        'id': 'apr-2',
-        'type': 'Capex',
-        'title': 'Capex · New science lab fit-out',
-        'branch': 'Gachibowli Campus',
-        'age': '166d',
-        'amount': '₹8.5 L',
-      },
-      {
-        'id': 'apr-3',
-        'type': 'Fee Waiver',
-        'title': 'Hardship fee waiver — 3 students',
-        'branch': 'Kondapur Branch',
-        'age': '166d',
-        'amount': '₹45,000',
-      },
-      {
-        'id': 'apr-4',
-        'type': 'Hiring',
-        'title': 'Hiring · Mathematics Teacher',
-        'branch': 'Kondapur Branch',
-        'age': '166d',
-        'amount': '',
-      },
-      {
-        'id': 'apr-5',
-        'type': 'Fee Waiver',
-        'title': 'Hardship fee waiver — 2 students',
-        'branch': 'Kukatpally Campus',
-        'age': '166d',
-        'amount': '₹45,000',
-      },
-    ];
+    return const [];
   }
 }
 
@@ -603,44 +564,45 @@ class BranchNotificationDetailsDialog extends StatelessWidget {
   }
 
   List<_BranchMetricRow> _buildMetricRows(Map<String, dynamic>? data) {
-    final students = data?['students']?.toString() ?? '21';
+    final students = data?['students']?.toString() ?? '—';
+    final capacity = data?['capacity']?.toString() ?? '—';
+    final capFill = capacity != '—' ? '$students / $capacity' : 'No classroom seats recorded';
+
     final rev = data?['revenue'] != null
         ? '₹${((data!['revenue'] as num) / 100000).toStringAsFixed(1)} L'
-        : '₹27.3 L';
+        : '—';
     final collected = data?['collected'] != null
         ? '₹${((data!['collected'] as num) / 100000).toStringAsFixed(1)} L'
-        : '₹14.1 L';
+        : '—';
     final due = data?['outstanding'] != null
         ? '₹${((data!['outstanding'] as num) / 100000).toStringAsFixed(1)} L'
-        : '₹13.2 L';
+        : '—';
     final collectionPct = data?['collectionPct'] != null
         ? '${data!['collectionPct']}%'
-        : '51.6%';
+        : '—';
     final attPct = data?['attendancePct'] != null
         ? '${data!['attendancePct']}%'
-        : '95.2%';
-    final examIndex = data?['examIndex']?.toString() ?? '84.5';
-    final teachers = data?['teachers']?.toString() ?? '2';
+        : '—';
+    final examIndex = data?['examIndex']?.toString() ?? '—';
+    final teachers = data?['teachers']?.toString() ?? '—';
+    final vacancies = data?['vacancies']?.toString() ?? '—';
+    final vehicles = data?['vehicles']?.toString() ?? '—';
 
     return [
       _BranchMetricRow('Students', students),
-      const _BranchMetricRow('Capacity / fill', 'No classroom seats recorded'),
+      _BranchMetricRow('Capacity / fill', capFill),
       _BranchMetricRow('Revenue (billed)', rev),
       _BranchMetricRow('Collected', collected),
       _BranchMetricRow('Due', due),
       _BranchMetricRow('Collection', collectionPct),
       _BranchMetricRow('Student attendance', 'not marked · $students on roll'),
-      const _BranchMetricRow('Staff attendance', 'not marked · 4 on roll'),
+      const _BranchMetricRow('Staff attendance', 'not marked'),
       _BranchMetricRow('Attendance rate', attPct),
       _BranchMetricRow('Exam index', examIndex),
-      const _BranchMetricRow('Pass rate', '95.2% (20 pass / 1 fail)'),
-      const _BranchMetricRow('Avg grade', '8.5 / 10'),
-      _BranchMetricRow('Teachers', '$teachers (11:1)'),
-      const _BranchMetricRow('Open vacancies', '1'),
-      const _BranchMetricRow('· Teacher', '2 filled / 1 open'),
-      const _BranchMetricRow('· Administrative Officer', '1 filled / 0 open'),
-      const _BranchMetricRow('· Principal', '1 filled / 0 open'),
-      const _BranchMetricRow('Fleet vehicles', '6'),
+      _BranchMetricRow('Teachers', teachers),
+      _BranchMetricRow('Open vacancies', vacancies),
+      _BranchMetricRow('· Teacher', vacancies != '—' ? '$vacancies open' : '—'),
+      _BranchMetricRow('Fleet vehicles', vehicles),
     ];
   }
 }
@@ -713,12 +675,13 @@ class _ApprovalDecisionDialogState extends State<ApprovalDecisionDialog> {
   @override
   Widget build(BuildContext context) {
     final item = widget.approvalItem;
-    final type = item['type']?.toString() ?? 'Fee Waiver';
+    final type = item['type']?.toString() ?? 'Approval';
     final title = item['title']?.toString() ??
-        'Hardship fee waiver — 3 students';
-    final branch = item['branch']?.toString() ?? 'Gachibowli Campus';
-    final age = item['age']?.toString() ?? '166d';
-    final amount = item['amount']?.toString() ?? '₹45,000';
+        item['text']?.toString() ??
+        type;
+    final branch = item['branch']?.toString() ?? '';
+    final age = item['age']?.toString() ?? '';
+    final amount = item['amount']?.toString() ?? '';
 
     return Material(
       color: Colors.transparent,
@@ -785,7 +748,11 @@ class _ApprovalDecisionDialogState extends State<ApprovalDecisionDialog> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '$branch · $age waiting${amount.isNotEmpty ? ' · $amount' : ''}',
+                  [
+                    if (branch.isNotEmpty) branch,
+                    if (age.isNotEmpty) '$age waiting',
+                    if (amount.isNotEmpty) amount,
+                  ].join(' · '),
                   style: const TextStyle(
                     color: Color(0xFF64748B),
                     fontSize: 12,

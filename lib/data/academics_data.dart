@@ -37,7 +37,7 @@ class ExamTimetableItem {
   final String id;
   final String examName;
   final String examCategory; // e.g. 'Half-Yearly', 'Unit Test', 'Annual'
-  final String branchId; // e.g. 'steel-plant-branch'
+  final String branchId; // branch ID from API
   final String branchName;
   final String program; // e.g. 'Grade 10', 'Class - 1'
   final String className; // e.g. 'Class 10 - Mathematics', 'Class 1-A'
@@ -70,13 +70,13 @@ class ExamTimetableItem {
 class AcademicsData {
   /// Parses real-time exam timetables and papers from the live GET /owner-dashboard payload
   static List<ExamTimetableItem> parseFromDashboard(Map<String, dynamic>? dashboardData) {
-    if (dashboardData == null) return timetables;
+    if (dashboardData == null) return const [];
     final exams = dashboardData['exams'];
-    if (exams is! Map<String, dynamic>) return timetables;
+    if (exams is! Map<String, dynamic>) return const [];
 
     final rawTimetables = exams['timetables'];
     final rawPapers = exams['papers'];
-    if (rawTimetables is! List || rawTimetables.isEmpty) return timetables;
+    if (rawTimetables is! List || rawTimetables.isEmpty) return const [];
 
     // Group papers by timetableId
     final Map<String, List<ExamPaperItem>> papersByTimetable = {};
@@ -146,7 +146,7 @@ class AcademicsData {
       ));
     }
 
-    return result.isNotEmpty ? result : timetables;
+    return result;
   }
 
   /// Parses active branches dynamically from dashboard payload
@@ -166,9 +166,6 @@ class AcademicsData {
           }
         }
       }
-    }
-    if (list.length == 1) {
-      return availableBranches;
     }
     return list;
   }
@@ -226,97 +223,12 @@ class AcademicsData {
         .replaceAll(RegExp(r'^-|-$'), '');
   }
 
-  /// Default fallback list matching the real-time API response
-  static const List<ExamTimetableItem> timetables = [
-    ExamTimetableItem(
-      id: '7',
-      examName: 'Unit Test - 2',
-      examCategory: 'Half-Yearly',
-      branchId: 'steel-plant-branch',
-      branchName: 'Steel Plant Branch',
-      program: 'Grade 10',
-      className: 'Class 10 - Mathematics',
-      dateRange: '5 Nov 2026',
-      academicYear: '2026–27',
-      papersCount: 1,
-      status: 'Published',
-      papers: [
-        ExamPaperItem(
-          id: 'paper-7-Mathematics',
-          subject: 'Mathematics',
-          date: '5 Nov 2026',
-          time: '11:00–12:00',
-          maxMarks: 100,
-          passMarks: 35,
-          room: 'class Room-2',
-          invigilator: 'Keerthana Bangla',
-        ),
-      ],
-    ),
-    ExamTimetableItem(
-      id: '1',
-      examName: 'Unit Test-1',
-      examCategory: 'Unit Test',
-      branchId: 'steel-plant-branch',
-      branchName: 'Steel Plant Branch',
-      program: 'Class - 1',
-      className: 'Class 1-A',
-      dateRange: '17 Aug 2026 → 19 Aug 2026',
-      academicYear: '2026–27',
-      papersCount: 3,
-      status: 'Published',
-      papers: [
-        ExamPaperItem(
-          id: 'paper-1-English',
-          subject: 'English',
-          date: '17 Aug 2026',
-          time: '09:00–10:30',
-          maxMarks: 25,
-          passMarks: 9,
-          room: 'HTL-ROOM-2026-00007',
-          invigilator: 'Bhavya Malli',
-        ),
-        ExamPaperItem(
-          id: 'paper-1-Hindi',
-          subject: 'Hindi',
-          date: '18 Aug 2026',
-          time: '09:00–10:30',
-          maxMarks: 25,
-          passMarks: 9,
-          room: 'HTL-ROOM-2026-00007',
-          invigilator: 'Bhavya Malli',
-        ),
-        ExamPaperItem(
-          id: 'paper-1-Mathematics',
-          subject: 'Mathematics',
-          date: '19 Aug 2026',
-          time: '09:00–10:30',
-          maxMarks: 25,
-          passMarks: 9,
-          room: 'HTL-ROOM-2026-00007',
-          invigilator: 'Jeevani Boppudi',
-        ),
-      ],
-    ),
+  /// Timetables container (dynamically parsed from API)
+  static const List<ExamTimetableItem> timetables = [];
+
+  static List<String> get availableClasses => const ['All classes'];
+
+  static const List<Map<String, String>> availableBranches = [
+    {'id': 'all', 'label': 'All branches'},
   ];
-
-  static List<String> get availableClasses {
-    final classes = {'All classes'};
-    for (final tt in timetables) {
-      classes.add(tt.className);
-    }
-    return classes.toList();
-  }
-
-  static List<Map<String, String>> get availableBranches {
-    return [
-      {'id': 'all', 'label': 'All branches'},
-      {'id': 'steel-plant-branch', 'label': 'Steel Plant Branch'},
-      {'id': 'gachibowli-campus', 'label': 'Gachibowli Campus'},
-      {'id': 'maddipalem', 'label': 'Maddipalem'},
-      {'id': 'kukatpally-campus', 'label': 'Kukatpally Campus'},
-      {'id': 'kondapur-branch', 'label': 'Kondapur Branch'},
-      {'id': 'madhapur-branch', 'label': 'Madhapur Branch'},
-    ];
-  }
 }

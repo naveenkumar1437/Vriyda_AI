@@ -69,29 +69,10 @@ class PeopleOpsView extends StatelessWidget {
           (b['hostelOccupied'] as num?)?.toInt() ??
           0;
 
-      // If branch is Steel Plant, align with web screenshot (40 beds, 12 occupied)
-      final branchName = (b['name'] ?? '').toString().toLowerCase();
-      if (branchName.contains('steel')) {
-        totalHostelBeds += (beds > 0 ? beds : 40);
-        totalHostelOccupied += (occ > 0 ? occ : 12);
-      } else {
-        totalHostelBeds += beds;
-        totalHostelOccupied += occ;
-      }
-
+      totalHostelBeds += beds;
+      totalHostelOccupied += occ;
       totalLibraryCopies += (res['libraryCopies'] as num?)?.toInt() ?? 0;
     }
-
-    // Default fallback alignment with verified web screen
-    if (totalClassrooms == 0) totalClassrooms = 4;
-    if (totalSeats == 0) totalSeats = 155;
-    if (campusesWithClassrooms == 0) campusesWithClassrooms = 1;
-    if (totalBuses == 0) totalBuses = 7;
-    if (totalBusRoutes == 0) totalBusRoutes = 6;
-    if (totalBusSeats == 0) totalBusSeats = 315;
-    if (totalHostelBeds == 0) totalHostelBeds = 40;
-    if (totalHostelOccupied == 0) totalHostelOccupied = 12;
-    if (totalLibraryCopies == 0) totalLibraryCopies = 104;
 
     final digitalPct = totalClassrooms > 0
         ? ((totalDigitalClassrooms / totalClassrooms) * 100).toInt()
@@ -302,93 +283,49 @@ class PeopleOpsView extends StatelessWidget {
   }
 
   Widget _buildResourcesByBranchTable() {
-    // Verified branches matching Sai Ravindra School campuses
-    final campusList = [
-      _CampusRowData(
-        name: 'Steel Plant Branch',
-        color: const Color(0xFFEF4444), // red
-        classrooms: '4',
-        digital: '—',
-        scienceLabs: '—',
-        computerLabs: '—',
-        seats: '155',
-        buses: '7',
-        routes: '6',
-        hostelBeds: '40',
-        library: '104',
-        rentedBldgs: '—',
-      ),
-      _CampusRowData(
-        name: 'Gachibowli Campus',
-        color: const Color(0xFF8B5CF6), // purple
-        classrooms: '—',
-        digital: '—',
-        scienceLabs: '—',
-        computerLabs: '—',
-        seats: '—',
-        buses: '—',
-        routes: '—',
-        hostelBeds: '—',
-        library: '—',
-        rentedBldgs: '—',
-      ),
-      _CampusRowData(
-        name: 'Kondapur Branch',
-        color: const Color(0xFF10B981), // green
-        classrooms: '—',
-        digital: '—',
-        scienceLabs: '—',
-        computerLabs: '—',
-        seats: '—',
-        buses: '—',
-        routes: '—',
-        hostelBeds: '—',
-        library: '—',
-        rentedBldgs: '—',
-      ),
-      _CampusRowData(
-        name: 'Kukatpally Campus',
-        color: const Color(0xFF06B6D4), // cyan
-        classrooms: '—',
-        digital: '—',
-        scienceLabs: '—',
-        computerLabs: '—',
-        seats: '—',
-        buses: '—',
-        routes: '—',
-        hostelBeds: '—',
-        library: '—',
-        rentedBldgs: '—',
-      ),
-      _CampusRowData(
-        name: 'Maddipalem',
-        color: const Color(0xFF6366F1), // indigo
-        classrooms: '—',
-        digital: '—',
-        scienceLabs: '—',
-        computerLabs: '—',
-        seats: '—',
-        buses: '—',
-        routes: '—',
-        hostelBeds: '—',
-        library: '—',
-        rentedBldgs: '—',
-      ),
-      _CampusRowData(
-        name: 'Madhapur Branch',
-        color: const Color(0xFFF59E0B), // amber
-        classrooms: '—',
-        digital: '—',
-        scienceLabs: '—',
-        computerLabs: '—',
-        seats: '—',
-        buses: '—',
-        routes: '—',
-        hostelBeds: '—',
-        library: '—',
-        rentedBldgs: '—',
-      ),
+    const branchColors = [
+      Color(0xFFEF4444),
+      Color(0xFF8B5CF6),
+      Color(0xFF10B981),
+      Color(0xFF06B6D4),
+      Color(0xFF6366F1),
+      Color(0xFFF59E0B),
+      Color(0xFFEC4899),
+      Color(0xFF3B82F6),
     ];
+
+    String formatVal(dynamic v) {
+      if (v == null) return '—';
+      if (v is num && v == 0) return '—';
+      final s = v.toString().trim();
+      return (s.isEmpty || s == '0') ? '—' : s;
+    }
+
+    final campusList = <_CampusRowData>[];
+    for (int i = 0; i < branches.length; i++) {
+      final b = branches[i];
+      if (b is! Map) continue;
+      final name = b['name']?.toString() ?? 'Branch ${i + 1}';
+      final res = (b['resources'] is Map) ? (b['resources'] as Map) : const {};
+      final color = branchColors[i % branchColors.length];
+
+      campusList.add(
+        _CampusRowData(
+          name: name,
+          color: color,
+          classrooms: formatVal(res['classrooms']),
+          digital: formatVal(res['digitalClassrooms']),
+          scienceLabs: formatVal(res['scienceLabs']),
+          computerLabs: formatVal(res['computerLabs']),
+          seats: formatVal(res['totalSeats']),
+          buses: formatVal(res['buses']),
+          routes: formatVal(res['busRoutes']),
+          hostelBeds: formatVal(res['hostelBeds'] ?? b['hostelCapacity']),
+          library: formatVal(res['libraryCopies']),
+          rentedBldgs: formatVal(res['rentedBuildings']),
+        ),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -435,10 +372,21 @@ class PeopleOpsView extends StatelessWidget {
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
           // Horizontally Scrollable Table
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: DataTable(
+          if (campusList.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  'No campus resources recorded',
+                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                ),
+              ),
+            )
+          else
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: DataTable(
               horizontalMargin: 16,
               columnSpacing: 16,
               headingRowHeight: 38,

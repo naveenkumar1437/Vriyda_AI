@@ -25,7 +25,19 @@ import 'vriyda_login_screen.dart';
 ///   15. Announcements
 class PrincipalDashboardScreen extends StatefulWidget {
   final UserSession user;
-  const PrincipalDashboardScreen({super.key, required this.user});
+  final List<Map<String, dynamic>>? studentsRoster;
+  final List<Map<String, dynamic>>? staffRoster;
+  final List<Map<String, dynamic>>? approvals;
+  final Map<String, dynamic>? dashboardData;
+
+  const PrincipalDashboardScreen({
+    super.key,
+    required this.user,
+    this.studentsRoster,
+    this.staffRoster,
+    this.approvals,
+    this.dashboardData,
+  });
 
   @override
   State<PrincipalDashboardScreen> createState() =>

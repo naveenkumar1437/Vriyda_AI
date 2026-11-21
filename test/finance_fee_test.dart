@@ -32,19 +32,36 @@ void main() {
       expect(ytd.payrollCostPct, 45.1);
       expect(ytd.onlinePaymentsPct, 70.3);
 
-      // MTD Scaling
-      final mtd = FinanceKpis.fromJson(groupData, period: 'MTD');
-      expect(mtd.revenue, closeTo(14155020.0 / 12.0, 1.0));
-      expect(mtd.collected, closeTo(9658180.0 / 12.0, 1.0));
+      // MTD uses collectedMTD from API response
+      final groupDataWithMtd = {
+        ...groupData,
+        'collectedMTD': 784450.0,
+      };
+      final mtd = FinanceKpis.fromJson(groupDataWithMtd, period: 'MTD');
+      expect(mtd.collected, 784450.0);
+      expect(mtd.revenue, 14155020.0);
 
-      // QTD Scaling
-      final qtd = FinanceKpis.fromJson(groupData, period: 'QTD');
-      expect(qtd.revenue, closeTo(14155020.0 * 0.28, 1.0));
-      expect(qtd.collected, closeTo(9658180.0 * 0.28, 1.0));
-
-      // FY Scaling
-      final fy = FinanceKpis.fromJson(groupData, period: 'FY');
-      expect(fy.revenue, closeTo(14155020.0 * 1.15, 1.0));
+      // Branch-level KPIs
+      final branchData = {
+        'id': 1,
+        'name': 'Gachibowli Campus',
+        'revenue': 2730000.0,
+        'outstanding': 1320000.0,
+        'collectionPct': 51.6,
+        'ebitdaMargin': 42.0,
+        'payrollPct': 41.0,
+        'onlinePayPct': 84.0,
+      };
+      final branchKpis = FinanceKpis.fromBranchJson(branchData);
+      expect(branchKpis.revenue, 2730000.0);
+      expect(branchKpis.formattedRevenue, '₹27.3 L');
+      expect(branchKpis.outstanding, 1320000.0);
+      expect(branchKpis.formattedOutstanding, '₹13.2 L');
+      expect(branchKpis.collected, 1410000.0);
+      expect(branchKpis.formattedCollected, '₹14.1 L');
+      expect(branchKpis.ebitdaMargin, 42.0);
+      expect(branchKpis.payrollCostPct, 41.0);
+      expect(branchKpis.onlinePaymentsPct, 84.0);
     });
 
     test('ExpenseKpis returns zeros for null/empty API responses with zero hardcoding', () {
@@ -222,6 +239,24 @@ void main() {
 
       // Trailing Trend
       expect(data.trendSeries.length, 2);
+
+      // Branch Filtering isolated verification
+      final branchFiltered = FinanceFeeData.fromDashboardJson(
+        samplePayload,
+        period: 'YTD',
+        branchFilter: 'Gachibowli Campus',
+      );
+      expect(branchFiltered.kpis.revenue, 2730000.0);
+      expect(branchFiltered.kpis.formattedRevenue, '₹27.3 L');
+      expect(branchFiltered.kpis.outstanding, 1320000.0);
+      expect(branchFiltered.kpis.formattedOutstanding, '₹13.2 L');
+      expect(branchFiltered.kpis.collected, 1410000.0);
+      expect(branchFiltered.kpis.formattedCollected, '₹14.1 L');
+      expect(branchFiltered.kpis.ebitdaMargin, 42.0);
+      expect(branchFiltered.spendByBranch.length, 1);
+      expect(branchFiltered.spendByBranch[0].branchName, 'Gachibowli Campus');
+      expect(branchFiltered.branchFeeCollections.length, 1);
+      expect(branchFiltered.branchFeeCollections[0].branchName, 'Gachibowli Campus');
     });
 
     test('FinanceService throws meaningful error when authentication token is missing', () async {

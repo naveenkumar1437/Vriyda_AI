@@ -24,6 +24,7 @@ import '../../widgets/finance/unit_economics_card.dart';
 class FinanceFeesView extends StatefulWidget {
   final Map<String, dynamic>? initialGroup;
   final List<dynamic>? initialBranches;
+  final Map<String, dynamic>? initialDashboardJson;
   final String activePeriod;
   final String selectedBranch;
   final ValueChanged<String>? onPeriodChanged;
@@ -33,6 +34,7 @@ class FinanceFeesView extends StatefulWidget {
     super.key,
     this.initialGroup,
     this.initialBranches,
+    this.initialDashboardJson,
     this.activePeriod = 'YTD',
     this.selectedBranch = 'All branches',
     this.onPeriodChanged,
@@ -49,12 +51,21 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
   bool _isLoading = false;
   String? _errorMessage;
   FinanceFeeData? _data;
+  Map<String, dynamic>? _cachedDashboardJson;
 
   @override
   void initState() {
     super.initState();
     _period = widget.activePeriod;
     _branch = widget.selectedBranch;
+    _cachedDashboardJson = widget.initialDashboardJson;
+    if (_cachedDashboardJson != null && _cachedDashboardJson!.isNotEmpty) {
+      _data = FinanceFeeData.fromDashboardJson(
+        _cachedDashboardJson!,
+        period: _period,
+        branchFilter: _branch,
+      );
+    }
     _loadFinanceData();
   }
 
@@ -62,10 +73,21 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
   void didUpdateWidget(covariant FinanceFeesView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.activePeriod != widget.activePeriod ||
-        oldWidget.selectedBranch != widget.selectedBranch) {
+        oldWidget.selectedBranch != widget.selectedBranch ||
+        oldWidget.initialDashboardJson != widget.initialDashboardJson) {
       setState(() {
         _period = widget.activePeriod;
         _branch = widget.selectedBranch;
+        if (widget.initialDashboardJson != null) {
+          _cachedDashboardJson = widget.initialDashboardJson;
+        }
+        if (_cachedDashboardJson != null) {
+          _data = FinanceFeeData.fromDashboardJson(
+            _cachedDashboardJson!,
+            period: _period,
+            branchFilter: _branch,
+          );
+        }
       });
       _loadFinanceData();
     }
@@ -78,20 +100,27 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
     });
 
     try {
-      final result = await FinanceService.fetchFinanceData(
+      final rawJson = await FinanceService.fetchRawDashboardJson(
         period: _period,
         branch: _branch,
       );
       if (mounted) {
         setState(() {
-          _data = result;
+          _cachedDashboardJson = rawJson;
+          _data = FinanceFeeData.fromDashboardJson(
+            rawJson,
+            period: _period,
+            branchFilter: _branch,
+          );
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Failed to load finance data: $e';
+          if (_data == null) {
+            _errorMessage = 'Failed to load finance data: $e';
+          }
           _isLoading = false;
         });
       }
@@ -101,7 +130,16 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
   void _changePeriod(String p) {
     if (_period == p) return;
     HapticFeedback.selectionClick();
-    setState(() => _period = p);
+    setState(() {
+      _period = p;
+      if (_cachedDashboardJson != null) {
+        _data = FinanceFeeData.fromDashboardJson(
+          _cachedDashboardJson!,
+          period: _period,
+          branchFilter: _branch,
+        );
+      }
+    });
     widget.onPeriodChanged?.call(p);
     _loadFinanceData();
   }
@@ -109,7 +147,16 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
   void _changeBranch(String b) {
     if (_branch == b) return;
     HapticFeedback.selectionClick();
-    setState(() => _branch = b);
+    setState(() {
+      _branch = b;
+      if (_cachedDashboardJson != null) {
+        _data = FinanceFeeData.fromDashboardJson(
+          _cachedDashboardJson!,
+          period: _period,
+          branchFilter: _branch,
+        );
+      }
+    });
     widget.onBranchChanged?.call(b);
     _loadFinanceData();
   }
@@ -158,13 +205,17 @@ class _FinanceFeesViewState extends State<FinanceFeesView> {
     final data = _data!;
     final kpis = data.kpis;
 
-    // Extract available branches dynamically from API initialBranches and spendByBranch
+    // Extract available branches dynamically from API initialBranches, cached JSON, and spendByBranch
     final List<String> branchOptions = ['All branches'];
-    if (widget.initialBranches != null) {
-      for (final b in widget.initialBranches!) {
-        final name = b['name']?.toString();
-        if (name != null && name.isNotEmpty && !branchOptions.contains(name)) {
-          branchOptions.add(name);
+    final rawBranchesList = widget.initialBranches ??
+        (_cachedDashboardJson?['branches'] as List<dynamic>?);
+    if (rawBranchesList != null) {
+      for (final b in rawBranchesList) {
+        if (b is Map) {
+          final name = b['name']?.toString();
+          if (name != null && name.isNotEmpty && !branchOptions.contains(name)) {
+            branchOptions.add(name);
+          }
         }
       }
     }

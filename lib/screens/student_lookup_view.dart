@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import '../services/student_service.dart';
 
 /// Enhanced Student Lookup View matching the official Web screens:
-/// - Context Header: SAI RAVINDRA SCHOOL · STUDENT LOOKUP · GARUDA AI
+/// - Context Header: INSTITUTION · STUDENT LOOKUP · GARUDA AI
 /// - 4 Cascading Filters: BRANCH, CLASS, SECTION, STUDENT (Search & Dropdown)
 /// - Interactive Student Card with Student Name, Hierarchy Pill, and ⚡ GARUDA AI badge
 /// - 4 Metric Badges: Attendance %, Exam Score, Support Status, Due Amount
@@ -472,7 +472,7 @@ class _StudentLookupViewState extends State<StudentLookupView> {
           ),
 
           // Dropdown Auto-suggest List
-          if (_showSuggestions && _filteredStudents.isNotEmpty) ...[
+          if (_showSuggestions) ...[
             const SizedBox(height: 6),
             Container(
               constraints: const BoxConstraints(maxHeight: 200),
@@ -488,12 +488,27 @@ class _StudentLookupViewState extends State<StudentLookupView> {
                   ),
                 ],
               ),
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                itemCount: _filteredStudents.length,
-                separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                itemBuilder: (context, index) {
+              child: _filteredStudents.isEmpty
+                  ? const Padding(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                      child: Center(
+                        child: Text(
+                          'No students found in directory',
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      itemCount: _filteredStudents.length,
+                      separatorBuilder: (_, __) =>
+                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      itemBuilder: (context, index) {
                   final s = _filteredStudents[index];
                   final isSelected = _selectedStudent?.id == s.id;
                   return InkWell(
@@ -692,10 +707,11 @@ class _StudentLookupViewState extends State<StudentLookupView> {
   }
 
   Widget _buildStudentGarudaCard(StudentSnippetData data) {
-    final klass = data.klass.isNotEmpty ? data.klass : 'Class - 1';
-    final section = data.section.isNotEmpty ? data.section : 'Section-A';
-    final branch = data.branch.isNotEmpty ? data.branch : 'Steel Plant Branch';
-    final hierarchyText = '${klass.toUpperCase()} · ${section.toUpperCase()} · ${branch.toUpperCase()}';
+    final klass = data.klass;
+    final section = data.section;
+    final branch = data.branch;
+    final hierarchyParts = [klass, section, branch].where((s) => s.isNotEmpty).map((s) => s.toUpperCase()).toList();
+    final hierarchyText = hierarchyParts.isNotEmpty ? hierarchyParts.join(' · ') : 'STUDENT DETAILS';
 
     final dueText = data.due > 0 ? 'Overdue ₹${_formatAmount(data.due)}' : 'Fees Cleared';
     final standingText = data.passed ? 'Passing' : 'Needs support';

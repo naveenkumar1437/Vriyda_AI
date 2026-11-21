@@ -126,10 +126,16 @@ class AuthService {
     String? lastName,
     String? fullName,
     String? phone,
+    String? mobileNo,
     String? officePhone,
     String? gender,
+    String? birthDate,
     String? dateOfBirth,
   }) async {
+    final effectivePhone = phone ?? mobileNo;
+    final effectiveMobile = mobileNo ?? phone;
+    final effectiveBirthDate = birthDate ?? dateOfBirth;
+
     return _authenticatedRequest<Map<String, dynamic>>(
       (token) => http.put(
         Uri.parse(ApiConfig.myProfile),
@@ -138,10 +144,29 @@ class AuthService {
           if (firstName != null) 'firstName': firstName,
           if (lastName != null) 'lastName': lastName,
           if (fullName != null) 'fullName': fullName,
-          if (phone != null) 'phone': phone,
+          if (effectivePhone != null) 'phone': effectivePhone,
+          if (effectiveMobile != null) 'mobileNo': effectiveMobile,
           if (officePhone != null) 'officePhone': officePhone,
           if (gender != null) 'gender': gender,
+          if (effectiveBirthDate != null) 'birthDate': effectiveBirthDate,
           if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
+        }),
+      ),
+      parser: (json) => (json['data'] as Map<String, dynamic>?) ?? {},
+    );
+  }
+
+  /// 3c. Upload Avatar Image
+  /// POST /my-profile/upload-image
+  static Future<ApiResponse<Map<String, dynamic>>> uploadProfileImage({
+    required String base64Image,
+  }) async {
+    return _authenticatedRequest<Map<String, dynamic>>(
+      (token) => http.post(
+        Uri.parse(ApiConfig.myProfileUploadImage),
+        headers: ApiConfig.authHeaders(token),
+        body: jsonEncode({
+          'imageData': base64Image,
         }),
       ),
       parser: (json) => (json['data'] as Map<String, dynamic>?) ?? {},

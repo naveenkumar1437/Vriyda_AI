@@ -5,7 +5,7 @@ import '../services/session_manager.dart';
 
 /// Comprehensive Profile Screen matching Web Portal Profile (Images 2 & 3):
 /// - Breadcrumb: ORGANIZATION · ACCOUNT · SECURITY
-/// - Title & Date: "My Profile", "Chairman · Sai Ravindra School · Thu, 19 Nov 2026"
+/// - Title & Date: "My Profile", dynamic Role · Organization · Date subtitle
 /// - Hero Banner Card with Avatar, Camera Badge, Name, Role Badge, Email, Member Since
 /// - Personal Details Card with Edit Details dialog (First/Last name, Mobile, Office Phone, Gender, DOB)
 /// - Account Card (Email login, Role, Organisation, Branch Access)
@@ -37,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _officePhone = 'Not set';
   String _gender = 'Not set';
   String _dateOfBirth = 'Not set';
-  String _memberSince = '28 May 2026';
+  String _memberSince = '—';
   final String _lastLogin = '—';
 
   // Change Password state
@@ -56,9 +56,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final nameParts = widget.user.name.trim().split(RegExp(r'\s+'));
-    _firstName = nameParts.isNotEmpty ? nameParts.first : 'Charan';
-    _lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : 'Makkuva';
+    final nameParts = widget.user.name.trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+    _firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    _lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
     _newPasswordController.addListener(() => setState(() {}));
     _confirmPasswordController.addListener(() => setState(() {}));
@@ -518,8 +518,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             lastName: newLastName,
                             fullName: '$newFirstName $newLastName'.trim(),
                             phone: newMobile != 'Not set' ? newMobile : null,
+                            mobileNo: newMobile != 'Not set' ? newMobile : null,
                             officePhone: newOffice != 'Not set' ? newOffice : null,
                             gender: newGender != 'Not set' ? newGender : null,
+                            birthDate: newDob != 'Not set' ? newDob : null,
                             dateOfBirth: newDob != 'Not set' ? newDob : null,
                           );
                         } catch (_) {}
@@ -613,11 +615,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orgName = widget.user.organizationName ?? 'Sai Ravindra School';
+    final orgName = widget.user.organizationName ?? '';
     final roleName = widget.user.role.isNotEmpty
         ? widget.user.role[0].toUpperCase() + widget.user.role.substring(1)
-        : 'Chairman';
-    final email = widget.user.email.isNotEmpty ? widget.user.email : 'charan.makkuva@innovorex.co.in';
+        : '';
+    final email = widget.user.email;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -767,28 +769,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'innovorex',
-                            style: TextStyle(
-                              color: Color(0xFF0F172A),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                          Text(
-                            'products',
-                            style: TextStyle(
-                              color: const Color(0xFF64748B).withValues(alpha: 0.8),
-                              fontSize: 6,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        ((_firstName.isNotEmpty ? _firstName[0] : '') +
+                                (_lastName.isNotEmpty ? _lastName[0] : ''))
+                            .toUpperCase(),
+                        style: const TextStyle(
+                          color: Color(0xFF7C3AED),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ),

@@ -3,13 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import '../data/live_dashboard_payload.dart';
+import '../data/academics_data.dart';
 import '../data/users_directory_data.dart';
 import '../services/api_config.dart';
 import '../services/auth_service.dart';
 import '../services/branch_service.dart';
 import 'people_ops_view.dart';
 import 'student_lookup_view.dart';
+import '../services/student_service.dart';
 import 'views/finance_fees_view.dart';
 import '../widgets/notifications_overlay.dart';
 import '../services/session_manager.dart';
@@ -17,6 +18,7 @@ import '../widgets/radial_arc_menu.dart';
 import 'academics/academics_view.dart';
 import 'vriyda_login_screen.dart';
 import 'profile_screen.dart';
+import '../services/owner_dashboard_service.dart';
 
 /// Comprehensive Chairman Dashboard matching Stitch code.html and DESIGN.md:
 /// - Brand Header with "VRIYDA PORTAL", Live status, School Name, Executive View, Action Badges
@@ -70,14 +72,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   String _staffRoleFilter =
       'all-staff'; // 'all-staff' | 'teaching' | 'non-teaching'
   String _staffSubFilter = 'all-nt';
-  String _selectedBranchFilter =
-      'all'; // 'all' or branch id ('steel-plant', 'gachibowli', etc.)
+  String _selectedBranchFilter = 'all'; // 'all' or branch id from API response
   String _selectedClassFilter = 'all'; // 'all' or class name ('Class 10', etc.)
   String _selectedSectionFilter =
       'all'; // 'all' or section name ('Sec A', 'Sec B')
   String _selectedDeptFilter = 'all'; // 'all' or dept name ('Physics', etc.)
   String _selectedShiftFilter = 'general'; // 'general' | 'morning' | 'evening'
-  final Set<String> _expandedBranchIds = {'steel-plant'};
+  final Set<String> _expandedBranchIds = {};
   String _rosterFilterPill =
       'all'; // 'all' | 'not-marked' | 'present' | 'absentees' | 'teaching' | 'non-teaching' | 'leave' | 'absent'
   String _attendanceSearchQuery = '';
@@ -88,2144 +89,127 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // Interactive state for Users Directory
   String _usersRoleFilter =
       'all'; // 'all' | 'students' | 'teaching' | 'non-teaching' | 'admins' | 'principals' | 'parents'
-  String _usersBranchFilter =
-      'all'; // 'all' or branch slug ('steel-plant', 'gachibowli', etc.)
+  String _usersBranchFilter = 'all'; // 'all' or branch slug from API response
   String _usersSearchQuery = '';
   final TextEditingController _usersSearchController = TextEditingController();
   bool _showAllUsers = false;
 
-  static List<Map<String, dynamic>>? _cachedAllStudentsList;
-  static List<Map<String, dynamic>> _getAllStudentRecords() {
-    if (_cachedAllStudentsList != null) return _cachedAllStudentsList!;
-    _cachedAllStudentsList = [
-      {
-        'initials': 'AS',
-        'name': 'Aarav S.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'hostel-residents',
-        'status': 'Not marked',
-        'rollNo': 'GB-10-01',
-        'meta': 'Class 10 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'AV',
-        'name': 'Aadhya V.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'hostel-residents',
-        'status': 'Not marked',
-        'rollNo': 'GB-9-02',
-        'meta': 'Class 9 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'VP',
-        'name': 'Vihaan P.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-8-03',
-        'meta': 'Class 8 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'AR',
-        'name': 'Ananya R.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-7-04',
-        'meta': 'Class 7 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'RR',
-        'name': 'Reyansh R.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-6-05',
-        'meta': 'Class 6 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'DN',
-        'name': 'Diya N.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-5-06',
-        'meta': 'Class 5 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'AK',
-        'name': 'Advik K.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-4-07',
-        'meta': 'Class 4 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'IS',
-        'name': 'Isha S.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-3-08',
-        'meta': 'Class 3 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'KG',
-        'name': 'Kabir G.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-2-09',
-        'meta': 'Class 2 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'MJ',
-        'name': 'Meera J.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 1',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-1-10',
-        'meta': 'Class 1 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'DB',
-        'name': 'Dhruv B.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-10-11',
-        'meta': 'Class 10 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'RP',
-        'name': 'Riya P.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-9-12',
-        'meta': 'Class 9 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'AN',
-        'name': 'Atharv N.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-8-13',
-        'meta': 'Class 8 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'SC',
-        'name': 'Saanvi C.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-7-14',
-        'meta': 'Class 7 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'IM',
-        'name': 'Ishaan M.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-6-15',
-        'meta': 'Class 6 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'PP',
-        'name': 'Pooja P.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-5-16',
-        'meta': 'Class 5 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'SS',
-        'name': 'Sai S.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-4-17',
-        'meta': 'Class 4 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'TV',
-        'name': 'Tanvi V.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-3-18',
-        'meta': 'Class 3 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'AP',
-        'name': 'Arjun P.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-2-19',
-        'meta': 'Class 2 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'KR',
-        'name': 'Kavya R.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 1',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-1-20',
-        'meta': 'Class 1 • Sec B • Gachibowli',
-      },
-      {
-        'initials': 'AR',
-        'name': 'Aditya R.',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'GB-10-21',
-        'meta': 'Class 10 • Sec A • Gachibowli',
-      },
-      {
-        'initials': 'AN',
-        'name': 'Ananya N.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'hostel-residents',
-        'status': 'Not marked',
-        'rollNo': 'KD-10-01',
-        'meta': 'Class 10 • Sec A • Kondapur',
-      },
-      {
-        'initials': 'RK',
-        'name': 'Reyansh K.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'hostel-residents',
-        'status': 'Not marked',
-        'rollNo': 'KD-9-02',
-        'meta': 'Class 9 • Sec B • Kondapur',
-      },
-      {
-        'initials': 'DS',
-        'name': 'Diya S.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-8-03',
-        'meta': 'Class 8 • Sec A • Kondapur',
-      },
-      {
-        'initials': 'AG',
-        'name': 'Advik G.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-7-04',
-        'meta': 'Class 7 • Sec B • Kondapur',
-      },
-      {
-        'initials': 'IJ',
-        'name': 'Isha J.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-6-05',
-        'meta': 'Class 6 • Sec A • Kondapur',
-      },
-      {
-        'initials': 'KB',
-        'name': 'Kabir B.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-5-06',
-        'meta': 'Class 5 • Sec B • Kondapur',
-      },
-      {
-        'initials': 'MP',
-        'name': 'Meera P.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-4-07',
-        'meta': 'Class 4 • Sec A • Kondapur',
-      },
-      {
-        'initials': 'DN',
-        'name': 'Dhruv N.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-3-08',
-        'meta': 'Class 3 • Sec B • Kondapur',
-      },
-      {
-        'initials': 'RC',
-        'name': 'Riya C.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-2-09',
-        'meta': 'Class 2 • Sec A • Kondapur',
-      },
-      {
-        'initials': 'AM',
-        'name': 'Atharv M.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 1',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-1-10',
-        'meta': 'Class 1 • Sec B • Kondapur',
-      },
-      {
-        'initials': 'SP',
-        'name': 'Saanvi P.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-10-11',
-        'meta': 'Class 10 • Sec A • Kondapur',
-      },
-      {
-        'initials': 'IS',
-        'name': 'Ishaan S.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-9-12',
-        'meta': 'Class 9 • Sec B • Kondapur',
-      },
-      {
-        'initials': 'PV',
-        'name': 'Pooja V.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-8-13',
-        'meta': 'Class 8 • Sec A • Kondapur',
-      },
-      {
-        'initials': 'SP',
-        'name': 'Sai P.',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KD-7-14',
-        'meta': 'Class 7 • Sec B • Kondapur',
-      },
-      {
-        'initials': 'AB',
-        'name': 'Advik B.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'hostel-residents',
-        'status': 'Not marked',
-        'rollNo': 'KP-10-01',
-        'meta': 'Class 10 • Sec A • Kukatpally',
-      },
-      {
-        'initials': 'IP',
-        'name': 'Isha P.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'hostel-residents',
-        'status': 'Not marked',
-        'rollNo': 'KP-9-02',
-        'meta': 'Class 9 • Sec B • Kukatpally',
-      },
-      {
-        'initials': 'KN',
-        'name': 'Kabir N.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-8-03',
-        'meta': 'Class 8 • Sec A • Kukatpally',
-      },
-      {
-        'initials': 'MC',
-        'name': 'Meera C.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-7-04',
-        'meta': 'Class 7 • Sec B • Kukatpally',
-      },
-      {
-        'initials': 'DM',
-        'name': 'Dhruv M.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-6-05',
-        'meta': 'Class 6 • Sec A • Kukatpally',
-      },
-      {
-        'initials': 'RP',
-        'name': 'Riya P.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-5-06',
-        'meta': 'Class 5 • Sec B • Kukatpally',
-      },
-      {
-        'initials': 'AS',
-        'name': 'Atharv S.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-4-07',
-        'meta': 'Class 4 • Sec A • Kukatpally',
-      },
-      {
-        'initials': 'SV',
-        'name': 'Saanvi V.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-3-08',
-        'meta': 'Class 3 • Sec B • Kukatpally',
-      },
-      {
-        'initials': 'IP',
-        'name': 'Ishaan P.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-2-09',
-        'meta': 'Class 2 • Sec A • Kukatpally',
-      },
-      {
-        'initials': 'PR',
-        'name': 'Pooja R.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 1',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-1-10',
-        'meta': 'Class 1 • Sec B • Kukatpally',
-      },
-      {
-        'initials': 'SR',
-        'name': 'Sai R.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-10-11',
-        'meta': 'Class 10 • Sec A • Kukatpally',
-      },
-      {
-        'initials': 'TN',
-        'name': 'Tanvi N.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-9-12',
-        'meta': 'Class 9 • Sec B • Kukatpally',
-      },
-      {
-        'initials': 'AK',
-        'name': 'Arjun K.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-8-13',
-        'meta': 'Class 8 • Sec A • Kukatpally',
-      },
-      {
-        'initials': 'KS',
-        'name': 'Kavya S.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-7-14',
-        'meta': 'Class 7 • Sec B • Kukatpally',
-      },
-      {
-        'initials': 'AG',
-        'name': 'Aditya G.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-6-15',
-        'meta': 'Class 6 • Sec A • Kukatpally',
-      },
-      {
-        'initials': 'NJ',
-        'name': 'Neha J.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-5-16',
-        'meta': 'Class 5 • Sec B • Kukatpally',
-      },
-      {
-        'initials': 'RB',
-        'name': 'Rohan B.',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'KP-4-17',
-        'meta': 'Class 4 • Sec A • Kukatpally',
-      },
-      {
-        'initials': 'MP',
-        'name': 'Meera P.',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'hostel-residents',
-        'status': 'Not marked',
-        'rollNo': 'MD-10-01',
-        'meta': 'Class 10 • Sec A • Maddipalem',
-      },
-      {
-        'initials': 'DS',
-        'name': 'Dhruv S.',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MD-9-02',
-        'meta': 'Class 9 • Sec B • Maddipalem',
-      },
-      {
-        'initials': 'RV',
-        'name': 'Riya V.',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MD-8-03',
-        'meta': 'Class 8 • Sec A • Maddipalem',
-      },
-      {
-        'initials': 'AP',
-        'name': 'Atharv P.',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MD-7-04',
-        'meta': 'Class 7 • Sec B • Maddipalem',
-      },
-      {
-        'initials': 'SR',
-        'name': 'Saanvi R.',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MD-6-05',
-        'meta': 'Class 6 • Sec A • Maddipalem',
-      },
-      {
-        'initials': 'IR',
-        'name': 'Ishaan R.',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MD-5-06',
-        'meta': 'Class 5 • Sec B • Maddipalem',
-      },
-      {
-        'initials': 'PN',
-        'name': 'Pooja N.',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MD-4-07',
-        'meta': 'Class 4 • Sec A • Maddipalem',
-      },
-      {
-        'initials': 'SK',
-        'name': 'Sai K.',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MD-3-08',
-        'meta': 'Class 3 • Sec B • Maddipalem',
-      },
-      {
-        'initials': 'TS',
-        'name': 'Tanvi S.',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MD-2-09',
-        'meta': 'Class 2 • Sec A • Maddipalem',
-      },
-      {
-        'initials': 'AR',
-        'name': 'Atharv R.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'hostel-residents',
-        'status': 'Not marked',
-        'rollNo': 'MP-10-01',
-        'meta': 'Class 10 • Sec A • Madhapur',
-      },
-      {
-        'initials': 'SN',
-        'name': 'Saanvi N.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'hostel-residents',
-        'status': 'Not marked',
-        'rollNo': 'MP-9-02',
-        'meta': 'Class 9 • Sec B • Madhapur',
-      },
-      {
-        'initials': 'IK',
-        'name': 'Ishaan K.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-8-03',
-        'meta': 'Class 8 • Sec A • Madhapur',
-      },
-      {
-        'initials': 'PS',
-        'name': 'Pooja S.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-7-04',
-        'meta': 'Class 7 • Sec B • Madhapur',
-      },
-      {
-        'initials': 'SG',
-        'name': 'Sai G.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-6-05',
-        'meta': 'Class 6 • Sec A • Madhapur',
-      },
-      {
-        'initials': 'TJ',
-        'name': 'Tanvi J.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-5-06',
-        'meta': 'Class 5 • Sec B • Madhapur',
-      },
-      {
-        'initials': 'AB',
-        'name': 'Arjun B.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-4-07',
-        'meta': 'Class 4 • Sec A • Madhapur',
-      },
-      {
-        'initials': 'KP',
-        'name': 'Kavya P.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-3-08',
-        'meta': 'Class 3 • Sec B • Madhapur',
-      },
-      {
-        'initials': 'AN',
-        'name': 'Aditya N.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-2-09',
-        'meta': 'Class 2 • Sec A • Madhapur',
-      },
-      {
-        'initials': 'NC',
-        'name': 'Neha C.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 1',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-1-10',
-        'meta': 'Class 1 • Sec B • Madhapur',
-      },
-      {
-        'initials': 'RM',
-        'name': 'Rohan M.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-10-11',
-        'meta': 'Class 10 • Sec A • Madhapur',
-      },
-      {
-        'initials': 'AP',
-        'name': 'Anika P.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-9-12',
-        'meta': 'Class 9 • Sec B • Madhapur',
-      },
-      {
-        'initials': 'KS',
-        'name': 'Krishna S.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-8-13',
-        'meta': 'Class 8 • Sec A • Madhapur',
-      },
-      {
-        'initials': 'SV',
-        'name': 'Sneha V.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-7-14',
-        'meta': 'Class 7 • Sec B • Madhapur',
-      },
-      {
-        'initials': 'RP',
-        'name': 'Rahul P.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-6-15',
-        'meta': 'Class 6 • Sec A • Madhapur',
-      },
-      {
-        'initials': 'PR',
-        'name': 'Priya R.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-5-16',
-        'meta': 'Class 5 • Sec B • Madhapur',
-      },
-      {
-        'initials': 'MR',
-        'name': 'Manish R.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-4-17',
-        'meta': 'Class 4 • Sec A • Madhapur',
-      },
-      {
-        'initials': 'DN',
-        'name': 'Divya N.',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'MP-3-18',
-        'meta': 'Class 3 • Sec B • Madhapur',
-      },
-      {
-        'initials': 'PJ',
-        'name': 'Pooja J.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'hostel-residents',
-        'status': 'Present',
-        'rollNo': 'SP-10-01',
-        'meta': 'Class 10 • Sec A • Steel',
-      },
-      {
-        'initials': 'SB',
-        'name': 'Sai B.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'hostel-residents',
-        'status': 'Present',
-        'rollNo': 'SP-9-02',
-        'meta': 'Class 9 • Sec B • Steel',
-      },
-      {
-        'initials': 'TP',
-        'name': 'Tanvi P.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'hostel-residents',
-        'status': 'Present',
-        'rollNo': 'SP-8-03',
-        'meta': 'Class 8 • Sec A • Steel',
-      },
-      {
-        'initials': 'AN',
-        'name': 'Arjun N.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-7-04',
-        'meta': 'Class 7 • Sec B • Steel',
-      },
-      {
-        'initials': 'KC',
-        'name': 'Kavya C.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-6-05',
-        'meta': 'Class 6 • Sec A • Steel',
-      },
-      {
-        'initials': 'AM',
-        'name': 'Aditya M.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-5-06',
-        'meta': 'Class 5 • Sec B • Steel',
-      },
-      {
-        'initials': 'NP',
-        'name': 'Neha P.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-4-07',
-        'meta': 'Class 4 • Sec A • Steel',
-      },
-      {
-        'initials': 'RS',
-        'name': 'Rohan S.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-3-08',
-        'meta': 'Class 3 • Sec B • Steel',
-      },
-      {
-        'initials': 'AV',
-        'name': 'Anika V.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-2-09',
-        'meta': 'Class 2 • Sec A • Steel',
-      },
-      {
-        'initials': 'KP',
-        'name': 'Krishna P.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 1',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-1-10',
-        'meta': 'Class 1 • Sec B • Steel',
-      },
-      {
-        'initials': 'SR',
-        'name': 'Sneha R.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-10-11',
-        'meta': 'Class 10 • Sec A • Steel',
-      },
-      {
-        'initials': 'RR',
-        'name': 'Rahul R.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-9-12',
-        'meta': 'Class 9 • Sec B • Steel',
-      },
-      {
-        'initials': 'PN',
-        'name': 'Priya N.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-8-13',
-        'meta': 'Class 8 • Sec A • Steel',
-      },
-      {
-        'initials': 'MK',
-        'name': 'Manish K.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-7-14',
-        'meta': 'Class 7 • Sec B • Steel',
-      },
-      {
-        'initials': 'DS',
-        'name': 'Divya S.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-6-15',
-        'meta': 'Class 6 • Sec A • Steel',
-      },
-      {
-        'initials': 'VG',
-        'name': 'Varun G.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-5-16',
-        'meta': 'Class 5 • Sec B • Steel',
-      },
-      {
-        'initials': 'SJ',
-        'name': 'Swati J.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-4-17',
-        'meta': 'Class 4 • Sec A • Steel',
-      },
-      {
-        'initials': 'NB',
-        'name': 'Nikhil B.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-3-18',
-        'meta': 'Class 3 • Sec B • Steel',
-      },
-      {
-        'initials': 'SP',
-        'name': 'Shreya P.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-2-19',
-        'meta': 'Class 2 • Sec A • Steel',
-      },
-      {
-        'initials': 'KN',
-        'name': 'Kiran N.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 1',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-1-20',
-        'meta': 'Class 1 • Sec B • Steel',
-      },
-      {
-        'initials': 'MC',
-        'name': 'Megha C.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-10-21',
-        'meta': 'Class 10 • Sec A • Steel',
-      },
-      {
-        'initials': 'VM',
-        'name': 'Vikram M.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Present',
-        'rollNo': 'SP-9-22',
-        'meta': 'Class 9 • Sec B • Steel',
-      },
-      {
-        'initials': 'AP',
-        'name': 'Anjali P.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Absent',
-        'rollNo': 'SP-8-23',
-        'meta': 'Class 8 • Sec A • Steel',
-      },
-      {
-        'initials': 'SS',
-        'name': 'Siddharth S.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Absent',
-        'rollNo': 'SP-7-24',
-        'meta': 'Class 7 • Sec B • Steel',
-      },
-      {
-        'initials': 'PV',
-        'name': 'Preeti V.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Absent',
-        'rollNo': 'SP-6-25',
-        'meta': 'Class 6 • Sec A • Steel',
-      },
-      {
-        'initials': 'HP',
-        'name': 'Harsh P.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Absent',
-        'rollNo': 'SP-5-26',
-        'meta': 'Class 5 • Sec B • Steel',
-      },
-      {
-        'initials': 'DR',
-        'name': 'Deepika R.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Absent',
-        'rollNo': 'SP-4-27',
-        'meta': 'Class 4 • Sec A • Steel',
-      },
-      {
-        'initials': 'KR',
-        'name': 'Karthik R.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-3-28',
-        'meta': 'Class 3 • Sec B • Steel',
-      },
-      {
-        'initials': 'BN',
-        'name': 'Bhavana N.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-2-29',
-        'meta': 'Class 2 • Sec A • Steel',
-      },
-      {
-        'initials': 'PK',
-        'name': 'Pranav K.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 1',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-1-30',
-        'meta': 'Class 1 • Sec B • Steel',
-      },
-      {
-        'initials': 'HS',
-        'name': 'Harini S.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-10-31',
-        'meta': 'Class 10 • Sec A • Steel',
-      },
-      {
-        'initials': 'TG',
-        'name': 'Tarun G.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-9-32',
-        'meta': 'Class 9 • Sec B • Steel',
-      },
-      {
-        'initials': 'KJ',
-        'name': 'Keerthi J.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-8-33',
-        'meta': 'Class 8 • Sec A • Steel',
-      },
-      {
-        'initials': 'AB',
-        'name': 'Aarav B.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 7',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-7-34',
-        'meta': 'Class 7 • Sec B • Steel',
-      },
-      {
-        'initials': 'AP',
-        'name': 'Aadhya P.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 6',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-6-35',
-        'meta': 'Class 6 • Sec A • Steel',
-      },
-      {
-        'initials': 'VN',
-        'name': 'Vihaan N.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 5',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-5-36',
-        'meta': 'Class 5 • Sec B • Steel',
-      },
-      {
-        'initials': 'AC',
-        'name': 'Ananya C.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 4',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-4-37',
-        'meta': 'Class 4 • Sec A • Steel',
-      },
-      {
-        'initials': 'RM',
-        'name': 'Reyansh M.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 3',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-3-38',
-        'meta': 'Class 3 • Sec B • Steel',
-      },
-      {
-        'initials': 'DP',
-        'name': 'Diya P.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 2',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-2-39',
-        'meta': 'Class 2 • Sec A • Steel',
-      },
-      {
-        'initials': 'AS',
-        'name': 'Advik S.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 1',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-1-40',
-        'meta': 'Class 1 • Sec B • Steel',
-      },
-      {
-        'initials': 'IV',
-        'name': 'Isha V.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 10',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-10-41',
-        'meta': 'Class 10 • Sec A • Steel',
-      },
-      {
-        'initials': 'KP',
-        'name': 'Kabir P.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 9',
-        'section': 'Sec B',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-9-42',
-        'meta': 'Class 9 • Sec B • Steel',
-      },
-      {
-        'initials': 'MR',
-        'name': 'Meera R.',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'class': 'Class 8',
-        'section': 'Sec A',
-        'residency': 'day-scholars',
-        'status': 'Not marked',
-        'rollNo': 'SP-8-43',
-        'meta': 'Class 8 • Sec A • Steel',
-      },
-    ];
-    return _cachedAllStudentsList!;
+  List<Map<String, dynamic>> _dynamicStudentRecords = [];
+  final List<Map<String, dynamic>> _dynamicStaffRecords = [];
+  List<UserDirectoryItem> _dynamicUsersDirectory = [];
+  Map<String, dynamic>? _classPerformanceData;
+  bool _isClassPerformanceLoading = false;
+
+  List<Map<String, dynamic>> _getAllStudentRecords() => _dynamicStudentRecords;
+  List<Map<String, dynamic>> _getAllStaffRecords() => _dynamicStaffRecords;
+
+  Future<void> _fetchUsersDirectory() async {
+    try {
+      final users = await OwnerDashboardService.getUsersDirectory();
+      if (mounted && users.isNotEmpty) {
+        setState(() {
+          _dynamicUsersDirectory = users;
+
+          final staffMembers = users.where((u) => u.role != 'students' && u.role != 'parents').toList();
+          if (staffMembers.isNotEmpty) {
+            _dynamicStaffRecords.clear();
+            _dynamicStaffRecords.addAll(staffMembers.map((u) => {
+              'name': u.name,
+              'initials': u.initials,
+              'role': u.role,
+              'roleLabel': u.roleLabel,
+              'branchId': u.branchId.isNotEmpty ? u.branchId : _getBranchSlug(u.branchName),
+              'branchName': u.branchName,
+              'meta': u.meta,
+              'phone': u.phone,
+              'status': 'Present',
+            }));
+          }
+
+          if (_dynamicStudentRecords.isEmpty) {
+            final studentMembers = users.where((u) => u.role == 'students').toList();
+            if (studentMembers.isNotEmpty) {
+              _dynamicStudentRecords = studentMembers.map((s) => {
+                'name': s.name,
+                'initials': s.initials,
+                'branchId': s.branchId.isNotEmpty ? s.branchId : _getBranchSlug(s.branchName),
+                'branchName': s.branchName,
+                'class': s.meta,
+                'section': '',
+                'residency': 'day-scholars',
+                'status': 'Present',
+                'rollNo': '',
+                'meta': s.meta,
+              }).toList();
+            }
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching users directory: $e');
+    }
   }
 
-  static List<Map<String, dynamic>>? _cachedAllStaffList;
-  static List<Map<String, dynamic>> _getAllStaffRecords() {
-    if (_cachedAllStaffList != null) return _cachedAllStaffList!;
-    _cachedAllStaffList = [
-      {
-        'initials': 'MA',
-        'name': 'M. Ananya',
-        'role': 'TGT English • Gachibowli Campus',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'department': 'English',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:48 AM',
-        'phone': '+91 94401 56789',
-      },
-      {
-        'initials': 'RV',
-        'name': 'R. Verma',
-        'role': 'PGT Physics • Gachibowli Campus',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'department': 'Physics',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:35 AM',
-        'phone': '+91 98491 23456',
-      },
-      {
-        'initials': 'BP',
-        'name': 'B. Prabhakar',
-        'role': 'Administrative Officer • Gachibowli Campus',
-        'category': 'non-teaching',
-        'subRole': 'admin-officer',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:35 AM',
-        'phone': '+91 97011 55667',
-      },
-      {
-        'initials': 'MS',
-        'name': 'Mrs. Meenakshi S.',
-        'role': 'Principal • Gachibowli Campus',
-        'category': 'non-teaching',
-        'subRole': 'principal',
-        'branchId': 'gachibowli',
-        'branchName': 'Gachibowli Campus',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:10 AM',
-        'phone': '+91 98492 33445',
-      },
-      {
-        'initials': 'KS',
-        'name': 'K. Sneha',
-        'role': 'PRT Science • Kondapur Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'department': 'Science',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:30 AM',
-        'phone': '+91 97766 55443',
-      },
-      {
-        'initials': 'VN',
-        'name': 'V. Nair',
-        'role': 'TGT Social • Kondapur Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'department': 'Social Studies',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:40 AM',
-        'phone': '+91 98855 12345',
-      },
-      {
-        'initials': 'SS',
-        'name': 'S. Sharma',
-        'role': 'Administrative Officer • Kondapur Branch',
-        'category': 'non-teaching',
-        'subRole': 'admin-officer',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:25 AM',
-        'phone': '+91 97000 88214',
-      },
-      {
-        'initials': 'KS',
-        'name': 'Dr. K. Srinivas',
-        'role': 'Principal • Kondapur Branch',
-        'category': 'non-teaching',
-        'subRole': 'principal',
-        'branchId': 'kondapur',
-        'branchName': 'Kondapur Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:05 AM',
-        'phone': '+91 98480 11223',
-      },
-      {
-        'initials': 'PD',
-        'name': 'P. Deepika',
-        'role': 'TGT Telugu • Kukatpally Campus',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'department': 'Telugu',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:25 AM',
-        'phone': '+91 94411 22334',
-      },
-      {
-        'initials': 'AK',
-        'name': 'A. Karthik',
-        'role': 'TGT Hindi • Kukatpally Campus',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'department': 'Hindi',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:35 AM',
-        'phone': '+91 93910 33412',
-      },
-      {
-        'initials': 'NR',
-        'name': 'N. Rao',
-        'role': 'Administrative Officer • Kukatpally Campus',
-        'category': 'non-teaching',
-        'subRole': 'admin-officer',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:30 AM',
-        'phone': '+91 91210 44556',
-      },
-      {
-        'initials': 'RV',
-        'name': 'Mrs. Radhika V.',
-        'role': 'Principal • Kukatpally Campus',
-        'category': 'non-teaching',
-        'subRole': 'principal',
-        'branchId': 'kukatpally',
-        'branchName': 'Kukatpally Campus',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:00 AM',
-        'phone': '+91 98844 55667',
-      },
-      {
-        'initials': 'GS',
-        'name': 'G. Srinivas',
-        'role': 'TGT Maths • Maddipalem Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'department': 'Mathematics',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:30 AM',
-        'phone': '+91 98844 55667',
-      },
-      {
-        'initials': 'LB',
-        'name': 'L. Bhavani',
-        'role': 'PRT English • Maddipalem Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'department': 'English',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:45 AM',
-        'phone': '+91 99887 66554',
-      },
-      {
-        'initials': 'SV',
-        'name': 'S. Venkat',
-        'role': 'Administrative Officer • Maddipalem Branch',
-        'category': 'non-teaching',
-        'subRole': 'admin-officer',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:35 AM',
-        'phone': '+91 91212 99011',
-      },
-      {
-        'initials': 'TA',
-        'name': 'T. Anand',
-        'role': 'Administrative Officer • Maddipalem Branch',
-        'category': 'non-teaching',
-        'subRole': 'admin-officer',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:40 AM',
-        'phone': '+91 97011 22334',
-      },
-      {
-        'initials': 'VP',
-        'name': 'Dr. V. Prasad',
-        'role': 'Principal • Maddipalem Branch',
-        'category': 'non-teaching',
-        'subRole': 'principal',
-        'branchId': 'maddipalem',
-        'branchName': 'Maddipalem Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:15 AM',
-        'phone': '+91 98450 66778',
-      },
-      {
-        'initials': 'DS',
-        'name': 'D. Sandeep',
-        'role': 'TGT Computers • Madhapur Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'department': 'Computers',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:40 AM',
-        'phone': '+91 94401 22334',
-      },
-      {
-        'initials': 'BP',
-        'name': 'B. Priya',
-        'role': 'PRT Art • Madhapur Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'department': 'Arts & Crafts',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:50 AM',
-        'phone': '+91 98490 33445',
-      },
-      {
-        'initials': 'MV',
-        'name': 'M. V. Reddy',
-        'role': 'Administrative Officer • Madhapur Branch',
-        'category': 'non-teaching',
-        'subRole': 'admin-officer',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:30 AM',
-        'phone': '+91 91234 56780',
-      },
-      {
-        'initials': 'SD',
-        'name': 'Mrs. Sunita D.',
-        'role': 'Principal • Madhapur Branch',
-        'category': 'non-teaching',
-        'subRole': 'principal',
-        'branchId': 'madhapur',
-        'branchName': 'Madhapur Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:10 AM',
-        'phone': '+91 97766 11223',
-      },
-      {
-        'initials': 'KS',
-        'name': 'Dr. K. S. Rao',
-        'role': 'Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Physics',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:42 AM',
-        'phone': '+91 98490 12345',
-      },
-      {
-        'initials': 'MS',
-        'name': 'M. Suresh',
-        'role': 'Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Chemistry',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:35 AM',
-        'phone': '+91 94401 67890',
-      },
-      {
-        'initials': 'CL',
-        'name': 'Ch. Lakshmi',
-        'role': 'Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Biology',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:40 AM',
-        'phone': '+91 98492 45678',
-      },
-      {
-        'initials': 'BN',
-        'name': 'B. Naidu',
-        'role': 'Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'English',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:30 AM',
-        'phone': '+91 97011 34567',
-      },
-      {
-        'initials': 'SR',
-        'name': 'S. Ramana',
-        'role': 'Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Telugu',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:45 AM',
-        'phone': '+91 91210 56789',
-      },
-      {
-        'initials': 'KA',
-        'name': 'K. Appalaraju',
-        'role': 'Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Social',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:25 AM',
-        'phone': '+91 93910 67890',
-      },
-      {
-        'initials': 'PS',
-        'name': 'P. Satyavathi',
-        'role': 'Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Hindi',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:38 AM',
-        'phone': '+91 98852 78901',
-      },
-      {
-        'initials': 'DJ',
-        'name': 'D. Jagadeesh',
-        'role': 'Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Computers',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:50 AM',
-        'phone': '+91 98450 89012',
-      },
-      {
-        'initials': 'TU',
-        'name': 'T. Uma',
-        'role': 'Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Mathematics',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:32 AM',
-        'phone': '+91 97766 90123',
-      },
-      {
-        'initials': 'KV',
-        'name': 'K. V. Subbarao',
-        'role': 'Senior Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Academics',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:20 AM',
-        'phone': '+91 94411 01234',
-      },
-      {
-        'initials': 'VG',
-        'name': 'V. Govinda Rao',
-        'role': 'Maths Teacher • Steel Plant Branch',
-        'category': 'teaching',
-        'subRole': 'teaching',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Mathematics',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:28 AM',
-        'phone': '+91 99887 12345',
-      },
-      {
-        'initials': 'LV',
-        'name': 'L. Varalakshmi',
-        'role': 'Librarian • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'librarian',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Library',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:50 AM',
-        'phone': '+91 98855 66778',
-      },
-      {
-        'initials': 'BS',
-        'name': 'B. Simhachalam',
-        'role': 'Librarian • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'librarian',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Library',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:45 AM',
-        'phone': '+91 97000 77889',
-      },
-      {
-        'initials': 'GD',
-        'name': 'G. Dhanalakshmi',
-        'role': 'Librarian • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'librarian',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Library',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:40 AM',
-        'phone': '+91 91212 88990',
-      },
-      {
-        'initials': 'PR',
-        'name': 'P. Rambabu',
-        'role': 'Librarian • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'librarian',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Library',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:55 AM',
-        'phone': '+91 98491 99001',
-      },
-      {
-        'initials': 'MA',
-        'name': 'M. Apparao',
-        'role': 'Librarian • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'librarian',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Library',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:35 AM',
-        'phone': '+91 94401 00112',
-      },
-      {
-        'initials': 'KR',
-        'name': 'K. Ramesh',
-        'role': 'Administrative Officer • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'admin-officer',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:30 AM',
-        'phone': '+91 91210 44556',
-      },
-      {
-        'initials': 'PS',
-        'name': 'P. S. Murthy',
-        'role': 'Administrative Officer • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'admin-officer',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:40 AM',
-        'phone': '+91 97011 11223',
-      },
-      {
-        'initials': 'AV',
-        'name': 'Dr. A. V. Rao',
-        'role': 'Principal • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'principal',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:00 AM',
-        'phone': '+91 94401 22334',
-      },
-      {
-        'initials': 'KS',
-        'name': 'K. Swamy',
-        'role': 'Principal • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'principal',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:15 AM',
-        'phone': '+91 98492 22334',
-      },
-      {
-        'initials': 'VR',
-        'name': 'V. R. Sharma',
-        'role': 'Account Manager • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'account-mgr',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Accounts',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:45 AM',
-        'phone': '+91 98450 11223',
-      },
-      {
-        'initials': 'GA',
-        'name': 'G. Appa Rao',
-        'role': 'Bus Attendant • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'bus-attendant',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Transport',
-        'shift': 'morning',
-        'status': 'Absent',
-        'subStatus': '08:10 AM',
-        'phone': '+91 93910 11223',
-      },
-      {
-        'initials': 'DS',
-        'name': 'D. Somulu',
-        'role': 'Hostel Warden • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'hostel-warden',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Hostel',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '07:45 AM',
-        'phone': '+91 98852 11223',
-      },
-      {
-        'initials': 'KP',
-        'name': 'K. Padmavati',
-        'role': 'Receptionist • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'receptionist',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Administration',
-        'shift': 'general',
-        'status': 'Present',
-        'subStatus': '08:25 AM',
-        'phone': '+91 97766 22334',
-      },
-      {
-        'initials': 'RK',
-        'name': 'Rajesh Kumar',
-        'role': 'Transport Manager • Steel Plant Branch',
-        'category': 'non-teaching',
-        'subRole': 'transport-mgr',
-        'branchId': 'steel-plant',
-        'branchName': 'Steel Plant Branch',
-        'department': 'Transport',
-        'shift': 'morning',
-        'status': 'Present',
-        'subStatus': '08:15 AM',
-        'phone': '+91 98852 44321',
-      },
-    ];
-    return _cachedAllStaffList!;
+  Future<void> _fetchClassPerformance() async {
+    setState(() {
+      _isClassPerformanceLoading = true;
+    });
+    try {
+      final data = await OwnerDashboardService.getClassPerformance();
+      if (mounted && data != null) {
+        setState(() {
+          _classPerformanceData = data;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching class performance: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isClassPerformanceLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchStudentsDirectory() async {
+    try {
+      final students = await StudentService.getStudents();
+      if (mounted && students.isNotEmpty) {
+        setState(() {
+          _dynamicStudentRecords = students
+              .map(
+                (s) => {
+                  'initials': s.name
+                      .split(' ')
+                      .where((p) => p.isNotEmpty)
+                      .map((p) => p[0])
+                      .take(2)
+                      .join('')
+                      .toUpperCase(),
+                  'name': s.name,
+                  'branchId': _getBranchSlug(s.branch),
+                  'branchName': s.branch,
+                  'class': s.klass,
+                  'section': s.section,
+                  'residency': 'day-scholars',
+                  'status': 'Present',
+                  'rollNo': s.id,
+                  'meta': '${s.klass} • ${s.section} • ${s.branch}',
+                },
+              )
+              .toList();
+        });
+      }
+    } catch (_) {}
   }
 
   @override
   void initState() {
     super.initState();
-    try {
-      _dashboardData = jsonDecode(jsonEncode(kDefaultLiveDashboardData));
-    } catch (_) {
-      _dashboardData = Map<String, dynamic>.from(kDefaultLiveDashboardData);
-    }
+    // Dynamic initialization: starts null so loading spinner displays until API responds
+    _dashboardData = null;
+    _isLoading = true;
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -2248,7 +232,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     });
     _fetchDashboard();
     _fetchBranchTree();
+    _fetchUsersDirectory();
+    _fetchStudentsDirectory();
     _fetchAttendanceForDate(_selectedAttendanceDate);
+    _fetchClassPerformance();
     _startKpiTimer();
   }
 
@@ -2403,9 +390,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final orgName =
-        _dashboardData?['orgName'] ??
-        widget.user.organizationName ??
-        'Sai Ravindra School';
+        _dashboardData?['orgName'] ?? widget.user.organizationName ?? '';
     final group = _dashboardData?['group'] as Map<String, dynamic>?;
     final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
     final alerts = _dashboardData?['alerts'] as List<dynamic>? ?? [];
@@ -2713,7 +698,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       if (!mounted) return;
       if (result['action'] == 'alert') {
         final al = result['data'] as Map<String, dynamic>;
-        final branchName = al['branch']?.toString() ?? 'Gachibowli Campus';
+        final branchName = al['branch']?.toString() ?? '';
         Map<String, dynamic>? matchedBranch;
         for (final b in branches) {
           if (b is Map && b['name']?.toString() == branchName) {
@@ -2771,13 +756,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildUserAvatar() {
-    final displayName = widget.user.name.isNotEmpty
-        ? widget.user.name
-        : 'Charan Makkuva';
-    final orgName = widget.user.organizationName ?? 'Sai Ravindra School';
+    final displayName = widget.user.name.isNotEmpty ? widget.user.name : '';
+    final orgName = widget.user.organizationName ?? '';
     final roleName = widget.user.role.isNotEmpty
         ? widget.user.role[0].toUpperCase() + widget.user.role.substring(1)
-        : 'Chairman';
+        : '';
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -3302,27 +1285,27 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // ===========================================================================
   Widget _buildRotatingCircularKpiStage(Map<String, dynamic>? group) {
     // Dynamic values from backend
-    final students = group?['students'] ?? 122;
+    final students = group?['students'] ?? 0;
     final studentsDelta = group?['studentsDelta'] != null
         ? '+${group!['studentsDelta']}%'
-        : '+11.9%';
+        : '0%';
 
     final rawRev = group?['revenueYTD'] ?? group?['revenue'];
     final ytdRevenue = rawRev is num
         ? '₹${(rawRev / 10000000).toStringAsFixed(1)} Cr'
-        : (rawRev?.toString() ?? '₹1.4 Cr');
+        : (rawRev != null ? '₹$rawRev' : '₹0');
     final revenueDelta = group?['revenueDelta'] != null
         ? '+${group!['revenueDelta']}%'
-        : '+0%';
+        : '0%';
 
-    final collectionPct = (group?['collectionPct'] as num?)?.toDouble() ?? 68.2;
+    final collectionPct = (group?['collectionPct'] as num?)?.toDouble() ?? 0.0;
 
     final attStudents =
         _dashboardData?['attendance']?['students'] as Map<String, dynamic>?;
-    final stuPres = (attStudents?['present'] as num?)?.toInt() ?? 22;
+    final stuPres = (attStudents?['present'] as num?)?.toInt() ?? 0;
     final stuRoster =
         (attStudents?['roster'] as num?)?.toInt() ??
-        (students is int ? students : 122);
+        (students is int ? students : 0);
     final studentAttendance = '$stuPres/$stuRoster';
     final stuPct =
         (attStudents?['attendancePct'] as num?)?.toDouble() ??
@@ -3332,33 +1315,32 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final rawCash = group?['cashToday'] ?? group?['cashCollectedToday'];
     final cashToday = rawCash is num
         ? '₹${(rawCash / 100000).toStringAsFixed(1)} L'
-        : (rawCash?.toString() ?? '₹0.2 L');
+        : (rawCash != null ? '₹$rawCash' : '₹0');
 
     final newAdmissions =
-        group?['newAdmissionsMTD'] ?? group?['newAdmissions'] ?? 25;
-    final staffFilled = group?['staffFilled'] ?? group?['staffCount'] ?? 46;
-    final staffVacant = group?['staffVacant'] ?? 23;
+        group?['newAdmissionsMTD'] ?? group?['newAdmissions'] ?? 0;
+    final staffFilled = group?['staffFilled'] ?? group?['staffCount'] ?? 0;
+    final staffVacant = group?['staffVacant'] ?? 0;
     final studentAttrition =
         (group?['attritionPct'] ?? group?['attrition'] as num?)?.toDouble() ??
-        4.9;
-    final operatingMargin =
-        (group?['ebitdaMargin'] as num?)?.toDouble() ?? 35.9;
+        0.0;
+    final operatingMargin = (group?['ebitdaMargin'] as num?)?.toDouble() ?? 0.0;
 
     final attStaff =
         _dashboardData?['attendance']?['staff'] as Map<String, dynamic>?;
     final staffPres = (attStaff?['present'] as num?)?.toInt() ?? 0;
     final staffRoster =
         (attStaff?['roster'] as num?)?.toInt() ??
-        (staffFilled is int ? staffFilled : 46);
+        (staffFilled is int ? staffFilled : 0);
     final staffAttendance = '$staffPres/$staffRoster';
-    final staffAbsent = (attStaff?['absent'] as num?)?.toInt() ?? 1;
+    final staffAbsent = (attStaff?['absent'] as num?)?.toInt() ?? 0;
 
     final rawOut = group?['outstanding'] ?? group?['outstandingFees'];
     final outstanding = rawOut is num
         ? '₹${(rawOut / 100000).toStringAsFixed(1)} L'
-        : (rawOut?.toString() ?? '₹45.0 L');
+        : (rawOut != null ? '₹$rawOut' : '₹0');
 
-    final criticalAlerts = group?['alertsCritical'] ?? 4;
+    final criticalAlerts = group?['alertsCritical'] ?? 0;
 
     final categories = [
       'Core Performance',
@@ -3761,43 +1743,43 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final colPct =
         (collection?['collectionPct'] as num?)?.toDouble() ??
         (group?['collectionPct'] as num?)?.toDouble() ??
-        68.2;
-    final duePct = (collection?['duePct'] as num?)?.toDouble() ?? 18.4;
-    final overduePct = (collection?['overduePct'] as num?)?.toDouble() ?? 13.3;
+        0.0;
+    final duePct = (collection?['duePct'] as num?)?.toDouble() ?? 0.0;
+    final overduePct = (collection?['overduePct'] as num?)?.toDouble() ?? 0.0;
 
     final rawCollected =
-        collection?['collected'] ?? group?['collectedYTD'] ?? 9658180;
+        collection?['collected'] ?? group?['collectedYTD'] ?? 0;
     final colStr = rawCollected is num
         ? '₹${(rawCollected / 100000).toStringAsFixed(1)} L'
-        : '₹96.6 L';
+        : '₹0';
 
-    final rawDue = collection?['due'] ?? 2608167;
+    final rawDue = collection?['due'] ?? 0;
     final dueStr = rawDue is num
         ? '₹${(rawDue / 100000).toStringAsFixed(1)} L'
-        : '₹26.1 L';
+        : '₹0';
 
-    final rawOverdue = collection?['overdue'] ?? 1888673;
+    final rawOverdue = collection?['overdue'] ?? 0;
     final overdueStr = rawOverdue is num
         ? '₹${(rawOverdue / 100000).toStringAsFixed(1)} L'
-        : '₹18.9 L';
+        : '₹0';
 
     final aging = collection?['aging'] as Map<String, dynamic>?;
-    final num a0 = (aging?['current'] as num?) ?? 2608167;
-    final num a30 = (aging?['days30'] as num?) ?? 944336;
-    final num a60 = (aging?['days60'] as num?) ?? 566602;
-    final num a90 = (aging?['days90Plus'] as num?) ?? 377735;
+    final num a0 = (aging?['current'] as num?) ?? 0;
+    final num a30 = (aging?['days30'] as num?) ?? 0;
+    final num a60 = (aging?['days60'] as num?) ?? 0;
+    final num a90 = (aging?['days90Plus'] as num?) ?? 0;
     final num totalOut = a0 + a30 + a60 + a90;
     final totalOutStr = '₹${(totalOut / 100000).toStringAsFixed(1)} L Total';
 
     final a0Pct = totalOut > 0
         ? (a0 / totalOut * 100).toStringAsFixed(1)
-        : '58.0';
+        : '0.0';
     final a30Pct = totalOut > 0
         ? (a30 / totalOut * 100).toStringAsFixed(1)
-        : '21.0';
+        : '0.0';
     final a60Pct = totalOut > 0
         ? (a60 / totalOut * 100).toStringAsFixed(1)
-        : '12.6';
+        : '0.0';
     final a90Pct = totalOut > 0
         ? (a90 / totalOut * 100).toStringAsFixed(1)
         : '8.4';
@@ -3899,7 +1881,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'EBITDA ${(group?['ebitdaMargin'] ?? 35.9)}%',
+                          'EBITDA ${(group?['ebitdaMargin'] ?? 0.0)}%',
                           style: const TextStyle(
                             color: Color(0xFF065F46),
                             fontSize: 9.5,
@@ -4004,9 +1986,9 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   child: CustomPaint(
                     painter: CashTrajectoryPainter(
                       ebitdaMargin:
-                          (group?['ebitdaMargin'] as num?)?.toDouble() ?? 35.9,
+                          (group?['ebitdaMargin'] as num?)?.toDouble() ?? 0.0,
                       collectionPct:
-                          (group?['collectionPct'] as num?)?.toDouble() ?? 68.2,
+                          (group?['collectionPct'] as num?)?.toDouble() ?? 0.0,
                     ),
                   ),
                 ),
@@ -4372,7 +2354,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // ===========================================================================
   Widget _buildBranchBenchmarkQuickWidget() {
     final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
-    final totalBranchesCount = branches.isNotEmpty ? branches.length : 6;
+    final totalBranchesCount = branches.length;
 
     final sorted = List<Map<String, dynamic>>.from(
       branches.map((e) => e as Map<String, dynamic>),
@@ -4449,12 +2431,12 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               final b = entry.value;
               final name = b['name']?.toString() ?? 'Branch';
               final stu = b['students'] ?? 0;
-              final teachers = b['teachers'] ?? b['staffTeach'] ?? 2;
+              final teachers = b['teachers'] ?? b['staffTeach'] ?? 0;
               final rev = b['revenue'];
               final revStr = rev is num
                   ? '₹${(rev / 100000).toStringAsFixed(1)} L Rev'
                   : '₹0.0 L Rev';
-              final health = b['health'] ?? 75;
+              final health = b['health'] ?? 0;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 6.0),
                 child: _buildQuickBenchmarkItem(
@@ -4466,31 +2448,16 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 ),
               );
             })
-          else ...[
-            _buildQuickBenchmarkItem(
-              name: 'Gachibowli Campus',
-              sub: '21 Students · 2 Faculty · ₹27.3 L Rev',
-              score: '75%',
-              rank: 'Rank #1',
-              isTop: true,
+          else
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: Text(
+                  'No branch benchmark data available',
+                  style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                ),
+              ),
             ),
-            const SizedBox(height: 6),
-            _buildQuickBenchmarkItem(
-              name: 'Steel Plant Branch',
-              sub: '43 Students · 2 Faculty · ₹26.5 L Rev',
-              score: '70%',
-              rank: 'Rank #2',
-              isTop: false,
-            ),
-            const SizedBox(height: 6),
-            _buildQuickBenchmarkItem(
-              name: 'Kukatpally Campus',
-              sub: '17 Students · 2 Faculty · ₹23.4 L Rev',
-              score: '76%',
-              rank: 'Rank #3',
-              isTop: false,
-            ),
-          ],
         ],
       ),
     );
@@ -4573,27 +2540,30 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         : (_dashboardData?['branches'] as List<dynamic>? ?? []));
     final group = _dashboardData?['group'] as Map<String, dynamic>?;
     final double avgCollection =
-        (group?['collectionPct'] as num?)?.toDouble() ?? 68.2;
+        (group?['collectionPct'] as num?)?.toDouble() ?? 0.0;
     final double avgAttendance =
-        (group?['attendance'] as num?)?.toDouble() ?? 92.1;
-    final List<Map<String, dynamic>>
-    branchQuadrantData = branchList.asMap().entries.map((entry) {
-      final idx = entry.key;
-      final b = entry.value as Map<String, dynamic>;
-      final name = b['name']?.toString() ?? 'Branch';
-      final color = _getBranchColor(name, idx);
-      final double colPct = (b['collectionPct'] as num?)?.toDouble() ?? 68.0;
-      final double attPct = (b['attendancePct'] as num?)?.toDouble() ?? 92.0;
-      final int students = (b['students'] as num?)?.toInt() ?? 10;
-      return {
-        'name': name,
-        'code': b['code']?.toString() ?? '',
-        'color': color,
-        'collectionPct': colPct,
-        'attendancePct': attPct,
-        'students': students,
-      };
-    }).toList();
+        (group?['attendance'] as num?)?.toDouble() ?? 0.0;
+    final List<Map<String, dynamic>> branchQuadrantData = branchList
+        .asMap()
+        .entries
+        .map((entry) {
+          final idx = entry.key;
+          final b = entry.value as Map<String, dynamic>;
+          final name = b['name']?.toString() ?? 'Branch';
+          final color = _getBranchColor(name, idx);
+          final double colPct = (b['collectionPct'] as num?)?.toDouble() ?? 0.0;
+          final double attPct = (b['attendancePct'] as num?)?.toDouble() ?? 0.0;
+          final int students = (b['students'] as num?)?.toInt() ?? 0;
+          return {
+            'name': name,
+            'code': b['code']?.toString() ?? '',
+            'color': color,
+            'collectionPct': colPct,
+            'attendancePct': attPct,
+            'students': students,
+          };
+        })
+        .toList();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -4783,7 +2753,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       final idx = entry.key;
       final m = entry.value as Map<String, dynamic>;
       final name = m['name']?.toString() ?? 'Branch';
-      final health = (m['health'] as num?)?.toInt() ?? 75;
+      final health = (m['health'] as num?)?.toInt() ?? 0;
       final rev = m['revenue'];
       final revStr = rev is num
           ? '₹${(rev / 100000).toStringAsFixed(1)} L'
@@ -4863,67 +2833,81 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
           const SizedBox(height: 12),
 
-          // 9 Branch Comparison Bar Items
-          ...branchesData.map((b) {
-            final name = b['name'] as String;
-            final pct = b['pct'] as int;
-            final rev = b['rev'] as String;
-            final color = b['color'] as Color;
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 9.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          color: Color(0xFF1E293B),
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: '$pct% · ',
-                              style: const TextStyle(
-                                color: Color(0xFF0F172A),
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            TextSpan(
-                              text: rev,
-                              style: TextStyle(
-                                color: color,
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+          if (branchesData.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'No branch comparison data available',
+                  style: TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(height: 3),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: pct / 100.0,
-                      minHeight: 6,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            );
-          }),
+            )
+          else
+            ...branchesData.map((b) {
+              final name = b['name'] as String;
+              final pct = b['pct'] as int;
+              final rev = b['rev'] as String;
+              final color = b['color'] as Color;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 9.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            color: Color(0xFF1E293B),
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '$pct% · ',
+                                style: const TextStyle(
+                                  color: Color(0xFF0F172A),
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              TextSpan(
+                                text: rev,
+                                style: TextStyle(
+                                  color: color,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: pct / 100.0,
+                        minHeight: 6,
+                        backgroundColor: const Color(0xFFF1F5F9),
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );
@@ -4980,55 +2964,26 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final alertList = (alerts.isNotEmpty
         ? alerts
         : (_dashboardData?['alerts'] as List<dynamic>? ?? []));
-    final alertItems = alertList.isNotEmpty
-        ? alertList.take(6).map((al) {
-            final m = al as Map<String, dynamic>;
-            final id =
-                m['id']?.toString() ??
-                'alt-${m['branch']}-${m['text'] ?? m['title']}';
-            final type = (m['type']?.toString() ?? 'ALERT').toUpperCase();
-            final time = m['time']?.toString() ?? 'today';
-            final title = m['text']?.toString() ?? m['title']?.toString() ?? '';
-            final branch = m['branch']?.toString() ?? '';
-            final level = (m['level'] ?? m['severity'])
-                ?.toString()
-                .toLowerCase();
-            final isRose = level == 'critical' || level == 'danger';
-            return {
-              'id': id,
-              'tag': type,
-              'time': time,
-              'title': title,
-              'branch': branch,
-              'isRose': isRose,
-            };
-          }).toList()
-        : [
-            {
-              'id': 'alt-1',
-              'tag': 'FINANCE',
-              'time': '2h ago',
-              'title': '₹13.2 L outstanding · 48% of billed',
-              'branch': 'Gachibowli Campus',
-              'isRose': true,
-            },
-            {
-              'id': 'alt-2',
-              'tag': 'FINANCE',
-              'time': '2h ago',
-              'title': '₹10.3 L outstanding · 45% of billed',
-              'branch': 'Maddipalem',
-              'isRose': true,
-            },
-            {
-              'id': 'alt-3',
-              'tag': 'COMPLAINT',
-              'time': 'open',
-              'title': 'Transport: Bus delay on Route 4',
-              'branch': 'Kondapur Branch',
-              'isRose': true,
-            },
-          ];
+    final alertItems = alertList.take(6).map((al) {
+      final m = al as Map<String, dynamic>;
+      final id =
+          m['id']?.toString() ??
+          'alt-${m['branch']}-${m['text'] ?? m['title']}';
+      final type = (m['type']?.toString() ?? 'ALERT').toUpperCase();
+      final time = m['time']?.toString() ?? 'today';
+      final title = m['text']?.toString() ?? m['title']?.toString() ?? '';
+      final branch = m['branch']?.toString() ?? '';
+      final level = (m['level'] ?? m['severity'])?.toString().toLowerCase();
+      final isRose = level == 'critical' || level == 'danger';
+      return {
+        'id': id,
+        'tag': type,
+        'time': time,
+        'title': title,
+        'branch': branch,
+        'isRose': isRose,
+      };
+    }).toList();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -5068,123 +3023,134 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
           const SizedBox(height: 12),
 
-          ...alertItems.map((al) {
-            final id = al['id'] as String;
-            final isAck = _acknowledgedAlertIds.contains(id);
-            final isRose = al['isRose'] as bool;
-            final borderColor = isAck
-                ? const Color(0xFFCBD5E1)
-                : isRose
-                ? const Color(0xFFF43F5E)
-                : const Color(0xFF94A3B8);
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.only(left: 10),
-              decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(color: borderColor, width: 2.5),
+          if (alertItems.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: Text(
+                  'No critical alerts · Systems operating normally',
+                  style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 1,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isRose
-                              ? const Color(0xFFFFF1F2)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          al['tag'] as String,
-                          style: TextStyle(
-                            color: isRose
-                                ? const Color(0xFFE11D48)
-                                : const Color(0xFF475569),
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.w800,
+            )
+          else
+            ...alertItems.map((al) {
+              final id = al['id'] as String;
+              final isAck = _acknowledgedAlertIds.contains(id);
+              final isRose = al['isRose'] as bool;
+              final borderColor = isAck
+                  ? const Color(0xFFCBD5E1)
+                  : isRose
+                  ? const Color(0xFFF43F5E)
+                  : const Color(0xFF94A3B8);
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(left: 10),
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(color: borderColor, width: 2.5),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
                           ),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            isAck ? 'acknowledged' : al['time'] as String,
+                          decoration: BoxDecoration(
+                            color: isRose
+                                ? const Color(0xFFFFF1F2)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            al['tag'] as String,
                             style: TextStyle(
-                              color: isAck
-                                  ? const Color(0xFF059669)
-                                  : const Color(0xFF94A3B8),
-                              fontSize: 9,
-                              fontWeight: isAck
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+                              color: isRose
+                                  ? const Color(0xFFE11D48)
+                                  : const Color(0xFF475569),
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
-                          if (!isAck) ...[
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _acknowledgedAlertIds.add(id));
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 1.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFAF5FF),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: const Color(0xFFEDE9FE),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              isAck ? 'acknowledged' : al['time'] as String,
+                              style: TextStyle(
+                                color: isAck
+                                    ? const Color(0xFF059669)
+                                    : const Color(0xFF94A3B8),
+                                fontSize: 9,
+                                fontWeight: isAck
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                            if (!isAck) ...[
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  setState(() => _acknowledgedAlertIds.add(id));
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 1.5,
                                   ),
-                                ),
-                                child: const Text(
-                                  'Acknowledge',
-                                  style: TextStyle(
-                                    color: Color(0xFF7C3AED),
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w700,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFAF5FF),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: const Color(0xFFEDE9FE),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Acknowledge',
+                                    style: TextStyle(
+                                      color: Color(0xFF7C3AED),
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ],
-                        ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      al['title'] as String,
+                      style: TextStyle(
+                        color: isAck
+                            ? const Color(0xFF64748B)
+                            : const Color(0xFF0F172A),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    al['title'] as String,
-                    style: TextStyle(
-                      color: isAck
-                          ? const Color(0xFF64748B)
-                          : const Color(0xFF0F172A),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
                     ),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    '↳ ${al['branch']}',
-                    style: const TextStyle(
-                      color: Color(0xFF94A3B8),
-                      fontSize: 9.5,
+                    const SizedBox(height: 1),
+                    Text(
+                      '↳ ${al['branch']}',
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 9.5,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );
@@ -5216,20 +3182,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             }
             return {'id': id, 'title': title, 'meta': meta, 'amount': amtStr};
           }).toList()
-        : [
-            {
-              'id': 'apr-1',
-              'title': 'Fee Waiver · Hardship fee waiver — 3 students',
-              'meta': 'Gachibowli Campus · 154d waiting',
-              'amount': '₹45,000',
-            },
-            {
-              'id': 'apr-2',
-              'title': 'Capex · New science lab fit-out',
-              'meta': 'Gachibowli Campus · 154d waiting',
-              'amount': '₹8.5 L',
-            },
-          ];
+        : const <Map<String, dynamic>>[];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -5269,126 +3222,141 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
           const SizedBox(height: 12),
 
-          ...approvals.map((ap) {
-            final id = ap['id'] as String;
-            final isApproved = _approvedItemIds.contains(id);
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isApproved
-                    ? const Color(0xFFF0FDF4)
-                    : const Color(0x80F8FAFC),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isApproved
-                      ? const Color(0xFFBBF7D0)
-                      : const Color(0xFFF1F5F9),
+          if (approvals.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'No pending approvals in queue',
+                  style: TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: isApproved
-                          ? const Color(0xFFDCFCE7)
-                          : const Color(0xFFFAF5FF),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      isApproved
-                          ? Icons.check_circle_rounded
-                          : Icons.description_outlined,
-                      color: isApproved
-                          ? const Color(0xFF15803D)
-                          : const Color(0xFF7C3AED),
-                      size: 16,
-                    ),
+            )
+          else
+            ...approvals.map((ap) {
+              final id = ap['id'] as String;
+              final isApproved = _approvedItemIds.contains(id);
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isApproved
+                      ? const Color(0xFFF0FDF4)
+                      : const Color(0x80F8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isApproved
+                        ? const Color(0xFFBBF7D0)
+                        : const Color(0xFFF1F5F9),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ap['title'] as String,
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 1),
-                        Text(
-                          ap['meta'] as String,
-                          style: const TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 9,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if ((ap['amount'] as String).isNotEmpty) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      ap['amount'] as String,
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      setState(() {
-                        if (isApproved) {
-                          _approvedItemIds.remove(id);
-                        } else {
-                          _approvedItemIds.add(id);
-                        }
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3.5,
-                      ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 30,
+                      height: 30,
                       decoration: BoxDecoration(
                         color: isApproved
                             ? const Color(0xFFDCFCE7)
                             : const Color(0xFFFAF5FF),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: isApproved
-                              ? const Color(0xFFA7F3D0)
-                              : const Color(0xFFEDE9FE),
-                        ),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        isApproved ? 'Approved' : 'Review',
-                        style: TextStyle(
-                          color: isApproved
-                              ? const Color(0xFF15803D)
-                              : const Color(0xFF7C3AED),
-                          fontSize: 9.5,
+                      child: Icon(
+                        isApproved
+                            ? Icons.check_circle_rounded
+                            : Icons.description_outlined,
+                        color: isApproved
+                            ? const Color(0xFF15803D)
+                            : const Color(0xFF7C3AED),
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ap['title'] as String,
+                            style: const TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            ap['meta'] as String,
+                            style: const TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 9,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if ((ap['amount'] as String).isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        ap['amount'] as String,
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 11,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
+                    ],
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() {
+                          if (isApproved) {
+                            _approvedItemIds.remove(id);
+                          } else {
+                            _approvedItemIds.add(id);
+                          }
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isApproved
+                              ? const Color(0xFFDCFCE7)
+                              : const Color(0xFFFAF5FF),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: isApproved
+                                ? const Color(0xFFA7F3D0)
+                                : const Color(0xFFEDE9FE),
+                          ),
+                        ),
+                        child: Text(
+                          isApproved ? 'Approved' : 'Review',
+                          style: TextStyle(
+                            color: isApproved
+                                ? const Color(0xFF15803D)
+                                : const Color(0xFF7C3AED),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );
@@ -5426,33 +3394,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
             prevCount = count;
             return {'label': label, 'count': count, 'pct': pct, 'sub': sub};
           }).toList()
-        : [
-            {'label': 'Enquiries', 'count': 16, 'pct': 64, 'sub': ''},
-            {
-              'label': 'Applications',
-              'count': 25,
-              'pct': 100,
-              'sub': '↳ 156% step conversion',
-            },
-            {
-              'label': 'Shortlisted',
-              'count': 9,
-              'pct': 36,
-              'sub': '↳ 36% step conversion',
-            },
-            {
-              'label': 'Admitted',
-              'count': 8,
-              'pct': 32,
-              'sub': '↳ 89% step conversion',
-            },
-            {
-              'label': 'Enrolled',
-              'count': 2,
-              'pct': 8,
-              'sub': '↳ 25% step conversion',
-            },
-          ];
+        : const <Map<String, dynamic>>[];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -5492,62 +3434,77 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
           const SizedBox(height: 12),
 
-          ...stages.map((st) {
-            final pct = st['pct'] as int;
-            final sub = st['sub'] as String;
+          if (stages.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'No admissions funnel data available',
+                  style: TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            )
+          else
+            ...stages.map((st) {
+              final pct = st['pct'] as int;
+              final sub = st['sub'] as String;
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 9.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        st['label'] as String,
-                        style: const TextStyle(
-                          color: Color(0xFF1E293B),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 9.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          st['label'] as String,
+                          style: const TextStyle(
+                            color: Color(0xFF1E293B),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          '${st['count']}',
+                          style: const TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: pct / 100.0,
+                        minHeight: 8,
+                        backgroundColor: const Color(0xFFF1F5F9),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF7C3AED),
                         ),
                       ),
+                    ),
+                    if (sub.isNotEmpty) ...[
+                      const SizedBox(height: 2),
                       Text(
-                        '${st['count']}',
+                        sub,
                         style: const TextStyle(
-                          color: Color(0xFF0F172A),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF94A3B8),
+                          fontSize: 8.5,
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 3),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: pct / 100.0,
-                      minHeight: 8,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF7C3AED),
-                      ),
-                    ),
-                  ),
-                  if (sub.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      sub,
-                      style: const TextStyle(
-                        color: Color(0xFF94A3B8),
-                        fontSize: 8.5,
-                      ),
-                    ),
                   ],
-                ],
-              ),
-            );
-          }),
+                ),
+              );
+            }),
         ],
       ),
     );
@@ -5990,7 +3947,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         thickness: 1,
                       ),
 
-                      // Root Node (Sai Ravindra School)
+                      // Root Node (Organization Group)
                       InkWell(
                         onTap: () {
                           HapticFeedback.selectionClick();
@@ -6594,6 +4551,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     return FinanceFeesView(
       initialGroup: group,
       initialBranches: _dashboardData?['branches'] as List<dynamic>?,
+      initialDashboardJson: _dashboardData,
       activePeriod: _financePeriod,
       selectedBranch: _financeBranch,
       onPeriodChanged: (p) => setState(() => _financePeriod = p),
@@ -6845,6 +4803,13 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
           _applyAttendanceData(body);
         }
       }
+
+      // Concurrently query live daily attendance per student and staff member
+      OwnerDashboardService.getAttendanceDirectory(date: dateStr).then((dirData) {
+        if (dirData != null && mounted) {
+          _applyIndividualAttendance(dirData);
+        }
+      });
     } catch (e) {
       debugPrint('Error fetching attendance for date $dateStr: $e');
     } finally {
@@ -6856,17 +4821,40 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     }
   }
 
+  void _applyIndividualAttendance(Map<String, dynamic> dirData) {
+    final rawRecords = dirData['data'] ?? dirData['records'] ?? dirData['attendance'];
+    if (rawRecords is List) {
+      final allStudents = _getAllStudentRecords();
+      final allStaff = _getAllStaffRecords();
+
+      for (final rec in rawRecords) {
+        if (rec is! Map<String, dynamic>) continue;
+        final name = (rec['name'] ?? rec['studentName'] ?? rec['employeeName'] ?? '').toString().toLowerCase();
+        final status = (rec['status'] ?? rec['attendanceStatus'] ?? '').toString();
+        if (status.isEmpty || name.isEmpty) continue;
+
+        for (final s in allStudents) {
+          if ((s['name']?.toString() ?? '').toLowerCase() == name) {
+            s['status'] = status;
+          }
+        }
+        for (final st in allStaff) {
+          if ((st['name']?.toString() ?? '').toLowerCase() == name) {
+            st['status'] = status;
+          }
+        }
+      }
+      if (mounted) setState(() {});
+    }
+  }
+
   void _applyAttendanceData(Map<String, dynamic> body) {
     final rawByBranch = body['byBranch'] as Map<String, dynamic>? ?? {};
 
     _updateRosterStatusesFromAttendance(rawByBranch);
 
     setState(() {
-      try {
-        _dashboardData ??= jsonDecode(jsonEncode(kDefaultLiveDashboardData));
-      } catch (_) {
-        _dashboardData ??= Map<String, dynamic>.from(kDefaultLiveDashboardData);
-      }
+      _dashboardData ??= <String, dynamic>{};
       _dashboardData!['attendance'] = body;
 
       final branches = _dashboardData!['branches'] as List<dynamic>?;
@@ -6954,40 +4942,43 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   String _getBranchLabel(String id) {
-    switch (id) {
-      case 'steel-plant':
-        return 'Steel Plant Branch';
-      case 'gachibowli':
-        return 'Gachibowli Campus';
-      case 'maddipalem':
-        return 'Maddipalem Branch';
-      case 'kukatpally':
-        return 'Kukatpally Campus';
-      case 'kondapur':
-        return 'Kondapur Branch';
-      case 'madhapur':
-        return 'Madhapur Branch';
-      default:
-        final count = (_dashboardData?['branches'] as List?)?.length ?? 6;
-        return 'All branches ($count)';
+    if (id == 'all') {
+      final count = (_dashboardData?['branches'] as List?)?.length ?? 0;
+      return 'All branches ($count)';
     }
+    final branches = _dashboardData?['branches'] as List<dynamic>?;
+    if (branches != null) {
+      for (final b in branches) {
+        if (b is Map<String, dynamic>) {
+          final name = b['name']?.toString() ?? '';
+          if (_getBranchSlug(name) == id || name == id) {
+            return name;
+          }
+        }
+      }
+    }
+    final byBranch =
+        _dashboardData?['attendance']?['byBranch'] as Map<String, dynamic>?;
+    if (byBranch != null) {
+      for (final key in byBranch.keys) {
+        if (_getBranchSlug(key) == id || key == id) {
+          return key;
+        }
+      }
+    }
+    return id.replaceAll('-', ' ');
   }
 
   Color _getBranchColor(String name, int index) {
-    final lower = name.toLowerCase();
-    if (lower.contains('steel')) return const Color(0xFF10B981);
-    if (lower.contains('gachi')) return const Color(0xFF8B5CF6);
-    if (lower.contains('kondapur')) return const Color(0xFF06B6D4);
-    if (lower.contains('kukat')) return const Color(0xFFA855F7);
-    if (lower.contains('maddipalem')) return const Color(0xFFEF4444);
-    if (lower.contains('madhapur')) return const Color(0xFFF59E0B);
     const palette = [
+      Color(0xFF10B981),
       Color(0xFF8B5CF6),
       Color(0xFF06B6D4),
       Color(0xFFA855F7),
-      Color(0xFFEF4444),
       Color(0xFFF59E0B),
-      Color(0xFF10B981),
+      Color(0xFFEF4444),
+      Color(0xFF3B82F6),
+      Color(0xFF6366F1),
     ];
     return palette[index % palette.length];
   }
@@ -7119,44 +5110,19 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
 
   void _showBranchPicker() {
     final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
-    final totalCount = branches.isNotEmpty ? branches.length : 6;
+    final totalCount = branches.length;
 
     final List<Map<String, String>> options = [
       {'id': 'all', 'label': 'All branches ($totalCount)'},
     ];
 
-    if (branches.isNotEmpty) {
-      for (final b in branches) {
-        final bm = b as Map<String, dynamic>;
-        final name = bm['name']?.toString() ?? 'Branch';
-        final stu = bm['students'] ?? 0;
-        final stf = bm['staffTotal'] ?? bm['teachers'] ?? 4;
-        final lower = name.toLowerCase();
-        final id = lower.contains('steel')
-            ? 'steel-plant'
-            : lower.contains('gachi')
-            ? 'gachibowli'
-            : lower.contains('maddipalem')
-            ? 'maddipalem'
-            : lower.contains('kukat')
-            ? 'kukatpally'
-            : lower.contains('kondapur')
-            ? 'kondapur'
-            : 'madhapur';
-        options.add({'id': id, 'label': '$name ($stu Roll / $stf Staff)'});
-      }
-    } else {
-      options.addAll([
-        {
-          'id': 'steel-plant',
-          'label': 'Steel Plant Branch (43 Roll / 25 Staff)',
-        },
-        {'id': 'gachibowli', 'label': 'Gachibowli Campus (21 Roll / 4 Staff)'},
-        {'id': 'maddipalem', 'label': 'Maddipalem Branch (18 Roll / 5 Staff)'},
-        {'id': 'kukatpally', 'label': 'Kukatpally Campus (17 Roll / 4 Staff)'},
-        {'id': 'kondapur', 'label': 'Kondapur Branch (14 Roll / 4 Staff)'},
-        {'id': 'madhapur', 'label': 'Madhapur Branch (9 Roll / 4 Staff)'},
-      ]);
+    for (final b in branches) {
+      if (b is! Map<String, dynamic>) continue;
+      final name = b['name']?.toString() ?? 'Branch';
+      final stu = b['students'] ?? 0;
+      final stf = b['staffTotal'] ?? b['teachers'] ?? 0;
+      final id = _getBranchSlug(name);
+      options.add({'id': id, 'label': '$name ($stu Roll / $stf Staff)'});
     }
 
     _showFilterPicker(
@@ -7173,17 +5139,24 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   void _showClassPicker() {
-    const options = [
+    final Set<String> dynamicClasses = {};
+    for (final s in _dynamicStudentRecords) {
+      final k = s['class']?.toString() ?? '';
+      if (k.isNotEmpty) dynamicClasses.add(k);
+    }
+    final ttList = AcademicsData.parseFromDashboard(_dashboardData);
+    for (final tt in ttList) {
+      if (tt.className.isNotEmpty) dynamicClasses.add(tt.className);
+    }
+
+    final options = <Map<String, String>>[
       {'id': 'all', 'label': 'All classes'},
-      {'id': 'Class 10', 'label': 'Class 10'},
-      {'id': 'Class 9', 'label': 'Class 9'},
-      {'id': 'Class 8', 'label': 'Class 8'},
-      {'id': 'Class 7', 'label': 'Class 7'},
-      {'id': 'Class 6', 'label': 'Class 6'},
-      {'id': 'Class 5', 'label': 'Class 5'},
-      {'id': 'Class 2', 'label': 'Class 2'},
-      {'id': 'Class 1', 'label': 'Class 1'},
     ];
+    final sortedClasses = dynamicClasses.toList()..sort();
+    for (final c in sortedClasses) {
+      options.add({'id': c, 'label': c});
+    }
+
     _showFilterPicker(
       title: 'Filter by Class',
       options: options,
@@ -7195,11 +5168,20 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   void _showSectionPicker() {
-    const options = [
+    final Set<String> dynamicSections = {};
+    for (final s in _dynamicStudentRecords) {
+      final sec = s['section']?.toString() ?? '';
+      if (sec.isNotEmpty) dynamicSections.add(sec);
+    }
+
+    final options = <Map<String, String>>[
       {'id': 'all', 'label': 'All sections'},
-      {'id': 'Sec A', 'label': 'Sec A'},
-      {'id': 'Sec B', 'label': 'Sec B'},
     ];
+    final sortedSections = dynamicSections.toList()..sort();
+    for (final sec in sortedSections) {
+      options.add({'id': sec, 'label': sec});
+    }
+
     _showFilterPicker(
       title: 'Filter by Section',
       options: options,
@@ -7211,15 +5193,27 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   void _showDeptPicker() {
-    const options = [
+    final Set<String> dynamicDepts = {};
+    final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
+    for (final b in branches) {
+      if (b is Map && b['roles'] is List) {
+        for (final r in (b['roles'] as List)) {
+          if (r is Map) {
+            final roleName = r['role']?.toString() ?? '';
+            if (roleName.isNotEmpty) dynamicDepts.add(roleName);
+          }
+        }
+      }
+    }
+
+    final options = <Map<String, String>>[
       {'id': 'all', 'label': 'All depts'},
-      {'id': 'Physics', 'label': 'Physics'},
-      {'id': 'English', 'label': 'English'},
-      {'id': 'Transport', 'label': 'Transport'},
-      {'id': 'Administration', 'label': 'Administration'},
-      {'id': 'Library', 'label': 'Library'},
-      {'id': 'Facilities & Security', 'label': 'Facilities & Security'},
     ];
+    final sortedDepts = dynamicDepts.toList()..sort();
+    for (final d in sortedDepts) {
+      options.add({'id': d, 'label': d});
+    }
+
     _showFilterPicker(
       title: 'Filter by Department',
       options: options,
@@ -7287,13 +5281,23 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   String _getBranchSlug(String name) {
-    final lower = name.toLowerCase();
-    if (lower.contains('steel')) return 'steel-plant';
-    if (lower.contains('gachi')) return 'gachibowli';
-    if (lower.contains('maddipalem')) return 'maddipalem';
-    if (lower.contains('kukat')) return 'kukatpally';
-    if (lower.contains('kondapur')) return 'kondapur';
-    return 'madhapur';
+    final lower = name.toLowerCase().trim();
+    final branches = _dashboardData?['branches'] as List<dynamic>? ?? [];
+    for (final b in branches) {
+      if (b is Map) {
+        final bName = (b['name'] ?? b['city'] ?? '')
+            ?.toString()
+            .toLowerCase()
+            .trim();
+        final bId = (b['id'] ?? b['branch_id'] ?? b['code'])?.toString();
+        if (bName == lower && bId != null && bId.isNotEmpty) {
+          return bId;
+        }
+      }
+    }
+    return lower
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
   }
 
   String _roleNameToSlug(String roleName) {
@@ -7918,10 +5922,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                     isStudents
                         ? (isFiltered
                               ? '$branchName • $count enrolled students'
-                              : '${(_dashboardData?['branches'] as List?)?.length ?? 6} branches • $count total enrolled students')
+                              : '${(_dashboardData?['branches'] as List?)?.length ?? 0} branches • $count total enrolled students')
                         : (isFiltered
                               ? '$branchName • $count ${_getStaffScopeSubtitle()}'
-                              : '${(_dashboardData?['branches'] as List?)?.length ?? 6} branches • $count total ${_getStaffScopeSubtitle()}'),
+                              : '${(_dashboardData?['branches'] as List?)?.length ?? 0} branches • $count total ${_getStaffScopeSubtitle()}'),
                     style: const TextStyle(
                       color: Color(0xFF64748B),
                       fontSize: 10.5,
@@ -8013,7 +6017,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '${(_dashboardData?['attendance']?['students']?['roster'] ?? _dashboardData?['group']?['students'] ?? 122)}',
+                        '${(_dashboardData?['attendance']?['students']?['roster'] ?? _dashboardData?['group']?['students'] ?? 0)}',
                         style: TextStyle(
                           color: isStudents
                               ? Colors.white
@@ -8245,32 +6249,68 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
               physics: const BouncingScrollPhysics(),
               child: Row(
                 children: [
-                  _buildScopePill(
-                    'All students',
-                    '${(_dashboardData?['attendance']?['students']?['roster'] ?? _dashboardData?['group']?['students'] ?? 122)}',
-                    _studentResidencyFilter == 'all-students',
-                    () {
-                      setState(() => _studentResidencyFilter = 'all-students');
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _buildScopePill(
-                    'Hostel residents',
-                    '12',
-                    _studentResidencyFilter == 'hostel-residents',
-                    () {
-                      setState(
-                        () => _studentResidencyFilter = 'hostel-residents',
+                  Builder(
+                    builder: (context) {
+                      final totalRoster =
+                          (_dashboardData?['attendance']?['students']?['roster']
+                                  as num?)
+                              ?.toInt() ??
+                          (_dashboardData?['group']?['students'] as num?)
+                              ?.toInt() ??
+                          0;
+                      int hostelCount = 0;
+                      final brList =
+                          _dashboardData?['branches'] as List<dynamic>? ?? [];
+                      for (final b in brList) {
+                        if (b is Map<String, dynamic>) {
+                          final res = b['resources'] as Map<String, dynamic>?;
+                          hostelCount +=
+                              (res?['hostelBedsOccupied'] as num?)?.toInt() ??
+                              (b['hostelOccupied'] as num?)?.toInt() ??
+                              0;
+                        }
+                      }
+                      final dayScholars = totalRoster >= hostelCount
+                          ? (totalRoster - hostelCount)
+                          : totalRoster;
+
+                      return Row(
+                        children: [
+                          _buildScopePill(
+                            'All students',
+                            '$totalRoster',
+                            _studentResidencyFilter == 'all-students',
+                            () {
+                              setState(
+                                () => _studentResidencyFilter = 'all-students',
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildScopePill(
+                            'Hostel residents',
+                            '$hostelCount',
+                            _studentResidencyFilter == 'hostel-residents',
+                            () {
+                              setState(
+                                () => _studentResidencyFilter =
+                                    'hostel-residents',
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildScopePill(
+                            'Day scholars',
+                            '$dayScholars',
+                            _studentResidencyFilter == 'day-scholars',
+                            () {
+                              setState(
+                                () => _studentResidencyFilter = 'day-scholars',
+                              );
+                            },
+                          ),
+                        ],
                       );
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _buildScopePill(
-                    'Day scholars',
-                    '${((_dashboardData?['attendance']?['students']?['roster'] ?? 122) - 12)}',
-                    _studentResidencyFilter == 'day-scholars',
-                    () {
-                      setState(() => _studentResidencyFilter = 'day-scholars');
                     },
                   ),
                 ],
@@ -8285,7 +6325,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   _buildDropdownChip(
                     'BRANCH',
                     _selectedBranchFilter == 'all'
-                        ? 'All branches (${(_dashboardData?['branches'] as List?)?.length ?? 6})'
+                        ? 'All branches (${(_dashboardData?['branches'] as List?)?.length ?? 0})'
                         : _getBranchLabel(_selectedBranchFilter),
                     isActive: _selectedBranchFilter != 'all',
                     onTap: _showBranchPicker,
@@ -8365,7 +6405,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                 children: [
                   _buildScopePill(
                     'All staff',
-                    '${(_dashboardData?['attendance']?['staff']?['roster'] ?? _dashboardData?['group']?['staffFilled'] ?? 46)}',
+                    '${(_dashboardData?['attendance']?['staff']?['roster'] ?? _dashboardData?['group']?['staffFilled'] ?? 0)}',
                     _staffRoleFilter == 'all-staff',
                     () {
                       setState(() {
@@ -8479,7 +6519,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   _buildDropdownChip(
                     'BRANCH',
                     _selectedBranchFilter == 'all'
-                        ? 'All branches (${(_dashboardData?['branches'] as List?)?.length ?? 6})'
+                        ? 'All branches (${(_dashboardData?['branches'] as List?)?.length ?? 0})'
                         : _getBranchLabel(_selectedBranchFilter),
                     isActive: _selectedBranchFilter != 'all',
                     onTap: _showBranchPicker,
@@ -9373,18 +7413,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
     final studentBranches = rawBranches.map((b) {
       final bm = b as Map<String, dynamic>;
       final name = bm['name']?.toString() ?? 'Branch';
-      final lower = name.toLowerCase();
-      final slug = lower.contains('steel')
-          ? 'steel-plant'
-          : lower.contains('gachi')
-          ? 'gachibowli'
-          : lower.contains('maddipalem')
-          ? 'maddipalem'
-          : lower.contains('kukat')
-          ? 'kukatpally'
-          : lower.contains('kondapur')
-          ? 'kondapur'
-          : 'madhapur';
+      final slug = _getBranchSlug(name);
 
       Map<String, dynamic>? att;
       for (final bbm in byBranch) {
@@ -9481,7 +7510,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       int total =
           (att?['roster'] as num?)?.toInt() ??
           (bm['staffTotal'] as num?)?.toInt() ??
-          4;
+          0;
       final present = (att?['present'] as num?)?.toInt() ?? 0;
       final absent = (att?['absent'] as num?)?.toInt() ?? 0;
       final leave = (att?['leave'] as num?)?.toInt() ?? 0;
@@ -9501,7 +7530,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       List<Map<String, String>> sections = [];
 
       if (_staffRoleFilter == 'teaching') {
-        final tCount = (bm['teachers'] as int? ?? 2);
+        final tCount = (bm['teachers'] as int? ?? 0);
         total = tCount;
         pending = tCount;
         progress = 0.0;
@@ -9516,7 +7545,7 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         ];
       } else if (_staffRoleFilter == 'non-teaching') {
         if (_staffSubFilter == 'all-nt') {
-          final tCount = (bm['teachers'] as int? ?? 2);
+          final tCount = (bm['teachers'] as int? ?? 0);
           final ntCount = (total - tCount).clamp(0, total);
           total = ntCount;
           pending = ntCount;
@@ -9595,19 +7624,23 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
                   'status': 'Sanctioned',
                 };
               }).toList()
-            : [
-                {
-                  'name': 'Teaching Faculty',
-                  'count': '${bm['teachers'] ?? 2} faculty',
-                  'status': 'Sanctioned',
-                },
-                {
-                  'name': 'Support Staff',
-                  'count':
-                      '${(total - (bm['teachers'] as int? ?? 2)).clamp(1, total)} staff',
-                  'status': 'Sanctioned',
-                },
-              ];
+            : (total > 0
+                  ? [
+                      if ((bm['teachers'] as int? ?? 0) > 0)
+                        {
+                          'name': 'Teaching Faculty',
+                          'count': '${bm['teachers']} faculty',
+                          'status': 'Sanctioned',
+                        },
+                      if (total - (bm['teachers'] as int? ?? 0) > 0)
+                        {
+                          'name': 'Support Staff',
+                          'count':
+                              '${total - (bm['teachers'] as int? ?? 0)} staff',
+                          'status': 'Sanctioned',
+                        },
+                    ]
+                  : const <Map<String, String>>[]);
       }
 
       return {
@@ -10977,6 +9010,10 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildTransportView() {
+    final vehiclesCount = (_dashboardData?['group']?['vehicles'] as num?)?.toInt();
+    final fleetText = vehiclesCount != null && vehiclesCount > 0
+        ? 'GPS tracking of $vehiclesCount campus fleet vehicles, live route ETAs, and student boarding notifications.'
+        : 'GPS tracking of campus fleet vehicles, live route ETAs, and student boarding notifications.';
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -10986,15 +9023,15 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
+        children: [
+          const Text(
             'Fleet & Transport Command',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            'GPS tracking of 18 campus buses, live route ETAs, and student boarding notifications.',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
+            fleetText,
+            style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
           ),
         ],
       ),
@@ -11027,6 +9064,11 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   }
 
   Widget _buildExamsMarksView() {
+    final performance = _classPerformanceData;
+    final classes = (performance?['classes'] as List?) ??
+        (performance?['data'] as List?) ??
+        (performance?['classPerformance'] as List?);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -11036,16 +9078,109 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            'Exams, Marksheets & Grading',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Exams, Marksheets & Grading',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              if (_isClassPerformanceLoading)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+            ],
           ),
-          SizedBox(height: 8),
-          Text(
+          const SizedBox(height: 6),
+          const Text(
             'Summative assessment schedules, GPA distribution, report card generation, and board exam tracking.',
             style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
           ),
+          const SizedBox(height: 16),
+          if (classes != null && classes.isNotEmpty) ...[
+            ...classes.take(10).map((c) {
+              if (c is! Map<String, dynamic>) return const SizedBox.shrink();
+              final className = c['className'] ?? c['class'] ?? c['name'] ?? 'Class';
+              final avgMarks = c['averageMarks'] ?? c['avg'] ?? c['average'] ?? '—';
+              final passPct = c['passPercentage'] ?? c['passRate'] ?? c['passPct'] ?? '—';
+              final topScore = c['topScore'] ?? c['highest'] ?? '—';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEF2FF),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.school_rounded, color: Color(0xFF4F46E5), size: 18),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            className.toString(),
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF0F172A)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Pass Rate: $passPct% • Top: $topScore',
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '$avgMarks',
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A)),
+                        ),
+                        const Text(
+                          'Avg Marks',
+                          style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ] else if (!_isClassPerformanceLoading) ...[
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.assignment_outlined, color: Color(0xFF94A3B8), size: 32),
+                    SizedBox(height: 8),
+                    Text(
+                      'No exam performance or marks records available yet.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -11055,73 +9190,143 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
   // --- USERS DIRECTORY VIEW (Matching Web Design with Dashboard / Attendance UI/UX) ---
   // ============================================================================
   Widget _buildUsersView() {
-    final allUsers = UsersDirectoryData.users;
+    final List<UserDirectoryItem> allUsers = _dynamicUsersDirectory.isNotEmpty
+        ? _dynamicUsersDirectory
+        : _dynamicStudentRecords.map((s) {
+            return UserDirectoryItem(
+              name: s['name']?.toString() ?? '',
+              initials: s['initials']?.toString() ?? '',
+              role: 'students',
+              roleLabel: 'Student',
+              branchId: s['branchId']?.toString() ?? '',
+              branchName: s['branchName']?.toString() ?? '',
+              meta: s['meta']?.toString() ?? 'Student',
+              phone: '',
+            );
+          }).toList();
 
-    // Active counts based on current branch selection
-    final totalUsersCount = allUsers
-        .where(
-          (u) =>
-              _usersBranchFilter == 'all' || u.branchId == _usersBranchFilter,
-        )
-        .length;
-    final studentsCount = allUsers
-        .where(
-          (u) =>
-              u.role == 'students' &&
-              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
-        )
-        .length;
-    final teachingCount = allUsers
-        .where(
-          (u) =>
-              u.role == 'teaching' &&
-              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
-        )
-        .length;
-    final nonTeachingCount = allUsers
-        .where(
-          (u) =>
-              u.role == 'non-teaching' &&
-              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
-        )
-        .length;
-    final adminsCount = allUsers
-        .where(
-          (u) =>
-              u.role == 'admins' &&
-              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
-        )
-        .length;
-    final principalsCount = allUsers
-        .where(
-          (u) =>
-              u.role == 'principals' &&
-              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
-        )
-        .length;
-    final parentsCount = allUsers
-        .where(
-          (u) =>
-              u.role == 'parents' &&
-              (_usersBranchFilter == 'all' || u.branchId == _usersBranchFilter),
-        )
-        .length;
+    final branchListForUsers =
+        (_dashboardData?['branches'] as List<dynamic>? ?? []);
+    int dynamicStudents = 0;
+    int dynamicTeaching = 0;
+    int dynamicNonTeaching = 0;
+    int dynamicAdmins = 0;
+    int dynamicPrincipals = 0;
+    int dynamicParents = 0;
 
-    // Count strictly for role + branch (matching web banner behavior)
-    final roleAndBranchCount = allUsers.where((u) {
-      final matchRole = _usersRoleFilter == 'all' || u.role == _usersRoleFilter;
-      final matchBranch =
-          _usersBranchFilter == 'all' || u.branchId == _usersBranchFilter;
-      return matchRole && matchBranch;
-    }).length;
+    bool doesUserMatchBranch(UserDirectoryItem u, String targetSlug, String targetName) {
+      if (u.branchName.isNotEmpty && targetName.isNotEmpty &&
+          u.branchName.toLowerCase().trim() == targetName.toLowerCase().trim()) {
+        return true;
+      }
+      final uSlug = _getBranchSlug(u.branchName.isNotEmpty ? u.branchName : u.branchId);
+      return u.branchId == targetSlug ||
+          uSlug == targetSlug ||
+          (targetSlug.isNotEmpty && u.branchId.toLowerCase().contains(targetSlug.toLowerCase()));
+    }
+
+    if (_dynamicUsersDirectory.isNotEmpty) {
+      final selectedBranchName = _usersBranchFilter != 'all' ? _getBranchLabel(_usersBranchFilter) : '';
+      for (final u in _dynamicUsersDirectory) {
+        if (_usersBranchFilter != 'all') {
+          if (!doesUserMatchBranch(u, _usersBranchFilter, selectedBranchName)) continue;
+        }
+        switch (u.role) {
+          case 'students':
+            dynamicStudents++;
+            break;
+          case 'teaching':
+            dynamicTeaching++;
+            break;
+          case 'non-teaching':
+            dynamicNonTeaching++;
+            break;
+          case 'admins':
+            dynamicAdmins++;
+            break;
+          case 'principals':
+            dynamicPrincipals++;
+            break;
+          case 'parents':
+            dynamicParents++;
+            break;
+          default:
+            break;
+        }
+      }
+    } else {
+      for (final b in branchListForUsers) {
+        if (b is! Map<String, dynamic>) continue;
+        final bSlug = _getBranchSlug(b['name']?.toString() ?? '');
+        if (_usersBranchFilter != 'all' && bSlug != _usersBranchFilter) continue;
+
+        dynamicStudents += (b['students'] as num?)?.toInt() ?? 0;
+        dynamicTeaching +=
+            (b['teachers'] as num?)?.toInt() ??
+            (b['staffTeach'] as num?)?.toInt() ??
+            0;
+        dynamicNonTeaching +=
+            (b['staffNonTeach'] as num?)?.toInt() ??
+            (b['nonTeaching'] as num?)?.toInt() ??
+            0;
+        dynamicAdmins += (b['admins'] as num?)?.toInt() ?? 0;
+        dynamicPrincipals +=
+            (b['principals'] as num?)?.toInt() ??
+            (b['principalCount'] as num?)?.toInt() ??
+            0;
+        dynamicParents += (b['parents'] as num?)?.toInt() ?? 0;
+      }
+    }
+
+    // Active dynamic counts based on live API branch summary
+    final totalUsersCount =
+        dynamicStudents +
+        dynamicTeaching +
+        dynamicNonTeaching +
+        dynamicAdmins +
+        dynamicPrincipals +
+        dynamicParents;
+    final studentsCount = dynamicStudents;
+    final teachingCount = dynamicTeaching;
+    final nonTeachingCount = dynamicNonTeaching;
+    final adminsCount = dynamicAdmins;
+    final principalsCount = dynamicPrincipals;
+    final parentsCount = dynamicParents;
+
+    int roleAndBranchCount;
+    switch (_usersRoleFilter) {
+      case 'students':
+        roleAndBranchCount = studentsCount;
+        break;
+      case 'teaching':
+        roleAndBranchCount = teachingCount;
+        break;
+      case 'non-teaching':
+        roleAndBranchCount = nonTeachingCount;
+        break;
+      case 'admins':
+        roleAndBranchCount = adminsCount;
+        break;
+      case 'principals':
+        roleAndBranchCount = principalsCount;
+        break;
+      case 'parents':
+        roleAndBranchCount = parentsCount;
+        break;
+      default:
+        roleAndBranchCount = totalUsersCount;
+    }
 
     // Filtered user list (incorporating search)
     final filteredUsers = allUsers.where((u) {
       if (_usersRoleFilter != 'all' && u.role != _usersRoleFilter) {
         return false;
       }
-      if (_usersBranchFilter != 'all' && u.branchId != _usersBranchFilter) {
-        return false;
+      if (_usersBranchFilter != 'all') {
+        final selectedBranchName = _getBranchLabel(_usersBranchFilter);
+        if (!doesUserMatchBranch(u, _usersBranchFilter, selectedBranchName)) {
+          return false;
+        }
       }
       if (_usersSearchQuery.isNotEmpty) {
         final q = _usersSearchQuery.toLowerCase();
@@ -11169,22 +9374,19 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
       branchLabel = _getBranchLabel(_usersBranchFilter);
     }
 
-    // Branch breakdown data
-    final branchConfigs = [
-      {'slug': 'steel-plant', 'name': 'Steel Plant Branch'},
-      {'slug': 'gachibowli', 'name': 'Gachibowli Campus'},
-      {'slug': 'maddipalem', 'name': 'Maddipalem'},
-      {'slug': 'kukatpally', 'name': 'Kukatpally Campus'},
-      {'slug': 'kondapur', 'name': 'Kondapur Branch'},
-      {'slug': 'madhapur', 'name': 'Madhapur Branch'},
-    ];
+    // Branch breakdown data (dynamically mapped from live branches)
+    final branchConfigs = branchListForUsers.map((b) {
+      final bMap = b as Map<String, dynamic>;
+      final bName = bMap['name']?.toString() ?? 'Branch';
+      return {'slug': _getBranchSlug(bName), 'name': bName};
+    }).toList();
 
     int maxBranchCount = 1;
     final List<Map<String, dynamic>> branchBreakdown = branchConfigs.map((b) {
       final slug = b['slug']!;
       final name = b['name']!;
       final count = allUsers.where((u) {
-        final matchBranch = u.branchId == slug;
+        final matchBranch = doesUserMatchBranch(u, slug, name);
         final matchRole =
             _usersRoleFilter == 'all' || u.role == _usersRoleFilter;
         return matchBranch && matchRole;
@@ -11344,15 +9546,22 @@ class _ChairmanDashboardScreenState extends State<ChairmanDashboardScreen> {
         const SizedBox(height: 6),
         GestureDetector(
           onTap: () {
-            final branchOptions = [
+            final branchList =
+                _dashboardData?['branches'] as List<dynamic>? ?? [];
+            final branchOptions = <Map<String, String>>[
               {'id': 'all', 'label': 'All branches'},
-              {'id': 'steel-plant', 'label': 'Steel Plant Branch'},
-              {'id': 'gachibowli', 'label': 'Gachibowli Campus'},
-              {'id': 'maddipalem', 'label': 'Maddipalem'},
-              {'id': 'kukatpally', 'label': 'Kukatpally Campus'},
-              {'id': 'kondapur', 'label': 'Kondapur Branch'},
-              {'id': 'madhapur', 'label': 'Madhapur Branch'},
             ];
+            for (final b in branchList) {
+              if (b is Map<String, dynamic>) {
+                final bName = b['name']?.toString() ?? '';
+                if (bName.isNotEmpty) {
+                  branchOptions.add({
+                    'id': _getBranchSlug(bName),
+                    'label': bName,
+                  });
+                }
+              }
+            }
             _showFilterPicker(
               title: 'Select Campus Branch',
               options: branchOptions,
@@ -12219,9 +10428,9 @@ class PerformanceQuadrantPainter extends CustomPainter {
     // Draw branch bubbles dynamically from live data
     if (branches.isNotEmpty) {
       for (final b in branches) {
-        final double colPct = (b['collectionPct'] as num?)?.toDouble() ?? 68.0;
-        final double attPct = (b['attendancePct'] as num?)?.toDouble() ?? 92.0;
-        final int students = (b['students'] as num?)?.toInt() ?? 15;
+        final double colPct = (b['collectionPct'] as num?)?.toDouble() ?? 0.0;
+        final double attPct = (b['attendancePct'] as num?)?.toDouble() ?? 0.0;
+        final int students = (b['students'] as num?)?.toInt() ?? 0;
         final Color col = b['color'] as Color? ?? const Color(0xFF7C3AED);
 
         final bx = ((colPct - 40.0) / 60.0).clamp(0.08, 0.92) * w;

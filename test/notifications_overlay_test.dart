@@ -19,8 +19,25 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: NotificationsDropdownSheet(
-              alerts: const [],
-              approvals: const [],
+              alerts: const [
+                {
+                  'id': 'alt-test-1',
+                  'type': 'Finance',
+                  'branch': 'Gachibowli Campus',
+                  'time': '2h ago',
+                  'level': 'critical',
+                },
+              ],
+              approvals: const [
+                {
+                  'id': 'apr-test-1',
+                  'type': 'Fee Waiver',
+                  'title': 'Hardship fee waiver — 3 students',
+                  'branch': 'Gachibowli Campus',
+                  'age': '166d',
+                  'amount': 45000,
+                },
+              ],
               branches: const [],
               onAlertTap: (al) => selectedAlert = al,
               onApprovalTap: (ap) => selectedApproval = ap,
@@ -50,6 +67,27 @@ void main() {
       await tester.tap(feeWaiverFinder);
       await tester.pump();
       expect(selectedApproval, isNotNull);
+    });
+
+    testWidgets('NotificationsDropdownSheet renders empty states when lists are empty', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: NotificationsDropdownSheet(
+              alerts: const [],
+              approvals: const [],
+              branches: const [],
+              onAlertTap: (_) {},
+              onApprovalTap: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('No critical alerts'), findsOneWidget);
+      expect(find.text('No pending approvals'), findsOneWidget);
     });
 
     testWidgets('BranchNotificationDetailsDialog renders metrics table', (
