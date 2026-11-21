@@ -9,6 +9,7 @@ import '../widgets/floating_particles.dart';
 import '../widgets/forgot_password_dialog.dart';
 import 'chairman_dashboard_screen.dart';
 import 'change_password_screen.dart';
+import 'principal_dashboard_screen.dart';
 
 /// Pixel-perfect Flutter replica of the Stitch role-based web/mobile login screen
 /// connected to real Vriyda Mobile API (Part A - Login, Refresh, Profile, Forgot Password, Change Password).
@@ -103,14 +104,6 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
     if (res.success && res.data != null) {
       final user = res.data!;
 
-      // Check if role is owner or chairman (restrict access during Chairman/Owner phase)
-      if (!user.isOwner) {
-        await SessionManager.clear();
-        if (!mounted) return;
-        _showRoleUnderDevelopmentDialog();
-        return;
-      }
-
       // Check if user must change password first
       if (user.mustChangePassword) {
         Navigator.of(context).pushReplacement(
@@ -121,13 +114,28 @@ class _VriydaLoginScreenState extends State<VriydaLoginScreen>
         return;
       }
 
-      // Route to ChairmanDashboardScreen for Owner / Chairman
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => ChairmanDashboardScreen(user: user),
-        ),
-      );
-      return;
+      // Route based on role
+      if (user.isOwner) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => ChairmanDashboardScreen(user: user),
+          ),
+        );
+        return;
+      } else if (user.isPrincipal) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => PrincipalDashboardScreen(user: user),
+          ),
+        );
+        return;
+      } else {
+        // Other roles under development (e.g., Teacher, Student)
+        await SessionManager.clear();
+        if (!mounted) return;
+        _showRoleUnderDevelopmentDialog();
+        return;
+      }
     } else {
       setState(() => _errorMessage = res.message);
     }
