@@ -38,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _gender = 'Not set';
   String _dateOfBirth = 'Not set';
   String _memberSince = '—';
-  final String _lastLogin = '—';
+  String _lastLogin = '—';
 
   // Change Password state
   final TextEditingController _currentPasswordController = TextEditingController();
@@ -117,27 +117,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final data = res.data!;
         final local = await SessionManager.getProfileDetails();
         setState(() {
-          // Only overwrite if user hasn't explicitly set them locally
-          if (local?['firstName'] == null && data['firstName'] != null && data['firstName'].toString().isNotEmpty) {
-            _firstName = data['firstName'].toString();
+          // 1. First/Last name
+          if (data['firstName'] != null && data['firstName'].toString().trim().isNotEmpty) {
+            _firstName = data['firstName'].toString().trim();
+          } else if (local?['firstName'] != null && local!['firstName'].toString().isNotEmpty) {
+            _firstName = local['firstName'].toString();
           }
-          if (local?['lastName'] == null && data['lastName'] != null && data['lastName'].toString().isNotEmpty) {
-            _lastName = data['lastName'].toString();
+          if (data['lastName'] != null && data['lastName'].toString().trim().isNotEmpty) {
+            _lastName = data['lastName'].toString().trim();
+          } else if (local?['lastName'] != null && local!['lastName'].toString().isNotEmpty) {
+            _lastName = local['lastName'].toString();
           }
-          if (local?['mobile'] == null && data['phone'] != null && data['phone'].toString().isNotEmpty) {
-            _mobile = data['phone'].toString();
+
+          // 2. Mobile & Phone
+          final serverPhone = (data['phone'] ?? data['mobileNo'] ?? data['mobile'])?.toString().trim();
+          if (serverPhone != null && serverPhone.isNotEmpty && serverPhone != 'null') {
+            _mobile = serverPhone;
+          } else if (local?['mobile'] != null && local!['mobile'].toString() != 'Not set') {
+            _mobile = local['mobile'].toString();
           }
-          if (local?['officePhone'] == null && data['officePhone'] != null && data['officePhone'].toString().isNotEmpty) {
-            _officePhone = data['officePhone'].toString();
+
+          // 3. Office Phone
+          final serverOffice = data['officePhone']?.toString().trim();
+          if (serverOffice != null && serverOffice.isNotEmpty && serverOffice != 'null') {
+            _officePhone = serverOffice;
+          } else if (local?['officePhone'] != null && local!['officePhone'].toString() != 'Not set') {
+            _officePhone = local['officePhone'].toString();
           }
-          if (local?['gender'] == null && data['gender'] != null && data['gender'].toString().isNotEmpty) {
-            _gender = data['gender'].toString();
+
+          // 4. Gender
+          final serverGender = data['gender']?.toString().trim();
+          if (serverGender != null && serverGender.isNotEmpty && serverGender != 'null') {
+            _gender = serverGender;
+          } else if (local?['gender'] != null && local!['gender'].toString() != 'Not set') {
+            _gender = local['gender'].toString();
           }
-          if (local?['dateOfBirth'] == null && data['dateOfBirth'] != null && data['dateOfBirth'].toString().isNotEmpty) {
-            _dateOfBirth = data['dateOfBirth'].toString();
+
+          // 5. Date of Birth (support birthDate, date_of_birth, dateOfBirth, dob)
+          final rawDob = (data['birthDate'] ??
+                  data['date_of_birth'] ??
+                  data['dateOfBirth'] ??
+                  data['dob'])
+              ?.toString()
+              .trim();
+          if (rawDob != null && rawDob.isNotEmpty && rawDob != 'null' && rawDob != 'Not set') {
+            _dateOfBirth = rawDob;
+          } else if (local != null &&
+              local['dateOfBirth'] != null &&
+              local['dateOfBirth'].toString() != 'Not set' &&
+              local['dateOfBirth'].toString().isNotEmpty) {
+            _dateOfBirth = local['dateOfBirth'].toString();
           }
-          if (data['createdAt'] != null) {
-            _memberSince = data['createdAt'].toString();
+
+          // 6. Member since & Last Login
+          final memberDate = (data['createdAt'] ?? data['creation'] ?? data['memberSince'])?.toString();
+          if (memberDate != null && memberDate.isNotEmpty && memberDate != 'null') {
+            _memberSince = memberDate.split('T').first.split(' ').first;
+          }
+
+          final lastLog = (data['lastLogin'] ?? data['last_login'])?.toString();
+          if (lastLog != null && lastLog.isNotEmpty && lastLog != 'null') {
+            _lastLogin = lastLog.split('T').first;
           }
         });
       }
@@ -464,18 +504,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         final mob = mobileCtrl.text.trim();
                         final off = officeCtrl.text.trim();
                         final gen = selectedGender;
-                        final dobFormatted = selectedDob != null
-                            ? "${selectedDob!.day.toString().padLeft(2, '0')}/${selectedDob!.month.toString().padLeft(2, '0')}/${selectedDob!.year}"
-                            : (_dateOfBirth != 'Not set' ? _dateOfBirth : '');
+
+                        // ISO date format for backend: YYYY-MM-DD
+                        String? apiDob;
+                        if (selectedDob != null) {
+                          final y = selectedDob!.year.toString().padLeft(4, '0');
+                          final m = selectedDob!.month.toString().padLeft(2, '0');
+                          final d = selectedDob!.day.toString().padLeft(2, '0');
+                          apiDob = '$y-$m-$d';
+                        } else if (_dateOfBirth != 'Not set' && _dateOfBirth.isNotEmpty) {
+                          final parsed = _parseDate(_dateOfBirth);
+                          if (parsed != null) {
+                            final y = parsed.year.toString().padLeft(4, '0');
+                            final m = parsed.month.toString().padLeft(2, '0');
+                            final d = parsed.day.toString().padLeft(2, '0');
+                            apiDob = '$y-$m-$d';
+                          } else {
+                            apiDob = _dateOfBirth;
+                          }
+                        }
 
                         final newFirstName = fName.isNotEmpty ? fName : _firstName;
                         final newLastName = lName.isNotEmpty ? lName : _lastName;
                         final newMobile = mob.isNotEmpty ? mob : 'Not set';
                         final newOffice = off.isNotEmpty ? off : 'Not set';
                         final newGender = gen.isNotEmpty && gen != 'Not set' ? gen : 'Not set';
-                        final newDob = dobFormatted.isNotEmpty && dobFormatted != 'Not set'
-                            ? dobFormatted
-                            : 'Not set';
+                        final newDob = apiDob != null && apiDob.isNotEmpty ? apiDob : 'Not set';
 
                         // 1. Permanently save to local storage
                         await SessionManager.saveProfileDetails({
