@@ -162,64 +162,70 @@ class PeopleOpsView extends StatelessWidget {
     return Column(
       children: [
         // Row 1: Classrooms, Digital Classrooms, Labs
-        Row(
-          children: [
-            Expanded(
-              child: _buildResourceKpiCard(
-                label: 'CLASSROOMS',
-                value: classrooms > 0 ? '$classrooms' : '—',
-                subtext: '$seats seats · $campusesWithClassrooms campus',
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildResourceKpiCard(
+                  label: 'CLASSROOMS',
+                  value: classrooms > 0 ? '$classrooms' : '—',
+                  subtext: '$seats seats · $campusesWithClassrooms campus',
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildResourceKpiCard(
-                label: 'DIGITAL CLASSROOMS',
-                value: digitalClassrooms > 0 ? '$digitalClassrooms' : '—',
-                subtext: '$digitalPct% of classrooms',
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildResourceKpiCard(
+                  label: 'DIGITAL CLASSROOMS',
+                  value: digitalClassrooms > 0 ? '$digitalClassrooms' : '—',
+                  subtext: '$digitalPct% of classrooms',
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildResourceKpiCard(
-                label: 'LABS',
-                value: (scienceLabs + computerLabs) > 0
-                    ? '${scienceLabs + computerLabs}'
-                    : '—',
-                subtext: '$scienceLabs science · $computerLabs computer',
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildResourceKpiCard(
+                  label: 'LABS',
+                  value: (scienceLabs + computerLabs) > 0
+                      ? '${scienceLabs + computerLabs}'
+                      : '—',
+                  subtext: '$scienceLabs science · $computerLabs computer',
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 8),
 
         // Row 2: Buses, Hostel Beds, Library Copies
-        Row(
-          children: [
-            Expanded(
-              child: _buildResourceKpiCard(
-                label: 'BUSES',
-                value: buses > 0 ? '$buses' : '—',
-                subtext: '$busRoutes routes · $busSeats seats',
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildResourceKpiCard(
+                  label: 'BUSES',
+                  value: buses > 0 ? '$buses' : '—',
+                  subtext: '$busRoutes routes · $busSeats seats',
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildResourceKpiCard(
-                label: 'HOSTEL BEDS',
-                value: hostelBeds > 0 ? '$hostelBeds' : '—',
-                subtext: '$hostelOccupied occupied',
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildResourceKpiCard(
+                  label: 'HOSTEL BEDS',
+                  value: hostelBeds > 0 ? '$hostelBeds' : '—',
+                  subtext: '$hostelOccupied occupied',
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildResourceKpiCard(
-                label: 'LIBRARY COPIES',
-                value: libraryCopies > 0 ? '$libraryCopies' : '—',
-                subtext: 'catalogued copies',
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildResourceKpiCard(
+                  label: 'LIBRARY COPIES',
+                  value: libraryCopies > 0 ? '$libraryCopies' : '—',
+                  subtext: 'catalogued copies',
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -231,7 +237,8 @@ class PeopleOpsView extends StatelessWidget {
     required String subtext,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      height: 88,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -246,34 +253,44 @@ class PeopleOpsView extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 9.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.4,
+          SizedBox(
+            height: 24,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 9.0,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
+                  height: 1.15,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 6),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: value == '—' ? const Color(0xFF94A3B8) : const Color(0xFF0F172A),
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
+              letterSpacing: -0.4,
             ),
           ),
-          const SizedBox(height: 4),
           Text(
             subtext,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFF64748B),
-              fontSize: 9.5,
+              fontSize: 9.0,
               fontWeight: FontWeight.w500,
             ),
           ),
